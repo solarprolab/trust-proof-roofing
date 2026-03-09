@@ -54,7 +54,7 @@ const teamMembers = [
     name: 'Robert DiMaggio',
     role: 'Founder & Master Roofer',
     years: '20+ years',
-    bio: 'Born and raised in Suffield, Robert founded Trust Proof Roofing in 2004 with one truck and a commitment to honest, quality work. He personally oversees every major project.',
+    bio: 'Born and raised in Suffield, Robert founded Trust Proof Roofing with one truck and a commitment to honest, quality work. He personally oversees every major project.',
   },
   {
     name: 'Kevin Patel',
@@ -75,7 +75,7 @@ export default function About() {
     <>
       <PageHero
         title="About Trust Proof Roofing"
-        subtitle="A local Connecticut company built on integrity, craftsmanship, and community since 2004."
+        subtitle="A local Connecticut company built on integrity, craftsmanship, and community."
       />
 
       {/* Story */}
@@ -86,7 +86,7 @@ export default function About() {
               <h2 className="text-2xl font-black text-[#1B3A6B] mb-4">Our Story</h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  Trust Proof Roofing was founded in 2004 by Robert DiMaggio, a Suffield native who grew up watching his father repair roofs on weekends. What started as a one-man operation serving neighbors in Hartford County has grown into one of Connecticut's most respected roofing companies.
+                  Trust Proof Roofing was founded by Robert DiMaggio, a Suffield native who grew up watching his father repair roofs on weekends. What started as a one-man operation serving neighbors in Hartford County has grown into one of Connecticut's most respected roofing companies.
                 </p>
                 <p>
                   We've installed and repaired over 1,500 roofs across Suffield, Windsor, Enfield, Granby, and the greater Hartford area. Through every New England winter, nor'easter, and summer storm, our work has held up — and our warranty makes sure it stays that way.
@@ -100,7 +100,7 @@ export default function About() {
             {/* Stats */}
             <div className="bg-[#f5f6f8] rounded-2xl p-8 grid grid-cols-2 gap-6">
               {[
-                { value: '2004', label: 'Founded in Suffield, CT' },
+                { value: '10+', label: 'Years Experience' },
                 { value: '1,500+', label: 'Roofs Completed' },
                 { value: '4.9/5', label: 'Customer Rating' },
                 { value: '20yr', label: 'Leak Warranty' },

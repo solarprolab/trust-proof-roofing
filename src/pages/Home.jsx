@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import WarrantyBadge from '../components/WarrantyBadge'
 import StarRating from '../components/StarRating'
+import StepEstimator from '../components/StepEstimator'
 
 const trustBadges = [
   {
@@ -116,10 +117,10 @@ export default function Home() {
               Get Your Free Quote
             </Link>
             <a
-              href="tel:+18605550192"
+              href="tel:+19593338569"
               className="border-2 border-white hover:bg-white hover:text-[#1B3A6B] text-white font-bold text-lg px-8 py-4 rounded-full transition-all"
             >
-              Call (860) 555-0192
+              Call (959) 333-8569
             </a>
           </div>
 
@@ -186,6 +187,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Step Estimator */}
+      <StepEstimator variant="homepage" />
+
       {/* Warranty Callout */}
       <section className="bg-[#1B3A6B] py-14 text-white text-center px-4">
         <div className="max-w-3xl mx-auto">
@@ -245,7 +249,7 @@ export default function Home() {
               Calculate My Quote
             </Link>
             <a
-              href="tel:+18605550192"
+              href="tel:+19593338569"
               className="border-2 border-[#1B3A6B] hover:bg-[#1B3A6B] hover:text-white text-[#1B3A6B] font-bold px-8 py-3 rounded-full transition-all"
             >
               Call Us Now

@@ -9,8 +9,8 @@ const contactInfo = [
       </svg>
     ),
     label: 'Phone',
-    value: '(860) 555-0192',
-    href: 'tel:+18605550192',
+    value: '(959) 333-8569',
+    href: 'tel:+19593338569',
   },
   {
     icon: (
@@ -19,8 +19,8 @@ const contactInfo = [
       </svg>
     ),
     label: 'Email',
-    value: 'info@trustproofroofing.com',
-    href: 'mailto:info@trustproofroofing.com',
+    value: 'tenzin@trustproofroofing.com',
+    href: 'mailto:tenzin@trustproofroofing.com',
   },
   {
     icon: (
@@ -30,7 +30,7 @@ const contactInfo = [
       </svg>
     ),
     label: 'Address',
-    value: '123 Hartford Rd, Suffield, CT 06078',
+    value: 'Suffield, CT 06078',
     href: null,
   },
   {
@@ -55,6 +55,11 @@ export default function Contact() {
 
   function handleSubmit(e) {
     e.preventDefault()
+    const subject = encodeURIComponent('Contact Form — Trust Proof Roofing')
+    const body = encodeURIComponent(
+      `Name: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\nService: ${form.service}\nMessage: ${form.message}`
+    )
+    window.location.href = `mailto:tenzin@trustproofroofing.com?subject=${subject}&body=${body}`
     setSubmitted(true)
   }
 
@@ -110,7 +115,7 @@ export default function Contact() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <h3 className="font-bold text-green-800 text-lg mb-2">Message Received!</h3>
-                  <p className="text-green-700 text-sm">We'll be in touch within one business day. For urgent needs, please call us directly at (860) 555-0192.</p>
+                  <p className="text-green-700 text-sm">We'll be in touch within one business day. For urgent needs, please call us directly at (959) 333-8569.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
