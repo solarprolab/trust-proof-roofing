@@ -19,8 +19,8 @@ const contactInfo = [
       </svg>
     ),
     label: 'Email',
-    value: 'tenzin@trustproofroofing.com',
-    href: 'mailto:tenzin@trustproofroofing.com',
+    value: 'info@trustproofroofing.com',
+    href: 'mailto:info@trustproofroofing.com',
   },
   {
     icon: (
@@ -59,7 +59,7 @@ export default function Contact() {
     const body = encodeURIComponent(
       `Name: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\nService: ${form.service}\nMessage: ${form.message}`
     )
-    window.location.href = `mailto:tenzin@trustproofroofing.com?subject=${subject}&body=${body}`
+    window.location.href = `mailto:info@trustproofroofing.com?subject=${subject}&body=${body}`
     setSubmitted(true)
   }
 

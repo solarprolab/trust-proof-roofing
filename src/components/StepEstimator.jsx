@@ -77,7 +77,7 @@ export default function StepEstimator({ variant = 'homepage' }) {
     const body = encodeURIComponent(
       `New estimate request from website:\n\nAddress: ${address}\nService: ${serviceLabel}\nRoof Size: ${sizeLabel}\nMaterial: ${materialLabel}\nRoof Pitch: ${pitchLabel}\nEstimate Range: ${formatCurrency(low)} – ${formatCurrency(high)}\n\nPlease contact me to discuss further.`
     )
-    return `mailto:tenzin@trustproofroofing.com?subject=${subject}&body=${body}`
+    return `mailto:info@trustproofroofing.com?subject=${subject}&body=${body}`
   }
 
   function canNext() {
