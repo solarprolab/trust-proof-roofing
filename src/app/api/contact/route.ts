@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert lead into Supabase
-    await supabase.from('leads').insert([
+    await getSupabase().from('leads').insert([
       { name, email, phone, service: service || null, message: message || null, source: 'website' },
     ]);
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     // Notification email to owner
     await resend.emails.send({
-      from: 'leads@trustproofroofing.com',
+      from: 'leads@solarprolab.com',
       to: 'info@trustproofroofing.com',
       subject: `New Lead: ${name} — ${service || 'General Inquiry'}`,
       html: `
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     // Confirmation email to customer
     await resend.emails.send({
-      from: 'noreply@trustproofroofing.com',
+      from: 'noreply@solarprolab.com',
       to: email,
       subject: `We received your request, ${firstName}!`,
       html: `
