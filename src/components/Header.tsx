@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { SITE } from '@/lib/config';
 
 export default function Header() {
@@ -18,7 +19,7 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <span className="text-3xl" aria-hidden="true">🛡️</span>
+          <Image src="/logo.png" alt="Trust Proof Roofing" width={48} height={48} />
           <div>
             <div className="text-white font-bold text-xl leading-tight font-heading">{SITE.name}</div>
             <div className="text-brand-300 text-xs">{SITE.tagline}</div>

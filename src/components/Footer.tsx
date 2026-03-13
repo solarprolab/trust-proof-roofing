@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { SITE, SERVICES } from '@/lib/config';
 import { CT_CITIES } from '@/data/cityPages';
 
@@ -12,7 +13,7 @@ export default function Footer() {
           {/* Brand + NAP */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">🛡️</span>
+              <Image src="/logo.png" alt="Trust Proof Roofing" width={36} height={36} />
               <span className="text-white font-bold text-lg font-heading">{SITE.name}</span>
             </div>
             <p className="text-sm text-gray-400 mb-4">{SITE.tagline}</p>
