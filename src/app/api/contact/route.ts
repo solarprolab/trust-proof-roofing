@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Insert lead into Supabase
     await getSupabase().from('leads').insert([
-      { name, email, phone, service: service || null, message: message || null, source: 'website' },
+      { name, email, phone, service: service || null, message: message || null, source: 'Website Form', stage: 'new' },
     ]);
 
     const firstName = name.split(' ')[0];
