@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     // Notification email to owner
     await resend.emails.send({
-      from: 'leads@solarprolab.com',
+      from: 'leads@trustproofroofing.com',
       to: 'info@trustproofroofing.com',
       subject: `New Lead: ${name} — ${service || 'General Inquiry'}`,
       html: `
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     // Confirmation email to customer
     await resend.emails.send({
-      from: 'noreply@solarprolab.com',
+      from: 'noreply@trustproofroofing.com',
       to: email,
       subject: `We received your request, ${firstName}!`,
       html: `
