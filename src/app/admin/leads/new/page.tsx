@@ -40,7 +40,8 @@ export default function NewLead() {
       ...form,
       estimated_value: form.estimated_value ? parseFloat(form.estimated_value) : null,
     };
-    await fetch('/api/admin/leads', {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trustproofroofing.com';
+    await fetch(`${baseUrl}/api/admin/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

@@ -47,7 +47,8 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/admin/leads')
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trustproofroofing.com';
+    fetch(`${baseUrl}/api/admin/leads`)
       .then(r => r.json())
       .then(data => {
         if (data.error) {

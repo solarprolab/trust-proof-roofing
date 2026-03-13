@@ -12,7 +12,8 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const res = await fetch('/api/admin/auth', {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trustproofroofing.com';
+    const res = await fetch(`${baseUrl}/api/admin/auth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
