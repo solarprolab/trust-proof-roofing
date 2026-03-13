@@ -1,21 +1,7 @@
-'use client';
-import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-
-type Lead = {
-  id: string;
-  created_at: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  service: string;
-  stage: string;
-  estimated_value: number | null;
-  follow_up_date: string | null;
-  source: string;
-};
+import KanbanBoard from '../components/KanbanBoard';
+import LogoutButton from '../components/LogoutButton';
 
 const STAGES = ['new', 'contacted', 'quoted', 'won', 'lost'] as const;
 const STAGE_LABELS: Record<string, string> = {
@@ -25,80 +11,36 @@ const STAGE_LABELS: Record<string, string> = {
   won: 'Won',
   lost: 'Lost',
 };
-const STAGE_HEADER: Record<string, string> = {
-  new: 'bg-blue-600',
-  contacted: 'bg-amber-500',
-  quoted: 'bg-purple-600',
-  won: 'bg-green-600',
-  lost: 'bg-red-600',
-};
-const STAGE_BOARD: Record<string, string> = {
-  new: 'bg-blue-50 border-blue-200',
-  contacted: 'bg-amber-50 border-amber-200',
-  quoted: 'bg-purple-50 border-purple-200',
-  won: 'bg-green-50 border-green-200',
-  lost: 'bg-red-50 border-red-200',
-};
 
-export default function Dashboard() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const router = useRouter();
+export default async function Dashboard() {
+  const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trustproofroofing.com';
-    fetch(`${baseUrl}/api/admin/leads`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) {
-          setFetchError(data.error);
-        } else {
-          setLeads(Array.isArray(data) ? data : []);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        setFetchError(String(err));
-        setLoading(false);
-      });
-  }, []);
+  const { data: leads, error } = await supabase
+    .from('leads')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-  function logout() {
-    document.cookie = 'admin_auth=; max-age=0; path=/';
-    router.push('/admin');
-  }
-
-  const pipelineValue = leads
-    .filter(l => l.stage !== 'lost')
-    .reduce((sum, l) => sum + (l.estimated_value || 0), 0);
-
-  const countByStage = (stage: string) => leads.filter(l => l.stage === stage).length;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f2340] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
-
-  if (fetchError) {
+  if (error) {
     return (
       <div className="min-h-screen bg-[#0f2340] flex items-center justify-center p-8">
         <div className="bg-red-900/50 border border-red-500 rounded-2xl p-8 max-w-lg w-full">
           <h2 className="text-red-300 font-bold text-lg mb-3">Failed to load leads</h2>
-          <p className="text-red-200 text-sm font-mono break-all">{fetchError}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-6 bg-red-500 hover:bg-red-400 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors"
-          >
-            Retry
-          </button>
+          <p className="text-red-200 text-sm font-mono break-all">{error.message}</p>
         </div>
       </div>
     );
   }
+
+  const safeLeads = leads ?? [];
+
+  const pipelineValue = safeLeads
+    .filter(l => l.stage !== 'lost')
+    .reduce((sum: number, l: { estimated_value: number | null }) => sum + (l.estimated_value || 0), 0);
+
+  const countByStage = (stage: string) => safeLeads.filter((l: { stage: string }) => l.stage === stage).length;
 
   return (
     <div className="min-h-screen bg-[#0f2340] text-white flex flex-col">
@@ -121,19 +63,14 @@ export default function Dashboard() {
           >
             + Add Lead
           </Link>
-          <button
-            onClick={logout}
-            className="text-blue-300 hover:text-white text-sm transition-colors"
-          >
-            Logout
-          </button>
+          <LogoutButton />
         </div>
       </div>
 
       {/* Stats bar */}
       <div className="px-6 py-4 grid grid-cols-3 md:grid-cols-7 gap-3 flex-shrink-0">
         <div className="bg-[#1e3a5f] rounded-xl p-4">
-          <div className="text-2xl font-bold">{leads.length}</div>
+          <div className="text-2xl font-bold">{safeLeads.length}</div>
           <div className="text-xs text-blue-300 mt-1">Total</div>
         </div>
         {STAGES.map(stage => (
@@ -149,53 +86,7 @@ export default function Dashboard() {
       </div>
 
       {/* Kanban */}
-      <div className="px-6 pb-6 flex gap-4 overflow-x-auto flex-1">
-        {STAGES.map(stage => {
-          const stageLeads = leads.filter(l => l.stage === stage);
-          return (
-            <div key={stage} className="flex-shrink-0 w-72 flex flex-col">
-              <div className={`${STAGE_HEADER[stage]} rounded-t-xl px-4 py-3 flex items-center justify-between`}>
-                <span className="font-bold text-white text-sm">{STAGE_LABELS[stage]}</span>
-                <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  {stageLeads.length}
-                </span>
-              </div>
-              <div
-                className={`${STAGE_BOARD[stage]} border rounded-b-xl overflow-y-auto p-3 space-y-3 flex-1`}
-                style={{ minHeight: '300px', maxHeight: 'calc(100vh - 280px)' }}
-              >
-                {stageLeads.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center pt-8">No leads</p>
-                )}
-                {stageLeads.map(lead => (
-                  <Link key={lead.id} href={`/admin/leads/${lead.id}`}>
-                    <div className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-100 mb-3">
-                      <div className="font-semibold text-gray-900 text-sm">{lead.name}</div>
-                      {lead.city && (
-                        <div className="text-xs text-gray-500 mt-0.5">{lead.city}</div>
-                      )}
-                      {lead.service && (
-                        <div className="text-xs bg-blue-50 text-blue-700 rounded px-2 py-0.5 mt-1.5 inline-block">
-                          {lead.service}
-                        </div>
-                      )}
-                      <div className="text-xs text-gray-500 mt-2">{lead.phone}</div>
-                      {lead.estimated_value ? (
-                        <div className="text-xs text-green-700 font-semibold mt-1">
-                          ${lead.estimated_value.toLocaleString()}
-                        </div>
-                      ) : null}
-                      <div className="text-xs text-gray-400 mt-1">
-                        {new Date(lead.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <KanbanBoard leads={safeLeads} />
     </div>
   );
 }

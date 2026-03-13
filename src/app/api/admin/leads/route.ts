@@ -1,5 +1,3 @@
-export const runtime = 'edge';
-
 const SUPABASE_URL = 'https://cabsxmqewbnyylzbzbp.supabase.com';
 
 function getKey() {
