@@ -72,7 +72,7 @@ export default function Footer() {
             </ul>
             <a
               href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-              className="inline-block bg-accent-500 hover:bg-accent-600 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
+              className="inline-block bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
             >
               {SITE.phone}
             </a>

@@ -201,7 +201,7 @@ export default function CityPage({ params }: { params: { city: string } }) {
           <h2 className="font-heading text-3xl font-bold mb-4">Free Roof Inspection in {city.city}</h2>
           <p className="text-brand-200 mb-8">Honest assessment, written estimate, zero obligation. Serving {city.city} and all of {city.county} County.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-500 hover:bg-accent-600 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
+            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors">
               Call {SITE.phone}
             </a>
             <Link href="/contact" className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">

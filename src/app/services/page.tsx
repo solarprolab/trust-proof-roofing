@@ -76,7 +76,7 @@ export default function ServicesPage() {
           <h2 className="font-heading text-3xl font-bold text-brand-800 mb-4">Free Roof Inspection — Zero Obligation</h2>
           <p className="text-gray-600 mb-8">We inspect your roof and tell you exactly what it needs. No upselling, no pressure. Just an honest professional assessment.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="tel:9593338569" className="bg-accent-500 hover:bg-accent-600 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
+            <a href="tel:9593338569" className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors">
               Call (959) 333-8569
             </a>
             <Link href="/contact" className="bg-brand-600 hover:bg-brand-700 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">

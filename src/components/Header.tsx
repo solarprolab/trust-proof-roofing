@@ -38,7 +38,7 @@ export default function Header() {
           </Link>
           <a
             href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-            className="bg-accent-500 hover:bg-accent-600 text-white font-bold px-5 py-2.5 rounded-lg transition-colors"
+            className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-5 py-2.5 rounded-lg transition-colors"
           >
             Free Estimate
           </a>
@@ -47,7 +47,7 @@ export default function Header() {
         {/* Mobile CTA */}
         <a
           href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-          className="md:hidden bg-accent-500 hover:bg-accent-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+          className="md:hidden bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-4 py-2 rounded-lg text-sm transition-colors"
         >
           Call Now
         </a>

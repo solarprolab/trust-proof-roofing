@@ -38,26 +38,34 @@ export default function HomePage() {
       <section className="relative bg-brand-800 min-h-[70vh] flex items-center">
         <div className="hero-gradient absolute inset-0" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-24 text-white">
+          {/* Warranty badge */}
+          <div className="inline-flex items-center gap-2 bg-accent-400 text-gray-900 font-bold px-5 py-2 rounded-full mb-6">
+            <span className="text-lg">✓</span>
+            <div>
+              <div className="text-sm font-extrabold tracking-wide">20-YEAR LEAK WARRANTY</div>
+              <div className="text-xs font-medium opacity-80">INDUSTRY LEADING PROTECTION</div>
+            </div>
+          </div>
           <h1 className="font-heading text-5xl md:text-6xl font-bold leading-tight mb-6">
-            Roofing You Can Trust<br />
-            <span className="text-accent-400">Backed by Proof</span>
+            Connecticut&apos;s Most Trusted<br />
+            <span className="text-accent-400">Roofing Company</span>
           </h1>
           <p className="text-xl text-brand-100 max-w-2xl mb-8">
-            Connecticut&apos;s honest roofing contractor. We inspect your roof and tell you exactly what it needs — no upselling, no pressure. Licensed, insured, and committed to quality work that lasts.
+            Proudly serving Suffield, CT and surrounding communities. Quality roofing backed by our industry-leading 20-year leak warranty.
           </p>
           <div className="flex flex-wrap gap-4">
+            <Link
+              href="/contact"
+              className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors"
+            >
+              Get Your Free Quote
+            </Link>
             <a
               href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-              className="bg-accent-500 hover:bg-accent-600 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors"
+              className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors"
             >
               Call {SITE.phone}
             </a>
-            <Link
-              href="/services"
-              className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors"
-            >
-              View Services
-            </Link>
           </div>
         </div>
       </section>
@@ -169,7 +177,7 @@ export default function HomePage() {
           <h2 className="font-heading text-4xl font-bold mb-4">Ready for an Honest Roof Assessment?</h2>
           <p className="text-brand-200 text-lg mb-8">Free inspection, free estimate. No sales pressure. We tell you what your roof actually needs.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-500 hover:bg-accent-600 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
+            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors">
               Call {SITE.phone}
             </a>
             <Link href="/contact" className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">

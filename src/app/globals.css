@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --brand-600: #276e4f;
-  --brand-700: #205941;
-  --brand-800: #1c4735;
-  --accent-500: #e98825;
+  --brand-600: #1B3A6B;
+  --brand-700: #152e55;
+  --brand-800: #122a52;
+  --accent-500: #eab308;
 }
 
 html { scroll-behavior: smooth; }
@@ -17,7 +17,7 @@ body {
 }
 
 .hero-gradient {
-  background: linear-gradient(135deg, rgba(28,71,53,0.92) 0%, rgba(32,89,65,0.85) 50%, rgba(54,138,99,0.78) 100%);
+  background: linear-gradient(135deg, rgba(18,42,82,0.92) 0%, rgba(27,58,107,0.85) 50%, rgba(58,111,160,0.78) 100%);
 }
 
 details summary { cursor: pointer; list-style: none; }
