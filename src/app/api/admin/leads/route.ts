@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-function getSupabase() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
 export async function GET() {
   console.log('[admin/leads] SUPABASE_URL prefix:', process.env.SUPABASE_URL?.slice(0, 10));
   console.log('[admin/leads] SUPABASE_SERVICE_ROLE_KEY prefix:', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10));
   try {
-    const supabase = getSupabase();
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     const { data, error } = await supabase
       .from('leads')
       .select('*')
@@ -29,7 +25,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = getSupabase();
+  const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   const body = await req.json();
   const { data, error } = await supabase.from('leads').insert([body]).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

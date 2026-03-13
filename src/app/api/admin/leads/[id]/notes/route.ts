@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-function getSupabase() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const supabase = getSupabase();
+  const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   const { data, error } = await supabase
     .from('lead_notes')
     .select('*')
@@ -26,7 +22,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const supabase = getSupabase();
+  const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   const { content } = await req.json();
   const { data, error } = await supabase
     .from('lead_notes')

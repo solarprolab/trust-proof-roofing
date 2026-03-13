@@ -43,16 +43,24 @@ const STAGE_BOARD: Record<string, string> = {
 export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     fetch('/api/admin/leads')
       .then(r => r.json())
       .then(data => {
-        setLeads(Array.isArray(data) ? data : []);
+        if (data.error) {
+          setFetchError(data.error);
+        } else {
+          setLeads(Array.isArray(data) ? data : []);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(err => {
+        setFetchError(String(err));
+        setLoading(false);
+      });
   }, []);
 
   function logout() {
@@ -70,6 +78,23 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-[#0f2340] flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-[#0f2340] flex items-center justify-center p-8">
+        <div className="bg-red-900/50 border border-red-500 rounded-2xl p-8 max-w-lg w-full">
+          <h2 className="text-red-300 font-bold text-lg mb-3">Failed to load leads</h2>
+          <p className="text-red-200 text-sm font-mono break-all">{fetchError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 bg-red-500 hover:bg-red-400 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
