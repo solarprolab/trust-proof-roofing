@@ -1,3 +1,4 @@
+// Site configuration
 export const SITE = {
   name: 'Trust Proof Roofing',
   tagline: 'Roofing You Can Trust — Backed by Proof',
