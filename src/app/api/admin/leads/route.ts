@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const SUPABASE_URL = 'https://cabsxmqewbnyylzbzbp.supabase.com';
-
 function getHeaders() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   return {
@@ -14,12 +12,13 @@ function getHeaders() {
 export async function GET() {
   try {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    console.log('SUPABASE_SERVICE_ROLE_KEY prefix:', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10));
     if (!key) {
       return NextResponse.json({ error: 'Missing env var: SUPABASE_SERVICE_ROLE_KEY' }, { status: 500 });
     }
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?select=*&order=created_at.desc`,
+      'https://cabsxmqewbnyylzbzbp.supabase.com/rest/v1/leads?select=*&order=created_at.desc',
       { headers: getHeaders() }
     );
 
@@ -40,7 +39,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads`,
+      'https://cabsxmqewbnyylzbzbp.supabase.com/rest/v1/leads',
       {
         method: 'POST',
         headers: { ...getHeaders(), 'Prefer': 'return=representation' },
