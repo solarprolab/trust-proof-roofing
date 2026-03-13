@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { SITE } from '@/lib/config';
 
 export default function Header() {
@@ -19,7 +18,11 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <Image src="/logo.jpg" alt="Trust Proof Roofing" width={48} height={48} />
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,5 95,40 95,95 5,95 5,40" fill="#1e3a5f" stroke="none"/>
+            <polygon points="50,15 85,43 85,85 15,85 15,43" fill="none" stroke="#f5c518" strokeWidth="4"/>
+            <polyline points="28,60 44,76 72,42" stroke="#f5c518" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
           <div>
             <div className="text-white font-bold text-xl leading-tight font-heading">{SITE.name}</div>
             <div className="text-brand-300 text-xs">{SITE.tagline}</div>
