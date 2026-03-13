@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/admin') && pathname !== '/admin') {
+  if (pathname.startsWith('/admin') && pathname !== '/admin' && !pathname.startsWith('/api/')) {
     const authCookie = request.cookies.get('admin_auth');
     if (!authCookie || authCookie.value !== 'authenticated') {
       return NextResponse.redirect(new URL('/admin', request.url));
