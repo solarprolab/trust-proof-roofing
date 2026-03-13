@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-600: #276e4f;
+  --brand-700: #205941;
+  --brand-800: #1c4735;
+  --accent-500: #e98825;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(28,71,53,0.92) 0%, rgba(32,89,65,0.85) 50%, rgba(54,138,99,0.78) 100%);
+}
+
+details summary { cursor: pointer; list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+details[open] summary .faq-chevron { transform: rotate(180deg); }
+.faq-chevron { transition: transform 0.2s ease; }
+
+section { scroll-margin-top: 5rem; }
