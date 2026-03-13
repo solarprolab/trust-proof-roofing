@@ -13,7 +13,7 @@ const faqItems = [
   { q: 'How do I know if I need a new roof?', a: 'Look for missing or curling shingles, granules in your gutters, daylight in the attic, water stains on ceilings, or a roof over 20 years old. A free inspection from Trust Proof Roofing will give you a clear, honest answer.' },
   { q: 'How much does a roof replacement cost in Connecticut?', a: 'Most CT homeowners pay $8,000–$25,000 for a full roof replacement, depending on size, pitch, and materials. We provide free, detailed written estimates with no obligation.' },
   { q: 'How long does a roof last in Connecticut?', a: 'Architectural asphalt shingles last 25–30 years in CT conditions. Metal roofing lasts 40–70 years. Factors like attic ventilation, tree coverage, and coastal exposure all affect lifespan.' },
-  { q: 'Do you offer any warranty?', a: 'Yes. We provide a 10-year workmanship warranty on all installations, plus manufacturer warranties up to 50 years on qualifying shingle products. Both are transferable to new owners.' },
+  { q: 'Do you offer any warranty?', a: 'Yes. We provide a 20-year leak warranty on all roof replacements and a 1-year warranty on repairs, plus manufacturer warranties up to 50 years on qualifying shingle products. Both are transferable to new owners.' },
   { q: 'Are you licensed and insured in Connecticut?', a: `Yes. We hold CT Home Improvement Contractor license ${SITE.license} and carry full general liability and workers\' compensation insurance. We can provide certificates on request.` },
   { q: 'How long does a roof replacement take?', a: 'Most residential replacements in CT are completed in 1–3 days. We give you a firm timeline upfront and keep you updated throughout.' },
   { q: 'Do you offer free estimates?', a: 'Yes, always. We provide free roof inspections and written estimates with no sales pressure. We tell you what your roof actually needs — even if that\'s just a repair.' },
@@ -69,7 +69,7 @@ export default function HomePage() {
             {[
               { icon: '🏅', label: 'Licensed & Insured', sub: `CT ${SITE.license}` },
               { icon: '🔍', label: 'Free Inspections', sub: '$0 — No Obligation' },
-              { icon: '🛡️', label: 'Warranty', sub: '10-Year Workmanship' },
+              { icon: '🛡️', label: 'Warranty', sub: '20-Year Leak Warranty' },
               { icon: '📍', label: 'CT Experts', sub: 'Serving All of Connecticut' },
             ].map((item) => (
               <div key={item.label}>
@@ -113,7 +113,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { icon: '✅', title: 'Honest Assessments', desc: 'We tell you what your roof actually needs — even when that means recommending a repair instead of a replacement. No upselling, no pressure, no fear tactics.' },
-              { icon: '🔨', title: 'Quality You Can See', desc: 'We use premium materials, follow manufacturer installation specs precisely, and back our work with a 10-year workmanship warranty. Details matter.' },
+              { icon: '🔨', title: 'Quality You Can See', desc: 'We use premium materials, follow manufacturer installation specs precisely, and back our work with a 20-year leak warranty on roof replacements. Details matter.' },
               { icon: '📍', title: 'Local & Accountable', desc: "We're a Connecticut company. When a question comes up six months after installation, you can reach us. We stand behind our work because our reputation here is everything." },
             ].map((card) => (
               <div key={card.title} className="bg-white rounded-xl p-8 shadow-sm border border-brand-100">

@@ -50,7 +50,7 @@ export default function AboutPage() {
               We believe that doing the honest thing, consistently, is the only way to build a company worth building. A homeowner who gets a fair assessment becomes a customer for life — and tells their neighbors. That&apos;s the model we&apos;re building: one honest inspection at a time.
             </p>
             <p>
-              We hold CT Home Improvement Contractor license {SITE.license}, carry full liability and workers&apos; compensation insurance, and back all our installation work with a 10-year workmanship warranty. Every estimate is written, itemized, and explained — no surprises at the end of the job.
+              We hold CT Home Improvement Contractor license {SITE.license}, carry full liability and workers&apos; compensation insurance, and back all our roof replacements with a 20-year leak warranty. Every estimate is written, itemized, and explained — no surprises at the end of the job.
             </p>
           </div>
         </div>

@@ -47,7 +47,6 @@ const businessSchema = {
   url: SITE.url,
   telephone: SITE.phone,
   email: SITE.email,
-  foundingDate: SITE.founded,
   founder: { '@type': 'Person', name: SITE.owner },
   address: {
     '@type': 'PostalAddress',

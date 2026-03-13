@@ -279,7 +279,7 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Heavy snowfall in inland CT', 'Aggressive freeze-thaw cycling', 'Aging housing stock with deferred maintenance', 'Wind exposure on hilltop neighborhoods'],
     neighborhoods: ['East End', 'North End', 'South End', 'Brooklyn', 'Bucks Hill', 'Town Plot'],
     zipCodes: ['06701', '06702', '06704', '06705', '06706', '06708', '06710'],
-    localAngle: "Waterbury is the most affordable housing market on this list, and that affordability has an unfortunate side effect: the city attracts bottom-tier contractors who undercut legitimate companies, cut corners on materials, and disappear when problems emerge. The Brass City's housing stock is genuinely old — much of it dating to the early twentieth century when the brass industry was booming — and it has been maintained with varying levels of care over the generations. The East End and North End in particular have extensive residential stock where original roofs or poorly-done replacements are commonplace. A homeowner in Waterbury deserves the same quality installation as a homeowner in Greenwich; what changes is the price point, not the standard of work. We bring the same licensed crew, the same manufacturer-approved installation practices, and the same warranty to Waterbury that we bring anywhere else in Connecticut. We also offer financing, because the city's affordability profile shouldn't mean roofing failure goes unaddressed for years.",
+    localAngle: "Waterbury is the most affordable housing market on this list, and that affordability has an unfortunate side effect: the city attracts bottom-tier contractors who undercut legitimate companies, cut corners on materials, and disappear when problems emerge. The Brass City's housing stock is genuinely old — much of it dating to the early twentieth century when the brass industry was booming — and it has been maintained with varying levels of care over the generations. The East End and North End in particular have extensive residential stock where original roofs or poorly-done replacements are commonplace. A homeowner in Waterbury deserves the same quality installation as a homeowner in Greenwich; what changes is the price point, not the standard of work. We bring the same licensed crew, the same manufacturer-approved installation practices, and the same warranty to Waterbury that we bring anywhere else in Connecticut.",
     seasonalNote: "Waterbury's inland position and elevation mean it regularly exceeds Hartford's snowfall totals. The combination of heavy snow, ice, and the oldest housing stock in the region makes proactive roof maintenance especially important here.",
     nearbyCity: [
       { city: 'New Haven', slug: 'new-haven' },
@@ -294,10 +294,6 @@ export const CT_CITIES: CityPage[] = [
       {
         q: 'How much does roof replacement cost in Waterbury, CT?',
         a: 'Waterbury offers some of the most competitive roof replacement pricing in Connecticut: typically $8,000 to $13,000 for a standard residential home. We price fairly for the market while maintaining the same quality standards we apply everywhere in CT.',
-      },
-      {
-        q: 'Do you offer financing for roofing in Waterbury?',
-        a: "Yes. We understand that Waterbury's housing market means many homeowners are managing tight budgets. We offer financing options that let you get a necessary roof replacement done now and pay over time. Ask about financing when you contact us for your free estimate.",
       },
     ],
   },
@@ -327,7 +323,7 @@ export const CT_CITIES: CityPage[] = [
       },
       {
         q: 'How much does roof replacement cost in West Hartford, CT?',
-        a: "West Hartford roof replacements typically run $12,000 to $20,000 for the town's standard Colonials and Capes. Larger homes with more complex rooflines will be higher. We provide detailed written estimates and our work comes with a 10-year workmanship warranty.",
+        a: "West Hartford roof replacements typically run $12,000 to $20,000 for the town's standard Colonials and Capes. Larger homes with more complex rooflines will be higher. We provide detailed written estimates and our work comes with a 20-year leak warranty on roof replacements.",
       },
       {
         q: 'What are the most common roof problems in West Hartford?',
