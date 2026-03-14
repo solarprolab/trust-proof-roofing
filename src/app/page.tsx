@@ -54,16 +54,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-        {/* Background photo */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=1600&q=80"
-            alt="Professional roofing work in Connecticut"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f2340]/90 via-[#0f2340]/75 to-[#0f2340]/40" />
-        </div>
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-[#0f2d52] to-[#1e3a5f]">
         {/* Content */}
         <div className="relative max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left: Copy */}
@@ -101,9 +92,9 @@ export default function HomePage() {
           {/* Right: Trust stats */}
           <div className="hidden lg:flex flex-col gap-4">
             {[
-              { number: '500+', label: 'Roofs Installed', sub: 'Across Connecticut' },
-              { number: '20 Year', label: 'Leak Warranty', sub: 'On all replacements' },
+              { number: '20-Year', label: 'Leak Warranty', sub: 'On all replacements' },
               { number: 'Free', label: 'Roof Inspections', sub: 'No obligation' },
+              { number: 'Licensed', label: '& Insured', sub: `CT HIC #${SITE.license}` },
             ].map((stat) => (
               <div key={stat.label} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 flex items-center gap-5">
                 <div className="text-3xl font-black text-yellow-400 min-w-[80px]">{stat.number}</div>
