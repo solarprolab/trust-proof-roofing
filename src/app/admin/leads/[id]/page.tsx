@@ -47,18 +47,16 @@ export default function LeadDetail() {
   const [savingLead, setSavingLead] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trustproofroofing.com';
-
   useEffect(() => {
-    fetch(`${baseUrl}/api/admin/leads/${id}`).then(r => r.json()).then(setLead);
-    fetch(`${baseUrl}/api/admin/leads/${id}/notes`).then(r => r.json()).then(data => {
+    fetch(`/api/admin/leads/${id}`).then(r => r.json()).then(setLead);
+    fetch(`/api/admin/leads/${id}/notes`).then(r => r.json()).then(data => {
       setNotes(Array.isArray(data) ? data : []);
     });
   }, [id]);
 
   async function saveLead(updates: Partial<Lead>) {
     setSavingLead(true);
-    const res = await fetch(`${baseUrl}/api/admin/leads/${id}`, {
+    const res = await fetch(`/api/admin/leads/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -71,7 +69,7 @@ export default function LeadDetail() {
   async function addNote() {
     if (!newNote.trim()) return;
     setSavingNote(true);
-    const res = await fetch(`${baseUrl}/api/admin/leads/${id}/notes`, {
+    const res = await fetch(`/api/admin/leads/${id}/notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: newNote }),
@@ -85,7 +83,7 @@ export default function LeadDetail() {
   async function deleteLead() {
     if (!confirm('Delete this lead? This cannot be undone.')) return;
     setDeleting(true);
-    await fetch(`${baseUrl}/api/admin/leads/${id}`, { method: 'DELETE' });
+    await fetch(`/api/admin/leads/${id}`, { method: 'DELETE' });
     router.push('/admin/dashboard');
   }
 
