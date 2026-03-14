@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { SITE, SERVICES } from '@/lib/config';
 import { CT_CITIES } from '@/data/cityPages';
 
@@ -13,7 +12,11 @@ export default function Footer() {
           {/* Brand + NAP */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Image src="/logo.png" alt="Trust Proof Roofing" width={36} height={36} />
+              <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,5 95,40 95,95 5,95 5,40" fill="#1e3a5f" stroke="none"/>
+                <polygon points="50,15 85,43 85,85 15,85 15,43" fill="none" stroke="#f5c518" strokeWidth="4"/>
+                <polyline points="28,60 44,76 72,42" stroke="#f5c518" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
               <span className="text-white font-bold text-lg font-heading">{SITE.name}</span>
             </div>
             <p className="text-sm text-gray-400 mb-4">{SITE.tagline}</p>

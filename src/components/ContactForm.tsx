@@ -44,7 +44,9 @@ export default function ContactForm() {
   if (status === 'sent') {
     return (
       <div className="bg-brand-50 border border-brand-200 rounded-xl p-8 text-center">
-        <div className="text-5xl mb-4">✅</div>
+        <div className="flex justify-center mb-4 text-brand-600">
+          <svg className="w-14 h-14" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" /></svg>
+        </div>
         <h3 className="text-2xl font-bold text-brand-800 mb-2">Message Received!</h3>
         <p className="text-gray-600">
           Thank you! We&apos;ll review your request and reach out within 1 business day. For urgent needs, call us directly at{' '}
@@ -60,7 +62,9 @@ export default function ContactForm() {
   if (status === 'error') {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-        <div className="text-5xl mb-4">⚠️</div>
+        <div className="flex justify-center mb-4 text-red-600">
+          <svg className="w-14 h-14" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" /></svg>
+        </div>
         <h3 className="text-xl font-bold text-red-800 mb-2">Something Went Wrong</h3>
         <p className="text-gray-600 mb-4">
           We&apos;re sorry — please try calling us directly:

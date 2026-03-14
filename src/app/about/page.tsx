@@ -62,13 +62,29 @@ export default function AboutPage() {
           <h2 className="font-heading text-3xl font-bold text-brand-800 text-center mb-12">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: '✅', title: 'Honesty First', desc: "We tell you what your roof needs, even when that means recommending a $400 repair instead of a $15,000 replacement. Short-term honesty builds long-term relationships." },
-              { icon: '🔨', title: 'Quality Materials', desc: 'We install premium products — GAF and Owens Corning shingles, proper ice-and-water shield, quality underlayment. We don\'t cut corners on materials to win on price.' },
-              { icon: '🏅', title: 'Licensed & Insured', desc: `CT License ${SITE.license}. Full general liability and workers' compensation insurance. We pull permits and follow code. No shortcuts.` },
-              { icon: '📍', title: 'Local Accountability', desc: "We live and work in Connecticut. When you call six months after we finished your roof, we answer. Our reputation here is everything — that's real accountability." },
+              {
+                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" /></svg>,
+                title: 'Honesty First',
+                desc: "We tell you what your roof needs, even when that means recommending a $400 repair instead of a $15,000 replacement. Short-term honesty builds long-term relationships.",
+              },
+              {
+                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 6.75a5.25 5.25 0 016.775-5.025.75.75 0 01.313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.641l3.318-3.319a.75.75 0 011.248.313 5.25 5.25 0 01-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 112.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0112 6.75zM4.117 19.125a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008z" clipRule="evenodd" /></svg>,
+                title: 'Quality Materials',
+                desc: "We install premium products — GAF and Owens Corning shingles, proper ice-and-water shield, quality underlayment. We don't cut corners on materials to win on price.",
+              },
+              {
+                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.741-3.08zm3.099 8.869a.75.75 0 00-1.22-.872l-3.236 4.53L9.53 13.17a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.093l3.75-5.25z" clipRule="evenodd" /></svg>,
+                title: 'Licensed & Insured',
+                desc: `CT License ${SITE.license}. Full general liability and workers' compensation insurance. We pull permits and follow code. No shortcuts.`,
+              },
+              {
+                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.003 3.5-4.697 3.5-8.327a8 8 0 10-16 0c0 3.63 1.556 6.324 3.5 8.327a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>,
+                title: 'Local Accountability',
+                desc: "We live and work in Connecticut. When you call six months after we finished your roof, we answer. Our reputation here is everything — that's real accountability.",
+              },
             ].map((card) => (
               <div key={card.title} className="bg-white rounded-xl p-6 shadow-sm border border-brand-100">
-                <div className="text-4xl mb-4">{card.icon}</div>
+                <div className="text-brand-600 mb-4">{card.icon}</div>
                 <h3 className="font-heading text-xl font-bold text-brand-800 mb-2">{card.title}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{card.desc}</p>
               </div>
