@@ -1,4 +1,4 @@
-const SUPABASE_URL = 'https://cabsxmqewbnyylzbzbp.supabase.com';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 function getKey() {
   return process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
