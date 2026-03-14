@@ -38,6 +38,20 @@ export default function AboutPage() {
       {/* Story */}
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4">
+          {/* Founder card */}
+          <div className="flex flex-col md:flex-row gap-10 items-center mb-16 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+            <div className="flex-shrink-0">
+              <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8e] flex items-center justify-center text-white text-5xl font-black shadow-lg">
+                T
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 mb-1">Tenzin Thupten</h2>
+              <p className="text-yellow-500 font-semibold text-sm mb-3">Founder &amp; Managing Member — Trust Proof Roofing LLC</p>
+              <p className="text-gray-600 leading-relaxed">Connecticut-licensed home improvement contractor (HIC.0703927) serving homeowners across the state. I started Trust Proof Roofing because I believe every homeowner deserves honest advice about their roof — whether that means a full replacement or just a minor repair. No upselling. No pressure. Just straight talk and quality work.</p>
+            </div>
+          </div>
+
           <h2 className="font-heading text-3xl font-bold text-brand-800 mb-6">Why We Started Trust Proof Roofing</h2>
           <div className="prose prose-lg text-gray-700 space-y-5">
             <p>

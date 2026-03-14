@@ -54,63 +54,71 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 min-h-[70vh] flex items-center">
-        <div className="hero-gradient absolute inset-0" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Copy */}
-            <div className="text-white">
-              <div className="inline-flex items-center gap-2 bg-accent-400 text-gray-900 font-bold px-5 py-2 rounded-full mb-6">
-                <span className="text-lg">✓</span>
-                <div>
-                  <div className="text-sm font-extrabold tracking-wide">20-YEAR LEAK WARRANTY</div>
-                  <div className="text-xs font-medium opacity-80">INDUSTRY LEADING PROTECTION</div>
-                </div>
-              </div>
-              <h1 className="font-heading text-5xl md:text-6xl font-bold leading-tight mb-6">
-                Connecticut&apos;s Most Trusted<br />
-                <span className="text-accent-400">Roofing Company</span>
-              </h1>
-              <p className="text-xl text-brand-100 max-w-2xl mb-8">
-                Proudly serving Suffield, CT and surrounding communities. Quality roofing backed by our industry-leading 20-year leak warranty.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/contact"
-                  className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors"
-                >
-                  Get Your Free Quote
-                </Link>
-                <a
-                  href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-                  className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors"
-                >
-                  Call {SITE.phone}
-                </a>
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+        {/* Background photo */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=1600&q=80"
+            alt="Professional roofing work in Connecticut"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f2340]/90 via-[#0f2340]/75 to-[#0f2340]/40" />
+        </div>
+        {/* Content */}
+        <div className="relative max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left: Copy */}
+          <div className="text-white">
+            <div className="inline-flex items-center gap-2 bg-yellow-400 text-gray-900 font-bold px-5 py-2 rounded-full mb-6">
+              <span className="text-lg">✓</span>
+              <div>
+                <div className="text-sm font-extrabold tracking-wide">20-YEAR LEAK WARRANTY</div>
+                <div className="text-xs font-medium opacity-80">INDUSTRY LEADING PROTECTION</div>
               </div>
             </div>
+            <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6">
+              Connecticut&apos;s Most Trusted<br />
+              <span className="text-yellow-400">Roofing Company</span>
+            </h1>
+            <p className="text-xl text-white/80 max-w-xl mb-8">
+              Proudly serving Suffield, CT and surrounding communities. Quality roofing backed by our industry-leading 20-year leak warranty.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/contact"
+                className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+              >
+                Get Your Free Quote
+              </Link>
+              <a
+                href={`tel:${SITE.phone.replace(/\D/g, '')}`}
+                className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors backdrop-blur-sm"
+              >
+                Call {SITE.phone}
+              </a>
+            </div>
+          </div>
 
-            {/* Right: Trust stats */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { value: '20-Year', label: 'Leak Warranty', sub: 'Transferable' },
-                { value: 'Free', label: 'Inspections', sub: 'No Obligation' },
-                { value: 'CT', label: 'Licensed & Insured', sub: SITE.license },
-                { value: 'Local', label: 'Accountable', sub: 'We Answer When You Call' },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-white text-center">
-                  <div className="text-3xl font-bold font-heading text-accent-400">{stat.value}</div>
-                  <div className="font-semibold mt-1">{stat.label}</div>
-                  <div className="text-brand-300 text-sm mt-0.5">{stat.sub}</div>
+          {/* Right: Trust stats */}
+          <div className="hidden lg:flex flex-col gap-4">
+            {[
+              { number: '500+', label: 'Roofs Installed', sub: 'Across Connecticut' },
+              { number: '20 Year', label: 'Leak Warranty', sub: 'On all replacements' },
+              { number: 'Free', label: 'Roof Inspections', sub: 'No obligation' },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 flex items-center gap-5">
+                <div className="text-3xl font-black text-yellow-400 min-w-[80px]">{stat.number}</div>
+                <div>
+                  <div className="text-white font-bold text-base">{stat.label}</div>
+                  <div className="text-white/60 text-sm">{stat.sub}</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Trust signals */}
-      <section className="bg-brand-600 text-white py-6">
+      <section className="bg-[#1e3a5f] text-white py-6">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
@@ -134,7 +142,21 @@ export default function HomePage() {
               <div key={item.label}>
                 <div className="mb-1">{item.icon}</div>
                 <div className="font-bold">{item.label}</div>
-                <div className="text-brand-200 text-sm">{item.sub}</div>
+                <div className="text-white/60 text-sm">{item.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Manufacturer logos */}
+      <section className="py-10 bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-center text-xs font-semibold text-gray-400 uppercase tracking-widest mb-8">Materials We Install</p>
+          <div className="flex flex-wrap items-center justify-center gap-10">
+            {['GAF', 'Owens Corning', 'CertainTeed', 'IKO', 'Atlas'].map((brand) => (
+              <div key={brand} className="text-gray-300 hover:text-gray-500 transition-colors">
+                <span className="text-2xl font-black tracking-tight">{brand}</span>
               </div>
             ))}
           </div>
@@ -144,8 +166,8 @@ export default function HomePage() {
       {/* Services grid */}
       <section className="py-20 bg-white" id="services">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="font-heading text-4xl font-bold text-brand-800 text-center mb-4">Roofing Services in Connecticut</h2>
-          <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
+          <h2 className="text-4xl font-black text-gray-900 text-center mb-4">Roofing Services in Connecticut</h2>
+          <p className="text-center text-gray-500 max-w-2xl mx-auto mb-12">
             From complete roof replacements to emergency repairs, we handle every aspect of residential and commercial roofing across CT.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
@@ -153,44 +175,99 @@ export default function HomePage() {
               <Link
                 key={service.slug}
                 href={`/services/${service.slug}`}
-                className="group border border-gray-200 rounded-xl p-6 hover:border-brand-400 hover:shadow-lg transition-all w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
+                className="group border border-gray-200 rounded-2xl p-6 hover:border-yellow-400 hover:shadow-lg transition-all duration-300 w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
               >
-                <div className="text-brand-600 mb-3">{serviceIcons[service.slug]}</div>
-                <h3 className="font-heading text-xl font-bold text-brand-800 group-hover:text-brand-600 mb-2">{service.name}</h3>
-                <p className="text-gray-600 text-sm">{service.description}</p>
-                <span className="inline-block mt-3 text-brand-600 font-medium text-sm group-hover:underline">Learn more →</span>
+                <div className="text-[#1e3a5f] mb-3">{serviceIcons[service.slug]}</div>
+                <h3 className="text-xl font-black text-gray-900 group-hover:text-[#1e3a5f] mb-2">{service.name}</h3>
+                <p className="text-gray-500 text-sm">{service.description}</p>
+                <span className="inline-block mt-3 text-[#1e3a5f] font-semibold text-sm group-hover:underline">Learn more →</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
+      {/* How It Works */}
+      <section className="py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p className="text-yellow-500 font-semibold text-sm uppercase tracking-widest mb-2">Simple Process</p>
+            <h2 className="text-4xl font-black text-gray-900">How It Works</h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">No surprises, no pressure. Just a straightforward process from first call to finished roof.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Connector line on desktop */}
+            <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-0.5 bg-yellow-200 z-0" />
+            {[
+              {
+                step: '01',
+                title: 'Free Inspection',
+                desc: 'We come to you, inspect your roof, and give you an honest assessment — no sales pressure, no obligation.',
+                icon: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                ),
+              },
+              {
+                step: '02',
+                title: 'Clear Quote',
+                desc: 'You get a written quote with everything included — materials, labor, cleanup. No hidden fees, ever.',
+                icon: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                ),
+              },
+              {
+                step: '03',
+                title: 'Work Gets Done',
+                desc: 'Our crew shows up on time, completes the job cleanly, and we do a full walkthrough before final payment.',
+                icon: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                ),
+              },
+            ].map((item) => (
+              <div key={item.step} className="relative bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:border-yellow-300 hover:shadow-lg transition-all duration-300 z-10">
+                <div className="w-14 h-14 bg-[#1e3a5f] text-white rounded-xl flex items-center justify-center mb-5">
+                  {item.icon}
+                </div>
+                <div className="text-xs font-black text-yellow-500 uppercase tracking-widest mb-2">Step {item.step}</div>
+                <h3 className="text-xl font-black text-gray-900 mb-3">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Why Choose Us */}
-      <section className="py-20 bg-brand-50" id="why-us">
+      <section className="py-20 bg-gray-50" id="why-us">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="font-heading text-4xl font-bold text-brand-800 text-center mb-12">Why CT Homeowners Choose Us</h2>
+          <h2 className="text-4xl font-black text-gray-900 text-center mb-12">Why CT Homeowners Choose Us</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" /></svg>,
+                icon: <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" /></svg>,
                 title: 'Honest Assessments',
                 desc: 'We tell you what your roof actually needs — even when that means recommending a repair instead of a replacement. No upselling, no pressure, no fear tactics.',
               },
               {
-                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 6.75a5.25 5.25 0 016.775-5.025.75.75 0 01.313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.641l3.318-3.319a.75.75 0 011.248.313 5.25 5.25 0 01-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 112.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0112 6.75zM4.117 19.125a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008z" clipRule="evenodd" /></svg>,
+                icon: <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 6.75a5.25 5.25 0 016.775-5.025.75.75 0 01.313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.641l3.318-3.319a.75.75 0 011.248.313 5.25 5.25 0 01-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 112.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0112 6.75zM4.117 19.125a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008z" clipRule="evenodd" /></svg>,
                 title: 'Quality You Can See',
                 desc: 'We use premium materials, follow manufacturer installation specs precisely, and back our work with a 20-year leak warranty on roof replacements. Details matter.',
               },
               {
-                icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.003 3.5-4.697 3.5-8.327a8 8 0 10-16 0c0 3.63 1.556 6.324 3.5 8.327a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>,
+                icon: <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.003 3.5-4.697 3.5-8.327a8 8 0 10-16 0c0 3.63 1.556 6.324 3.5 8.327a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>,
                 title: 'Local & Accountable',
                 desc: "We're a Connecticut company. When a question comes up six months after installation, you can reach us. We stand behind our work because our reputation here is everything.",
               },
-            ].map((card) => (
-              <div key={card.title} className="bg-white rounded-xl p-8 shadow-sm border border-brand-100">
-                <div className="text-brand-600 mb-4">{card.icon}</div>
-                <h3 className="font-heading text-xl font-bold text-brand-800 mb-3">{card.title}</h3>
-                <p className="text-gray-600">{card.desc}</p>
+            ].map((card, index) => (
+              <div key={card.title} className="bg-white rounded-2xl p-8 border border-gray-100 border-l-4 border-l-yellow-400 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-12 h-12 bg-[#1e3a5f] rounded-xl flex items-center justify-center">
+                    {card.icon}
+                  </div>
+                  <span className="text-4xl font-black text-gray-100">0{index + 1}</span>
+                </div>
+                <h3 className="text-xl font-black text-gray-900 mb-3">{card.title}</h3>
+                <p className="text-gray-500">{card.desc}</p>
               </div>
             ))}
           </div>
@@ -200,14 +277,14 @@ export default function HomePage() {
       {/* Service Areas */}
       <section className="py-20 bg-white" id="areas">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="font-heading text-4xl font-bold text-brand-800 text-center mb-4">We Serve All of Connecticut</h2>
-          <p className="text-center text-gray-600 mb-10">Click your city for local pricing, common roof issues, and neighborhood-specific information.</p>
+          <h2 className="text-4xl font-black text-gray-900 text-center mb-4">We Serve All of Connecticut</h2>
+          <p className="text-center text-gray-500 mb-10">Click your city for local pricing, common roof issues, and neighborhood-specific information.</p>
           <div className="flex flex-wrap justify-center gap-3">
             {CT_CITIES.map((city) => (
               <Link
                 key={city.slug}
                 href={`/roofing/ct/${city.slug}`}
-                className="bg-white hover:bg-brand-50 text-brand-800 font-medium px-5 py-3 rounded-xl border border-gray-200 hover:border-brand-400 hover:shadow-sm transition-all text-sm"
+                className="bg-white hover:bg-gray-50 text-gray-800 font-medium px-5 py-3 rounded-xl border border-gray-200 hover:border-yellow-400 hover:shadow-sm transition-all text-sm"
               >
                 {city.city}, CT
               </Link>
@@ -219,13 +296,13 @@ export default function HomePage() {
       {/* FAQ */}
       <section className="py-20 bg-gray-50" id="faq">
         <div className="max-w-4xl mx-auto px-4">
-          <h2 className="font-heading text-4xl font-bold text-brand-800 text-center mb-12">Frequently Asked Questions</h2>
+          <h2 className="text-4xl font-black text-gray-900 text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {faqItems.map((item) => (
               <details key={item.q} className="bg-white border border-gray-200 rounded-xl overflow-hidden group">
-                <summary className="flex justify-between items-center px-6 py-4 font-semibold text-gray-900 hover:text-brand-700">
+                <summary className="flex justify-between items-center px-6 py-4 font-semibold text-gray-900 hover:text-[#1e3a5f]">
                   {item.q}
-                  <span className="faq-chevron text-brand-500 ml-4 flex-shrink-0">▼</span>
+                  <span className="faq-chevron text-gray-400 ml-4 flex-shrink-0">▼</span>
                 </summary>
                 <div className="px-6 pb-5 text-gray-600 leading-relaxed">{item.a}</div>
               </details>
@@ -235,17 +312,39 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-brand-800 text-white text-center">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="font-heading text-4xl font-bold mb-4">Ready for an Honest Roof Assessment?</h2>
-          <p className="text-brand-200 text-lg mb-8">Free inspection, free estimate. No sales pressure. We tell you what your roof actually needs.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors">
+      <section className="relative py-24 overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
+            alt="Connecticut roofing"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-[#0f2340]/88" />
+        </div>
+        {/* Diagonal top cut */}
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gray-50" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 0)' }} />
+        {/* Diagonal bottom cut */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gray-50" style={{ clipPath: 'polygon(0 100%, 100% 0, 100% 100%)' }} />
+
+        <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-6">
+            <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            <span className="text-yellow-400 text-xs font-semibold uppercase tracking-wider">Free — No Obligation</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+            Get Your Free<br /><span className="text-yellow-400">Roof Assessment</span>
+          </h2>
+          <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
+            We inspect your roof, tell you exactly what it needs — even if that means you don&apos;t need us. No pressure, ever.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/contact" className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl text-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5">
+              Request Free Estimate
+            </Link>
+            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-xl text-lg transition-all duration-200 backdrop-blur-sm">
               Call {SITE.phone}
             </a>
-            <Link href="/contact" className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
-              Send a Message
-            </Link>
           </div>
         </div>
       </section>

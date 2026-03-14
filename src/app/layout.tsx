@@ -1,19 +1,18 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Source_Sans_3 } from 'next/font/google';
+import { Montserrat, Inter } from 'next/font/google';
 import './globals.css';
 import SiteShell from '@/components/SiteShell';
 import { SITE } from '@/lib/config';
 
-const playfair = Playfair_Display({
+const montserrat = Montserrat({
   subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
+  variable: '--font-montserrat',
+  weight: ['400', '600', '700', '800', '900'],
 });
 
-const sourceSans = Source_Sans_3({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
@@ -64,7 +63,7 @@ const businessSchema = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${sourceSans.variable}`}>
+    <html lang="en" className={`${montserrat.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"
