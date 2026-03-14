@@ -16,7 +16,7 @@ const STAGE_LABELS: Record<string, string> = {
 
 export default async function Dashboard() {
   const supabase = createClient(
-    process.env.SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
