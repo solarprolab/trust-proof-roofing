@@ -1,69 +1,48 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type Lead = {
-  id: string;
-  created_at: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  service: string;
-  message: string;
-  stage: string;
-  estimated_value: number | null;
-  follow_up_date: string | null;
-  source: string;
-};
+const STAGES = [
+  { id: 'new', label: 'New Lead' },
+  { id: 'contacted', label: 'Contacted' },
+  { id: 'estimate_scheduled', label: 'Estimate Scheduled' },
+  { id: 'estimate_sent', label: 'Estimate Sent' },
+  { id: 'follow_up', label: 'Follow-Up' },
+  { id: 'won', label: 'Won' },
+  { id: 'in_progress', label: 'In Progress' },
+  { id: 'completed', label: 'Completed' },
+  { id: 'lost', label: 'Lost' },
+];
 
-type Note = {
-  id: string;
-  content: string;
-  created_at: string;
-};
+const SERVICES = ['Roof Replacement', 'Roof Repair', 'Roof Inspection', 'Emergency Roofing', 'Gutters', 'Storm Damage'];
 
-const STAGES = ['new', 'contacted', 'quoted', 'won', 'lost'];
-const SOURCES = ['Website Form', 'Phone Call', 'LSA', 'Referral', 'Other'];
-
-const STAGE_BADGE: Record<string, string> = {
-  new: 'bg-blue-100 text-blue-700',
-  contacted: 'bg-amber-100 text-amber-700',
-  quoted: 'bg-purple-100 text-purple-700',
-  won: 'bg-green-100 text-green-700',
-  lost: 'bg-red-100 text-red-700',
-};
-
-export default function LeadDetail() {
-  const params = useParams();
-  const id = params.id as string;
+export default function LeadDetailPage() {
+  const { id } = useParams();
   const router = useRouter();
-
-  const [lead, setLead] = useState<Lead | null>(null);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [lead, setLead] = useState<any>(null);
+  const [notes, setNotes] = useState<any[]>([]);
+  const [files, setFiles] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
+  const [saving, setSaving] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
-  const [savingLead, setSavingLead] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'files'>('details');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/leads/${id}`).then(r => r.json()).then(setLead);
-    fetch(`/api/admin/leads/${id}/notes`).then(r => r.json()).then(data => {
-      setNotes(Array.isArray(data) ? data : []);
-    });
+    fetch(`/api/admin/leads/${id}/notes`).then(r => r.json()).then(data => setNotes(Array.isArray(data) ? data : []));
+    fetch(`/api/admin/leads/${id}/files`).then(r => r.json()).then(data => setFiles(Array.isArray(data) ? data : []));
   }, [id]);
 
-  async function saveLead(updates: Partial<Lead>) {
-    setSavingLead(true);
-    const res = await fetch(`/api/admin/leads/${id}`, {
+  async function saveLead() {
+    setSaving(true);
+    await fetch(`/api/admin/leads/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(lead),
     });
-    const updated = await res.json();
-    setLead(updated);
-    setSavingLead(false);
+    setSaving(false);
   }
 
   async function addNote() {
@@ -75,191 +54,275 @@ export default function LeadDetail() {
       body: JSON.stringify({ content: newNote }),
     });
     const note = await res.json();
-    setNotes(n => [...n, note]);
+    setNotes(prev => [note, ...prev]);
     setNewNote('');
     setSavingNote(false);
   }
 
+  async function deleteNote(noteId: string) {
+    setNotes(prev => prev.filter(n => n.id !== noteId));
+    await fetch(`/api/admin/leads/${id}/notes/${noteId}`, { method: 'DELETE' });
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`/api/admin/leads/${id}/files`, { method: 'POST', body: formData });
+    const newFile = await res.json();
+    if (newFile.id) setFiles(prev => [newFile, ...prev]);
+    setUploading(false);
+  }
+
+  async function deleteFile(fileId: string) {
+    setFiles(prev => prev.filter(f => f.id !== fileId));
+    await fetch(`/api/admin/leads/${id}/files/${fileId}`, { method: 'DELETE' });
+  }
+
   async function deleteLead() {
     if (!confirm('Delete this lead? This cannot be undone.')) return;
-    setDeleting(true);
     await fetch(`/api/admin/leads/${id}`, { method: 'DELETE' });
     router.push('/admin/dashboard');
   }
 
-  if (!lead) {
-    return (
-      <div className="min-h-screen bg-[#0f2340] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
+  if (!lead) return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="text-gray-400">Loading...</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#0f2340] text-white">
+    <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
-      <div className="bg-[#1e3a5f] border-b border-[#2a4f7a] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4 min-w-0">
-          <Link href="/admin/dashboard" className="text-blue-300 hover:text-white text-sm transition-colors flex-shrink-0">
-            ← Dashboard
+      <div className="border-b border-gray-800 bg-gray-900 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/dashboard" className="text-gray-400 hover:text-white transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </Link>
-          <h1 className="text-lg font-bold truncate">{lead.name}</h1>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${STAGE_BADGE[lead.stage] ?? 'bg-gray-100 text-gray-700'}`}>
-            {lead.stage.charAt(0).toUpperCase() + lead.stage.slice(1)}
-          </span>
+          <div>
+            <h1 className="text-xl font-bold">{lead.name}</h1>
+            <p className="text-sm text-gray-400">{lead.email} · {lead.phone}</p>
+          </div>
         </div>
-        <button
-          onClick={deleteLead}
-          disabled={deleting}
-          className="text-red-400 hover:text-red-300 text-sm border border-red-400/30 hover:border-red-300/50 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
-        >
-          {deleting ? 'Deleting...' : 'Delete Lead'}
-        </button>
+        <div className="flex items-center gap-3">
+          <select
+            value={lead.stage || 'new'}
+            onChange={e => setLead({ ...lead, stage: e.target.value })}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+          >
+            {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+          <button
+            onClick={saveLead}
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 rounded-lg text-sm font-semibold transition-colors"
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+          <button
+            onClick={deleteLead}
+            className="px-3 py-2 bg-gray-800 hover:bg-red-900/50 border border-gray-700 hover:border-red-700 rounded-lg text-sm text-gray-400 hover:text-red-400 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left: Contact info + Notes */}
-        <div className="md:col-span-2 space-y-6">
-          {/* Contact info */}
-          <div className="bg-[#1e3a5f] rounded-2xl p-6">
-            <h2 className="font-bold text-[#f5c518] mb-4 text-sm uppercase tracking-wide">Contact Info</h2>
-            <div className="space-y-3">
-              <InfoRow label="Name" value={lead.name} />
-              <InfoRow label="Email" value={lead.email} href={`mailto:${lead.email}`} />
-              <InfoRow label="Phone" value={lead.phone} href={`tel:${lead.phone}`} />
-              <InfoRow label="City" value={lead.city} />
-              <InfoRow label="Service" value={lead.service} />
-              <InfoRow label="Source" value={lead.source} />
-              <InfoRow label="Submitted" value={new Date(lead.created_at).toLocaleString()} />
-            </div>
-            {lead.message && (
-              <div className="mt-4 pt-4 border-t border-[#2a4f7a]">
-                <div className="text-xs text-blue-300 mb-1 uppercase tracking-wide">Message</div>
-                <p className="text-sm text-gray-200 leading-relaxed">{lead.message}</p>
-              </div>
-            )}
-          </div>
+      {/* Tabs */}
+      <div className="border-b border-gray-800 bg-gray-900 px-6">
+        <div className="flex gap-1">
+          {(['details', 'notes', 'files'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-3 text-sm font-medium capitalize border-b-2 transition-colors ${activeTab === tab ? 'border-blue-500 text-white' : 'border-transparent text-gray-400 hover:text-white'}`}
+            >
+              {tab}{tab === 'notes' && notes.length > 0 && ` (${notes.length})`}{tab === 'files' && files.length > 0 && ` (${files.length})`}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          {/* Notes */}
-          <div className="bg-[#1e3a5f] rounded-2xl p-6">
-            <h2 className="font-bold text-[#f5c518] mb-4 text-sm uppercase tracking-wide">Notes</h2>
-            <div className="space-y-3 mb-4">
-              {notes.length === 0 && (
-                <p className="text-sm text-blue-300/60 italic">No notes yet.</p>
-              )}
-              {notes.map(note => (
-                <div key={note.id} className="bg-[#0f2340] rounded-lg p-3 border border-[#2a4f7a]">
-                  <p className="text-sm text-gray-200 leading-relaxed">{note.content}</p>
-                  <p className="text-xs text-blue-400 mt-2">
-                    {new Date(note.created_at).toLocaleString()}
-                  </p>
+      <div className="max-w-4xl mx-auto px-6 py-6">
+        {/* DETAILS TAB */}
+        {activeTab === 'details' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Contact Info</h2>
+              <div className="space-y-4">
+                {[
+                  { label: 'Full Name', key: 'name', type: 'text' },
+                  { label: 'Email', key: 'email', type: 'email' },
+                  { label: 'Phone', key: 'phone', type: 'tel' },
+                  { label: 'Property Address', key: 'address', type: 'text' },
+                  { label: 'City', key: 'city', type: 'text' },
+                ].map(field => (
+                  <div key={field.key}>
+                    <label className="block text-xs text-gray-500 mb-1">{field.label}</label>
+                    <input
+                      type={field.type}
+                      value={lead[field.key] || ''}
+                      onChange={e => setLead({ ...lead, [field.key]: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+                <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Job Details</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Service Type</label>
+                    <select
+                      value={lead.service || ''}
+                      onChange={e => setLead({ ...lead, service: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">Select service...</option>
+                      {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  {[
+                    { label: 'Roof Size (sq ft)', key: 'roof_size', type: 'text' },
+                    { label: 'Quote Amount ($)', key: 'quote_amount', type: 'number' },
+                    { label: 'Job Value ($)', key: 'job_value', type: 'number' },
+                  ].map(field => (
+                    <div key={field.key}>
+                      <label className="block text-xs text-gray-500 mb-1">{field.label}</label>
+                      <input
+                        type={field.type}
+                        value={lead[field.key] || ''}
+                        onChange={e => setLead({ ...lead, [field.key]: e.target.value })}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Follow-Up Date</label>
+                    <input
+                      type="date"
+                      value={lead.follow_up_date || ''}
+                      onChange={e => setLead({ ...lead, follow_up_date: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Lead Source</label>
+                    <select
+                      value={lead.source || 'Website Form'}
+                      onChange={e => setLead({ ...lead, source: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      {['Website Form', 'Google LSA', 'Referral', 'Door Knock', 'Yard Sign', 'Social Media', 'Other'].map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+                <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Customer Message</h2>
+                <textarea
+                  value={lead.message || ''}
+                  onChange={e => setLead({ ...lead, message: e.target.value })}
+                  rows={4}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* NOTES TAB */}
+        {activeTab === 'notes' && (
+          <div className="space-y-4">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+              <textarea
+                value={newNote}
+                onChange={e => setNewNote(e.target.value)}
+                placeholder="Add a note... (call summary, site visit observations, customer preferences, etc.)"
+                rows={3}
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 resize-none mb-3"
+              />
+              <button
+                onClick={addNote}
+                disabled={savingNote || !newNote.trim()}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 rounded-lg text-sm font-semibold transition-colors"
+              >
+                {savingNote ? 'Adding...' : 'Add Note'}
+              </button>
+            </div>
+            {notes.length === 0 && (
+              <div className="text-center py-12 text-gray-500">No notes yet. Add your first note above.</div>
+            )}
+            {notes.map(note => (
+              <div key={note.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-white text-sm leading-relaxed">{note.content}</p>
+                    <p className="text-xs text-gray-500 mt-2">{note.author} · {new Date(note.created_at).toLocaleString()}</p>
+                  </div>
+                  <button onClick={() => deleteNote(note.id)} className="text-gray-600 hover:text-red-400 transition-colors ml-4 flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* FILES TAB */}
+        {activeTab === 'files' && (
+          <div className="space-y-4">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 border-dashed p-8 text-center">
+              <svg className="w-10 h-10 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p className="text-gray-400 text-sm mb-3">Upload roof photos, contracts, permits, insurance docs</p>
+              <label className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold transition-colors inline-block">
+                {uploading ? 'Uploading...' : 'Choose File'}
+                <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,.pdf,.doc,.docx" />
+              </label>
+            </div>
+            {files.length === 0 && (
+              <div className="text-center py-8 text-gray-500">No files uploaded yet.</div>
+            )}
+            <div className="grid grid-cols-1 gap-3">
+              {files.map(file => (
+                <div key={file.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                      {file.file_type?.includes('image') ? '🖼️' : file.file_type?.includes('pdf') ? '📄' : '📎'}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{file.file_name}</p>
+                      <p className="text-xs text-gray-500">{new Date(file.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">View</a>
+                    <button onClick={() => deleteFile(file.id)} className="text-gray-600 hover:text-red-400 transition-colors ml-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
-            <textarea
-              value={newNote}
-              onChange={e => setNewNote(e.target.value)}
-              rows={3}
-              placeholder="Add a note..."
-              className="w-full bg-[#0f2340] border border-[#2a4f7a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f5c518] placeholder-blue-300/40"
-            />
-            <button
-              onClick={addNote}
-              disabled={savingNote || !newNote.trim()}
-              className="mt-2 bg-[#f5c518] hover:bg-[#e0b315] text-[#1e3a5f] font-bold px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
-            >
-              {savingNote ? 'Saving...' : 'Add Note'}
-            </button>
           </div>
-        </div>
-
-        {/* Right: Lead management */}
-        <div className="space-y-4">
-          <div className="bg-[#1e3a5f] rounded-2xl p-6 space-y-5">
-            <h2 className="font-bold text-[#f5c518] text-sm uppercase tracking-wide">Lead Details</h2>
-
-            <div>
-              <label className="block text-xs text-blue-300 mb-1.5 uppercase tracking-wide">Stage</label>
-              <select
-                value={lead.stage}
-                onChange={e => saveLead({ stage: e.target.value })}
-                className="w-full bg-[#0f2340] border border-[#2a4f7a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f5c518]"
-              >
-                {STAGES.map(s => (
-                  <option key={s} value={s}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs text-blue-300 mb-1.5 uppercase tracking-wide">Estimated Value ($)</label>
-              <input
-                type="number"
-                defaultValue={lead.estimated_value ?? ''}
-                onBlur={e =>
-                  saveLead({ estimated_value: e.target.value ? parseFloat(e.target.value) : null })
-                }
-                placeholder="0"
-                className="w-full bg-[#0f2340] border border-[#2a4f7a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f5c518] placeholder-blue-300/40"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-blue-300 mb-1.5 uppercase tracking-wide">Follow-up Date</label>
-              <input
-                type="date"
-                defaultValue={lead.follow_up_date?.split('T')[0] ?? ''}
-                onBlur={e => saveLead({ follow_up_date: e.target.value || null })}
-                className="w-full bg-[#0f2340] border border-[#2a4f7a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f5c518]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-blue-300 mb-1.5 uppercase tracking-wide">Source</label>
-              <select
-                value={lead.source || ''}
-                onChange={e => saveLead({ source: e.target.value })}
-                className="w-full bg-[#0f2340] border border-[#2a4f7a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f5c518]"
-              >
-                <option value="">—</option>
-                {SOURCES.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            {savingLead && (
-              <p className="text-xs text-blue-300 text-center">Saving...</p>
-            )}
-          </div>
-        </div>
+        )}
       </div>
-    </div>
-  );
-}
-
-function InfoRow({
-  label,
-  value,
-  href,
-}: {
-  label: string;
-  value: string;
-  href?: string;
-}) {
-  if (!value) return null;
-  return (
-    <div className="flex gap-3 text-sm">
-      <span className="text-blue-300 w-20 flex-shrink-0">{label}</span>
-      {href ? (
-        <a href={href} className="text-[#f5c518] hover:underline">
-          {value}
-        </a>
-      ) : (
-        <span className="text-gray-200">{value}</span>
-      )}
     </div>
   );
 }

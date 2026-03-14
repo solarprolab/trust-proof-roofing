@@ -1,86 +1,76 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 
-export type Lead = {
-  id: string;
-  created_at: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  service: string;
-  stage: string;
-  estimated_value: number | null;
-  follow_up_date: string | null;
-  source: string;
-};
+export default function KanbanBoard({ leads, stages, onMoveStage, onDelete }: any) {
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
-const STAGES = ['new', 'contacted', 'quoted', 'won', 'lost'] as const;
-const STAGE_LABELS: Record<string, string> = {
-  new: 'New',
-  contacted: 'Contacted',
-  quoted: 'Quoted',
-  won: 'Won',
-  lost: 'Lost',
-};
-const STAGE_HEADER: Record<string, string> = {
-  new: 'bg-blue-600',
-  contacted: 'bg-amber-500',
-  quoted: 'bg-purple-600',
-  won: 'bg-green-600',
-  lost: 'bg-red-600',
-};
-const STAGE_BOARD: Record<string, string> = {
-  new: 'bg-blue-50 border-blue-200',
-  contacted: 'bg-amber-50 border-amber-200',
-  quoted: 'bg-purple-50 border-purple-200',
-  won: 'bg-green-50 border-green-200',
-  lost: 'bg-red-50 border-red-200',
-};
+  function handleDragStart(e: React.DragEvent, leadId: string) {
+    setDraggingId(leadId);
+    e.dataTransfer.effectAllowed = 'move';
+  }
 
-export default function KanbanBoard({ leads }: { leads: Lead[] }) {
+  function handleDragOver(e: React.DragEvent, stageId: string) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverStage(stageId);
+  }
+
+  function handleDrop(e: React.DragEvent, stageId: string) {
+    e.preventDefault();
+    if (draggingId) onMoveStage(draggingId, stageId);
+    setDraggingId(null);
+    setDragOverStage(null);
+  }
+
   return (
-    <div className="px-6 pb-6 flex gap-4 overflow-x-auto flex-1">
-      {STAGES.map(stage => {
-        const stageLeads = leads.filter(l => l.stage === stage);
+    <div className="flex gap-3 overflow-x-auto pb-4" style={{ minHeight: '70vh' }}>
+      {stages.map((stage: any) => {
+        const stageLeads = leads.filter((l: any) => (l.stage || 'new') === stage.id);
+        const isOver = dragOverStage === stage.id;
         return (
-          <div key={stage} className="flex-shrink-0 w-72 flex flex-col">
-            <div className={`${STAGE_HEADER[stage]} rounded-t-xl px-4 py-3 flex items-center justify-between`}>
-              <span className="font-bold text-white text-sm">{STAGE_LABELS[stage]}</span>
-              <span className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {stageLeads.length}
-              </span>
+          <div
+            key={stage.id}
+            className={`flex-shrink-0 w-64 rounded-xl border transition-colors ${isOver ? 'border-blue-500 bg-gray-800/80' : 'border-gray-800 bg-gray-900'}`}
+            onDragOver={e => handleDragOver(e, stage.id)}
+            onDrop={e => handleDrop(e, stage.id)}
+            onDragLeave={() => setDragOverStage(null)}
+          >
+            <div className="p-3 border-b border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${stage.color}`} />
+                <span className="text-sm font-semibold text-white">{stage.label}</span>
+              </div>
+              <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">{stageLeads.length}</span>
             </div>
-            <div
-              className={`${STAGE_BOARD[stage]} border rounded-b-xl overflow-y-auto p-3 space-y-3 flex-1`}
-              style={{ minHeight: '300px', maxHeight: 'calc(100vh - 280px)' }}
-            >
-              {stageLeads.length === 0 && (
-                <p className="text-gray-400 text-sm text-center pt-8">No leads</p>
-              )}
-              {stageLeads.map(lead => (
-                <Link key={lead.id} href={`/admin/leads/${lead.id}`}>
-                  <div className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-100 mb-3">
-                    <div className="font-semibold text-gray-900 text-sm">{lead.name}</div>
-                    {lead.city && (
-                      <div className="text-xs text-gray-500 mt-0.5">{lead.city}</div>
-                    )}
-                    {lead.service && (
-                      <div className="text-xs bg-blue-50 text-blue-700 rounded px-2 py-0.5 mt-1.5 inline-block">
-                        {lead.service}
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-500 mt-2">{lead.phone}</div>
-                    {lead.estimated_value ? (
-                      <div className="text-xs text-green-700 font-semibold mt-1">
-                        ${lead.estimated_value.toLocaleString()}
-                      </div>
-                    ) : null}
-                    <div className="text-xs text-gray-400 mt-1">
-                      {new Date(lead.created_at).toLocaleDateString()}
-                    </div>
+            <div className="p-2 flex flex-col gap-2 min-h-32">
+              {stageLeads.map((lead: any) => (
+                <div
+                  key={lead.id}
+                  draggable
+                  onDragStart={e => handleDragStart(e, lead.id)}
+                  className={`bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-gray-600 transition-all ${draggingId === lead.id ? 'opacity-40' : ''}`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <Link href={`/admin/leads/${lead.id}`} className="font-semibold text-sm text-white hover:text-blue-400 transition-colors leading-tight">
+                      {lead.name}
+                    </Link>
+                    <button onClick={() => onDelete(lead.id)} className="text-gray-600 hover:text-red-400 transition-colors ml-2 flex-shrink-0">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                </Link>
+                  <p className="text-xs text-gray-400 mb-1">{lead.phone || lead.email}</p>
+                  {lead.address && <p className="text-xs text-gray-500 truncate">{lead.address}</p>}
+                  {lead.service && <p className="text-xs text-blue-400 mt-1">{lead.service}</p>}
+                  {lead.quote_amount && <p className="text-xs text-green-400 font-semibold mt-1">${Number(lead.quote_amount).toLocaleString()}</p>}
+                  {lead.follow_up_date && (
+                    <p className="text-xs text-orange-400 mt-1">📅 {new Date(lead.follow_up_date).toLocaleDateString()}</p>
+                  )}
+                  <p className="text-xs text-gray-600 mt-2">{new Date(lead.created_at).toLocaleDateString()}</p>
+                </div>
               ))}
             </div>
           </div>
