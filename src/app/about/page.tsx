@@ -50,7 +50,7 @@ export default function AboutPage() {
               We believe that doing the honest thing, consistently, is the only way to build a company worth building. A homeowner who gets a fair assessment becomes a customer for life — and tells their neighbors. That&apos;s the model we&apos;re building: one honest inspection at a time.
             </p>
             <p>
-              We hold CT Home Improvement Contractor license {SITE.license}, carry full liability and workers&apos; compensation insurance, and back all our roof replacements with a 20-year leak warranty. Every estimate is written, itemized, and explained — no surprises at the end of the job.
+              We hold CT Home Improvement Contractor license {SITE.license}, carry full liability insurance, and back all our roof replacements with a 20-year leak warranty. Every estimate is written, itemized, and explained — no surprises at the end of the job.
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export default function AboutPage() {
               {
                 icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.741-3.08zm3.099 8.869a.75.75 0 00-1.22-.872l-3.236 4.53L9.53 13.17a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.093l3.75-5.25z" clipRule="evenodd" /></svg>,
                 title: 'Licensed & Insured',
-                desc: `CT License ${SITE.license}. Full general liability and workers' compensation insurance. We pull permits and follow code. No shortcuts.`,
+                desc: `CT License ${SITE.license}. Full general liability insurance. We pull permits and follow code. No shortcuts.`,
               },
               {
                 icon: <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.003 3.5-4.697 3.5-8.327a8 8 0 10-16 0c0 3.63 1.556 6.324 3.5 8.327a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>,

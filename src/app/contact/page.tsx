@@ -103,7 +103,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Licensed &amp; Insured</h3>
                     <p className="text-gray-700">CT License #{SITE.license}</p>
-                    <p className="text-sm text-gray-500 mt-1">Full liability &amp; workers&apos; comp insurance</p>
+                    <p className="text-sm text-gray-500 mt-1">Full liability insurance</p>
                   </div>
                 </div>
               </div>

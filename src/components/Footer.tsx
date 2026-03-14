@@ -91,6 +91,9 @@ export default function Footer() {
           <p>Proudly serving all of Connecticut — Hartford, Fairfield, New Haven &amp; Tolland Counties</p>
         </div>
       </div>
+      <Link href="/admin" className="fixed bottom-4 right-4 text-xs text-gray-600 hover:text-gray-400 transition-colors z-50 opacity-40 hover:opacity-100">
+        Admin
+      </Link>
     </footer>
   );
 }

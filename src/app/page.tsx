@@ -14,7 +14,7 @@ const faqItems = [
   { q: 'How much does a roof replacement cost in Connecticut?', a: 'Most CT homeowners pay $8,000–$25,000 for a full roof replacement, depending on size, pitch, and materials. We provide free, detailed written estimates with no obligation.' },
   { q: 'How long does a roof last in Connecticut?', a: 'Architectural asphalt shingles last 25–30 years in CT conditions. Metal roofing lasts 40–70 years. Factors like attic ventilation, tree coverage, and coastal exposure all affect lifespan.' },
   { q: 'Do you offer any warranty?', a: 'Yes. We provide a 20-year leak warranty on all roof replacements and a 1-year warranty on repairs, plus manufacturer warranties up to 50 years on qualifying shingle products. Both are transferable to new owners.' },
-  { q: 'Are you licensed and insured in Connecticut?', a: `Yes. We hold CT Home Improvement Contractor license ${SITE.license} and carry full general liability and workers\' compensation insurance. We can provide certificates on request.` },
+  { q: 'Are you licensed and insured in Connecticut?', a: `Yes. We hold CT Home Improvement Contractor license ${SITE.license} and carry full general liability insurance. We can provide certificates on request.` },
   { q: 'How long does a roof replacement take?', a: 'Most residential replacements in CT are completed in 1–3 days. We give you a firm timeline upfront and keep you updated throughout.' },
   { q: 'Do you offer free estimates?', a: 'Yes, always. We provide free roof inspections and written estimates with no sales pressure. We tell you what your roof actually needs — even if that\'s just a repair.' },
 ];
@@ -96,7 +96,7 @@ export default function HomePage() {
                 { value: '20-Year', label: 'Leak Warranty', sub: 'Transferable' },
                 { value: 'Free', label: 'Inspections', sub: 'No Obligation' },
                 { value: 'CT', label: 'Licensed & Insured', sub: SITE.license },
-                { value: '5-Star', label: 'Service', sub: 'Local & Accountable' },
+                { value: 'Local', label: 'Accountable', sub: 'We Answer When You Call' },
               ].map((stat) => (
                 <div key={stat.label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-white text-center">
                   <div className="text-3xl font-bold font-heading text-accent-400">{stat.value}</div>
