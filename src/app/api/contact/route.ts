@@ -14,9 +14,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert lead into Supabase
-    await getSupabase().from('leads').insert([
+    const { error: insertError } = await getSupabase().from('leads').insert([
       { name, email, phone, service: service || null, message: message || null, source: 'Website Form', stage: 'new' },
     ]);
+    if (insertError) {
+      console.error('Supabase insert error:', JSON.stringify(insertError));
+    }
 
     const firstName = name.split(' ')[0];
 
