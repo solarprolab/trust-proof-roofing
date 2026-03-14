@@ -3,6 +3,8 @@ import Link from 'next/link';
 import KanbanBoard from '../components/KanbanBoard';
 import LogoutButton from '../components/LogoutButton';
 
+export const dynamic = 'force-dynamic';
+
 const STAGES = ['new', 'contacted', 'quoted', 'won', 'lost'] as const;
 const STAGE_LABELS: Record<string, string> = {
   new: 'New',
