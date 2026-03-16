@@ -16,7 +16,8 @@ interface QuoteFormData {
 }
 
 const ADDON_RANGES: Record<string, [number, number]> = {
-  ice: [700, 1400], ridge: [350, 700], fascia: [250, 550], gutters: [0, 0],
+  ridge: [300, 300],
+  gutters: [0, 0],
 };
 
 function fmt(n: number) { return '$' + n.toLocaleString(); }
@@ -324,24 +325,25 @@ export default function InstantQuote() {
         {step === 4 && (
           <div>
             <h3 className="text-lg font-bold text-[#1B3C6B] mb-1">Any add-ons?</h3>
-            <p className="text-sm text-gray-500 mb-4">Optional — select anything you&apos;d like included.</p>
+            <p className="text-sm text-gray-500 mb-3">Optional — select anything you&apos;d like included.</p>
+            <div className="bg-green-50 border border-green-200 rounded-lg px-3.5 py-2.5 mb-4">
+              <p className="text-xs font-semibold text-green-700 mb-1">Already included in your price:</p>
+              <p className="text-xs text-green-600">✓ Full ice &amp; water shield &nbsp;·&nbsp; ✓ Fascia &amp; drip edge</p>
+            </div>
             <div className="space-y-2">
               {([
-                ['ice','Full ice & water shield','Critical for CT winters — extra membrane layer beneath shingles',true,false],
-                ['ridge','Ridge vent upgrade','Improves attic ventilation and extends shingle life',false,false],
-                ['fascia','Fascia & drip edge','Protects roof edges from water intrusion',false,false],
-                ['gutters','Gutter inspection','We\'ll check gutters while we\'re there',false,true],
-              ] as const).map(([id, label, sub, rec, free]) => {
+                ['ridge', 'Ridge vent upgrade', '+$300 — improves attic ventilation and extends shingle life', false],
+                ['gutters', 'Gutter inspection', 'Complimentary — we\'ll check gutters while we\'re there', true],
+              ] as const).map(([id, label, sub, free]) => {
                 const checked = form.addOns.includes(id);
                 return (
                   <button key={id} onClick={() => toggleAddon(id)} className={`w-full ${card(checked)} flex items-start gap-3`}>
-                    <div className={`w-4.5 h-4.5 mt-0.5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${checked ? 'bg-[#1B3C6B] border-[#1B3C6B]' : 'border-gray-300'}`} style={{width:'18px',height:'18px'}}>
+                    <div className={`mt-0.5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all ${checked ? 'bg-[#1B3C6B] border-[#1B3C6B]' : 'border-gray-300'}`} style={{width:'18px',height:'18px'}}>
                       {checked && <CheckIcon cls="w-2.5 h-2.5 text-white" />}
                     </div>
                     <div>
                       <div className="flex items-center flex-wrap gap-1.5">
                         <span className="font-semibold text-sm text-gray-800">{label}</span>
-                        {rec && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">Recommended</span>}
                         {free && <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">Complimentary</span>}
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5">{sub}</div>
