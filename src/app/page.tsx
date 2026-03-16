@@ -90,36 +90,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: Trust stats */}
-          <div className="hidden lg:flex flex-col gap-4">
-            {[
-              { number: '20-Year', label: 'Leak Warranty', sub: 'On all replacements' },
-              { number: 'Free', label: 'Roof Inspections', sub: 'No obligation' },
-              { number: 'Licensed', label: '& Insured', sub: `CT HIC #${SITE.license}` },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 flex items-center gap-5">
-                <div className="text-3xl font-black text-yellow-400 min-w-[80px]">{stat.number}</div>
-                <div>
-                  <div className="text-white font-bold text-base">{stat.label}</div>
-                  <div className="text-white/60 text-sm">{stat.sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gray-50 py-12 px-4">
-        <div className="max-w-lg mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-[#1B3C6B] mb-2">Get Your Instant Roof Estimate</h2>
-            <p className="text-sm text-gray-500">2 minutes. No obligation. Tenzin responds within 2 hours.</p>
-          </div>
-          <InstantQuote />
-          <div className="flex items-center justify-center gap-5 mt-5 text-xs text-gray-400 font-medium">
-            <span>✓ CT HIC Licensed</span>
-            <span>✓ Fully Insured</span>
-            <span>✓ 20-Year Warranty</span>
+          <div className="w-full lg:w-[480px] flex-shrink-0">
+            <InstantQuote />
           </div>
         </div>
       </section>
