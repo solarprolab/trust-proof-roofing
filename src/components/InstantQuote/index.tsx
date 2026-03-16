@@ -213,9 +213,7 @@ export default function InstantQuote() {
                   setLookupError('');
                   if (val.length < 4) { setSuggestions([]); return; }
                   try {
-                    const res = await fetch(
-                      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(val)}&types=address&components=country:us|administrative_area:CT&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`
-                    );
+                    const res = await fetch(`/api/autocomplete?input=${encodeURIComponent(val)}`);
                     const data = await res.json();
                     setSuggestions(data.predictions?.map((p: {description: string}) => p.description) ?? []);
                   } catch { setSuggestions([]); }
