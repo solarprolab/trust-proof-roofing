@@ -60,6 +60,7 @@ export default function InstantQuote() {
   const [pitchSurcharge, setPitchSurcharge] = useState<number>(0);
   const [lookingUp, setLookingUp] = useState<boolean>(false);
   const [lookupError, setLookupError] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const toggleAddon = (id: string) =>
     setForm(f => ({
@@ -200,8 +201,45 @@ export default function InstantQuote() {
             <h3 className="text-lg font-bold text-[#1B3C6B] mb-1">Let&apos;s start with your property</h3>
             <p className="text-sm text-gray-500 mb-4">We&apos;ll use this to size your estimate.</p>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">Property address</label>
-            <input type="text" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} onBlur={e => lookupRoofSize(e.target.value)} placeholder="123 Main St, Hartford, CT"
-              className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#1B3C6B]/30 focus:border-[#1B3C6B]" />
+            <div className="relative mb-4">
+              <input
+                type="text"
+                value={form.address}
+                onChange={async (e) => {
+                  const val = e.target.value;
+                  setForm(f => ({ ...f, address: val }));
+                  setRoofSqft(null);
+                  setPitchSurcharge(0);
+                  setLookupError('');
+                  if (val.length < 4) { setSuggestions([]); return; }
+                  try {
+                    const res = await fetch(
+                      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(val)}&types=address&components=country:us|administrative_area:CT&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`
+                    );
+                    const data = await res.json();
+                    setSuggestions(data.predictions?.map((p: {description: string}) => p.description) ?? []);
+                  } catch { setSuggestions([]); }
+                }}
+                onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                placeholder="123 Main St, Hartford, CT"
+                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3C6B]/30 focus:border-[#1B3C6B]"
+              />
+              {suggestions.length > 0 && (
+                <ul className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg overflow-hidden">
+                  {suggestions.map((s, i) => (
+                    <li key={i}
+                      className="px-3.5 py-2.5 text-sm cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                      onMouseDown={() => {
+                        setForm(f => ({ ...f, address: s }));
+                        setSuggestions([]);
+                        lookupRoofSize(s);
+                      }}>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             {lookingUp && (
               <p className="text-xs text-[#1B3C6B] flex items-center gap-1.5 mb-3">
                 <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
