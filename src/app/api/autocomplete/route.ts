@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
+  console.log('API KEY:', process.env.GOOGLE_SOLAR_API_KEY?.slice(0, 8));
   const { searchParams } = new URL(req.url);
   const input = searchParams.get('input');
   if (!input) return NextResponse.json({ predictions: [] });
