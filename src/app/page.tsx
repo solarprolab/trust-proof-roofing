@@ -68,7 +68,7 @@ export default function HomePage() {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-widest uppercase">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/></svg>
-              Only in CT — Satellite-Powered Real Quote
+              Get a Real Number — Not 'Call for Pricing'
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
               Connecticut&apos;s Most Trusted<br />
@@ -83,7 +83,7 @@ export default function HomePage() {
             <div className="relative flex justify-center mb-3">
               <div className="inline-flex items-center gap-2.5 bg-yellow-400 text-gray-900 text-sm font-black px-5 py-2 rounded-full shadow-lg">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
-                CT&apos;s Only Real-Time Satellite Quote Tool
+                Get a Real Number — Not 'Call for Pricing'
               </div>
             </div>
             <div className="relative">
@@ -91,7 +91,7 @@ export default function HomePage() {
             </div>
             <div className="relative mt-4 grid grid-cols-3 gap-3">
               {[
-                {icon:'🛰️',label:'Satellite Roof Measurement',sub:'Auto-detects your roof size'},
+                {icon:'🛰️',label:'Your Roof, Measured',sub:'We size it to your actual property — not a guess'},
                 {icon:'💰',label:'Real Price Range',sub:'Not a "call for pricing" runaround'},
                 {icon:'🚁',label:'Free Drone Followup',sub:'Exact price confirmed on-site'},
               ].map(p => (
