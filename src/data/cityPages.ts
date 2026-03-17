@@ -36,6 +36,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Norwalk', slug: 'norwalk' },
       { city: 'Fairfield', slug: 'fairfield' },
     ],
+    localContext: "Stamford's premium market and high home values attract corporate and professional homeowners who expect responsiveness and thorough documentation on every job. The coastal location adds salt air and wind exposure that accelerates material wear compared to inland towns. A clear paper trail and prompt communication matter here as much as the quality of the installation.",
     faq: [
       {
         q: 'How does the coastal climate affect roofs in Stamford?',
@@ -74,6 +75,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Norwalk', slug: 'norwalk' },
       { city: 'Fairfield', slug: 'fairfield' },
     ],
+    localContext: "Greenwich is Connecticut's most affluent town, with home values and architectural complexity that demand the best materials and workmanship on every job. Larger and more complex roof systems — slate, cedar shake, multiple dormers and intersecting valleys — are the norm rather than the exception. Homeowners expect a contractor who can perform at that level and document every step.",
     faq: [
       {
         q: 'Can you work on historic homes in Greenwich?',
@@ -116,6 +118,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Fairfield', slug: 'fairfield' },
       { city: 'Bridgeport', slug: 'bridgeport' },
     ],
+    localContext: "Norwalk's position on Long Island Sound creates real salt air and wind exposure that accelerates shingle deterioration, particularly in neighborhoods closest to the water. The city's mix of urban and suburban housing spans a wide range of conditions and age profiles. A contractor who understands coastal roofing requirements and prices work honestly is what this market calls for.",
     faq: [
       {
         q: 'What are the most common roofing issues in Norwalk?',
@@ -150,6 +153,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Fairfield', slug: 'fairfield' },
       { city: 'New Haven', slug: 'new-haven' },
     ],
+    localContext: "Bridgeport is Connecticut's largest city, with a high volume of aging housing stock spread across dense urban neighborhoods. Storm and emergency demand is consistently strong here, and insurance work is a routine part of the market. We price work fairly for Bridgeport — the scope determines the cost, not the zip code.",
     faq: [
       {
         q: 'How much does a roof replacement cost in Bridgeport, CT?',
@@ -184,6 +188,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'West Hartford', slug: 'west-hartford' },
       { city: 'Waterbury', slug: 'waterbury' },
     ],
+    localContext: "New Haven's university character and historic housing stock create a market that values transparency and thorough documentation. Older buildings with complex rooflines — Victorian multi-families, historic colonials, mixed-use structures — are common, and inspections and condition assessments are frequently the first call. Homeowners here do their research and respond to contractors who explain rather than pressure.",
     faq: [
       {
         q: 'Can you work on original slate roofs in New Haven?',
@@ -218,6 +223,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'New Haven', slug: 'new-haven' },
       { city: 'Waterbury', slug: 'waterbury' },
     ],
+    localContext: "Hartford's dense urban mix of triple-deckers and single-family colonials includes a significant share of roofs that have been deferred well past their useful life, particularly on rental properties where maintenance gets deprioritized. Storm damage demand is consistently strong here, and insurance work is a routine part of the conversation. An honest condition assessment is the right first step for any Hartford property owner.",
     faq: [
       {
         q: 'How much does roof replacement cost in Hartford, CT?',
@@ -252,6 +258,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Bridgeport', slug: 'bridgeport' },
       { city: 'Waterbury', slug: 'waterbury' },
     ],
+    localContext: "Danbury's growing population and mix of older urban housing and newer suburban developments create broad, consistent demand across all roofing service types. It's a diverse market where both repair and replacement calls come in at steady volume throughout the year. Straightforward pricing and reliable execution are what earn repeat business and referrals here.",
     faq: [
       {
         q: 'Why does Danbury get more snow than the coast?',
@@ -286,6 +293,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Hartford', slug: 'hartford' },
       { city: 'Danbury', slug: 'danbury' },
     ],
+    localContext: "Waterbury has a significant inventory of aging housing stock and a price-sensitive market where straightforward communication matters above all else. Strong repair demand is the baseline here, with replacement conversations following honest condition assessments. We don't inflate scopes or pad estimates — the work should speak for itself.",
     faq: [
       {
         q: 'How do I avoid getting scammed by roofing contractors in Waterbury?',
@@ -316,6 +324,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'New Haven', slug: 'new-haven' },
       { city: 'Waterbury', slug: 'waterbury' },
     ],
+    localContext: "West Hartford's high home values make quality the primary consideration — the lowest bid rarely wins here. The town's large inventory of 1950s–1970s ranch and colonial homes means many are approaching or past their expected roof lifespan, making this one of the more active replacement markets in Hartford County. Homeowners here research contractors thoroughly before calling, and we show up prepared to earn the work.",
     faq: [
       {
         q: 'How does a new roof affect home value in West Hartford?',
@@ -350,6 +359,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Norwalk', slug: 'norwalk' },
       { city: 'Stamford', slug: 'stamford' },
     ],
+    localContext: "Fairfield's coastal location on Long Island Sound brings salt air and wind exposure that ages roofing materials measurably faster than inland Connecticut towns. High home values and discerning homeowners who research contractors carefully define the market here. Quality materials and documented workmanship are what Fairfield buyers expect when protecting a significant investment.",
     faq: [
       {
         q: 'How does living near the beach affect my roof in Fairfield?',
@@ -390,6 +400,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Granby', slug: 'granby' },
       { city: 'Somers', slug: 'somers' },
     ],
+    localContext: "Suffield's rural character and older colonial and cape homes put many roofs here in the 20–30 year range — prime candidates for replacement. The open tobacco farm country that defines the town offers few natural windbreaks, meaning roofs face direct weather exposure through every season. It's a close-knit community where referrals drive business more than advertising, and we take that seriously.",
     faq: [
       {
         q: 'Are you actually based in Suffield CT?',
@@ -425,6 +436,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Somers', slug: 'somers' },
       { city: 'East Windsor', slug: 'east-windsor' },
     ],
+    localContext: "Enfield is one of the larger suburban towns in Hartford County, with a substantial inventory of capes and colonials built between the 1950s and 1980s — many approaching or at the end of their roof lifespan. The area has seen active storm damage calls following recent hail events, and homeowners who haven't had their roof assessed after a major storm should make it a priority. Replacement demand here is among the most consistent in the region.",
     faq: [
       {
         q: 'How much does a roof replacement cost in Enfield, CT?',
@@ -460,6 +472,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Windsor', slug: 'windsor' },
       { city: 'East Windsor', slug: 'east-windsor' },
     ],
+    localContext: "Windsor Locks is a small town with older housing stock where straightforward pricing and reliable work matter more than sales pitches. The proximity to Bradley Airport brings real wind exposure that accelerates wear on aging roofing systems. Homeowners here want to know exactly what they're getting and what it costs — upfront, in writing.",
     faq: [
       {
         q: 'How much does roof replacement cost in Windsor Locks, CT?',
@@ -491,6 +504,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Enfield', slug: 'enfield' },
       { city: 'Windsor', slug: 'windsor' },
     ],
+    localContext: "East Granby is a small rural town where larger lot sizes and custom homes are the norm, and long-term residents tend to take property maintenance seriously. It's a tight word-of-mouth market — the quality of your work on one job becomes the reason the next homeowner calls. We treat every East Granby project with that in mind.",
     faq: [
       {
         q: 'Do you serve East Granby, CT for roofing?',
@@ -522,6 +536,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Simsbury', slug: 'simsbury' },
       { city: 'Canton', slug: 'canton' },
     ],
+    localContext: "Granby's rural-suburban character — horse farms alongside custom homes — creates a market where pride of ownership runs high and homeowners take their time selecting a contractor. Quality and thorough documentation matter more than price here, and research happens before calls are made. We're comfortable with that standard.",
     faq: [
       {
         q: 'How much does roof replacement cost in Granby, CT?',
@@ -553,6 +568,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'East Windsor', slug: 'east-windsor' },
       { city: 'Ellington', slug: 'ellington' },
     ],
+    localContext: "Somers is a small rural town close to the Massachusetts border, which means nor'easters hit earlier and harder here than in most of Connecticut. Older homes and practical homeowners who prioritize reliability and warranty over brand names define this market. A contractor who shows up on time and backs their work earns lasting trust here.",
     faq: [
       {
         q: 'Do you serve Somers, CT for roofing?',
@@ -584,6 +600,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Suffield', slug: 'suffield' },
       { city: 'South Windsor', slug: 'south-windsor' },
     ],
+    localContext: "East Windsor is a small town with agricultural roots and older housing stock where practical homeowners want straightforward pricing and reliable execution — no upsells, no inflated scopes. An honest assessment and a fair number is what drives decisions here. We give the same answer we'd give a family member.",
     faq: [
       {
         q: 'Do you serve East Windsor CT for roofing?',
@@ -615,6 +632,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Granby', slug: 'granby' },
       { city: 'Hartford', slug: 'hartford' },
     ],
+    localContext: "Bloomfield's diverse housing stock covers a wide range of home ages and conditions, and it's a market where homeowners want honest guidance rather than upsells. The most common question we hear here is repair vs. replace — and we give a straight answer based on what's actually in front of us. Pricing is fair and based on scope, not neighborhood.",
     faq: [
       {
         q: 'Do you serve Bloomfield CT for roofing?',
@@ -646,6 +664,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Suffield', slug: 'suffield' },
       { city: 'South Windsor', slug: 'south-windsor' },
     ],
+    localContext: "Windsor's mix of newer suburban developments and older New England homes creates varied roofing needs across the town. Storm exposure mirrors Hartford's — this is an inland market with real weather year-round. The real estate market here is consistently active, and pre-sale roof inspections are one of the most common calls we get from Windsor homeowners.",
     faq: [
       {
         q: 'How much does roof replacement cost in Windsor CT?',
@@ -677,6 +696,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Avon', slug: 'avon' },
       { city: 'Canton', slug: 'canton' },
     ],
+    localContext: "Simsbury is an affluent suburb with a high concentration of larger colonials — many with cedar shake or premium architectural shingle roofs that require experienced crews and careful installation. High home values mean homeowners expect premium service and clear communication at every step, not just a price and a start date. We're equipped to meet that expectation.",
     faq: [
       {
         q: 'How much does roof replacement cost in Simsbury CT?',
@@ -707,6 +727,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Canton', slug: 'canton' },
       { city: 'Bloomfield', slug: 'bloomfield' },
     ],
+    localContext: "Avon is one of Connecticut's most affluent suburbs, and larger roofs on upscale colonials and contemporaries are the norm. White-glove service — clear communication throughout the job, thorough documentation, and premium materials — is the baseline expectation, not an upgrade. Quality over price, on every job.",
     faq: [
       {
         q: 'How much does roof replacement cost in Avon CT?',
@@ -737,6 +758,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Avon', slug: 'avon' },
       { city: 'Granby', slug: 'granby' },
     ],
+    localContext: "Canton's active real estate market means pre-purchase roof inspections are a regular part of the transaction process here. Custom homes on larger lots are the norm, and buyers invest in long-term property maintenance — making condition assessments at sale as important as the price negotiation itself. Homeowners here make decisions based on longevity, not just immediate cost.",
     faq: [
       {
         q: 'Do you serve Canton CT for roofing?',
@@ -768,6 +790,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Manchester', slug: 'manchester' },
       { city: 'Ellington', slug: 'ellington' },
     ],
+    localContext: "South Windsor is an established suburb with a large inventory of 1960s–1980s colonials, many of which are due or overdue for replacement. Responsiveness and clear communication are what distinguish one contractor from another in this active real estate market. Homeowners here have usually done their research and want to deal with someone accountable.",
     faq: [
       {
         q: 'Do you serve South Windsor CT for roofing?',
@@ -798,6 +821,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Vernon', slug: 'vernon' },
       { city: 'East Windsor', slug: 'east-windsor' },
     ],
+    localContext: "Manchester's diverse housing stock — owner-occupied colonials alongside rental properties — drives strong demand for both repairs and replacements. It's a price-conscious market, but not a low-quality one: homeowners here recognize the difference between a contractor cutting corners and one doing it right. We treat every Manchester job the same regardless of the price point.",
     faq: [
       {
         q: 'Do you serve Manchester CT for roofing?',
@@ -828,6 +852,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Ellington', slug: 'ellington' },
       { city: 'Somers', slug: 'somers' },
     ],
+    localContext: "Vernon is a working-class suburb with older housing stock and a referral-driven market where your reputation carries from street to street. Practical homeowners want honest repair-vs-replace guidance without feeling steered toward the more expensive option. We give the same answer we'd give a family member.",
     faq: [
       {
         q: 'Do you serve Vernon CT for roofing?',
@@ -858,6 +883,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Vernon', slug: 'vernon' },
       { city: 'Tolland', slug: 'tolland' },
     ],
+    localContext: "Ellington's mix of older farmhouses and newer subdivisions reflects a town that's growing while retaining its rural character. Older farmhouse stock has real roofing needs, while newer developments are still years from their first replacement cycle. It's a practical market where directness and consistent follow-through matter most.",
     faq: [
       {
         q: 'Do you serve Ellington CT for roofing?',
@@ -888,6 +914,7 @@ export const CT_CITIES: CityPage[] = [
       { city: 'Vernon', slug: 'vernon' },
       { city: 'Somers', slug: 'somers' },
     ],
+    localContext: "Tolland has a college-town character — UConn's proximity shapes a community of educated, research-oriented homeowners who do their due diligence before hiring. The mix of older homes and newer builds keeps demand varied, and transparency matters here more than most of the region. Homeowners want to understand exactly what they're paying for and why.",
     faq: [
       {
         q: 'Do you serve Tolland CT for roofing?',

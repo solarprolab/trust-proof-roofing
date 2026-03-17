@@ -86,6 +86,16 @@ export default function CityPage({ params }: { params: { city: string } }) {
         </div>
       </section>
 
+      {/* Local context */}
+      <section className="py-12 bg-gray-50 border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="font-heading text-2xl font-bold text-brand-800 mb-4">
+            Roofing in {city.city}, CT — What Local Homeowners Should Know
+          </h2>
+          <p className="text-gray-700 leading-relaxed text-lg">{city.localContext}</p>
+        </div>
+      </section>
+
       {/* Quick stats */}
       <section className="bg-white border-b border-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4">
