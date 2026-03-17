@@ -272,12 +272,16 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-4">We Serve All of Connecticut</h2>
           <p className="text-center text-gray-500 mb-10">Click your city for local pricing, common roof issues, and neighborhood-specific information.</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {CT_CITIES.map((city) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[...CT_CITIES].sort((a, b) => a.city.localeCompare(b.city)).map((city) => (
               <Link
                 key={city.slug}
                 href={`/roofing/ct/${city.slug}`}
-                className="bg-white hover:bg-gray-50 text-gray-800 font-medium px-5 py-3 rounded-xl border border-gray-200 hover:border-yellow-400 hover:shadow-sm transition-all text-sm"
+                className={
+                  city.slug === 'suffield'
+                    ? 'bg-[#0a1f3d] text-white font-semibold px-5 py-3 rounded-xl border border-[#0a1f3d] hover:bg-[#0f2d52] transition-all text-sm text-center'
+                    : 'bg-white text-gray-800 font-medium px-5 py-3 rounded-xl border border-gray-200 hover:border-[#0a1f3d] hover:bg-gray-50 transition-all text-sm text-center'
+                }
               >
                 {city.city}, CT
               </Link>
