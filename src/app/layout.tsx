@@ -57,6 +57,7 @@ const businessSchema = {
     '@type': 'State',
     name: 'Connecticut',
   },
+  image: `${SITE.url}/logo.png`,
   license: SITE.license,
   priceRange: '$$',
 };

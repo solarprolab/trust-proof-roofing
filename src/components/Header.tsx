@@ -23,14 +23,13 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <svg width="44" height="38" viewBox="0 0 110 95" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="5,50 55,5 105,50" stroke="#FACC15" strokeWidth="8" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
-            <polyline points="18,50 18,90" stroke="#FACC15" strokeWidth="8" strokeLinecap="square" fill="none"/>
-            <polygon points="10,52 18,38 26,52" fill="#FACC15"/>
-            <polyline points="92,50 92,90" stroke="#FACC15" strokeWidth="8" strokeLinecap="square" fill="none"/>
-            <polygon points="84,52 92,38 100,52" fill="#FACC15"/>
-            <polyline points="32,62 48,78 82,44" stroke="#FACC15" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          </svg>
+          <img
+            src="/logo-icon-yellow.png"
+            alt="Trust Proof Roofing"
+            width={44}
+            height={36}
+            className="object-contain"
+          />
           <div className="text-white font-black text-lg tracking-wide font-heading">{SITE.name}</div>
         </Link>
 
