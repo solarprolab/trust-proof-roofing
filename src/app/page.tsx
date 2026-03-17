@@ -20,6 +20,24 @@ const faqItems = [
   { q: 'Do you offer free estimates?', a: 'Yes, always. We provide free roof inspections and written estimates with no sales pressure. We tell you what your roof actually needs — even if that\'s just a repair.' },
 ];
 
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'Trust Proof Roofing LLC',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '141 Quail Run Rd',
+    addressLocality: 'Suffield',
+    addressRegion: 'CT',
+    postalCode: '06078',
+    addressCountry: 'US',
+  },
+  telephone: SITE.phone,
+  url: SITE.url,
+  license: SITE.license,
+  areaServed: { '@type': 'State', name: 'Connecticut' },
+};
+
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -52,6 +70,7 @@ const serviceIcons: Record<string, React.ReactNode> = {
 export default function HomePage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Hero */}
@@ -71,8 +90,8 @@ export default function HomePage() {
               Get a Real Number — Not 'Call for Pricing'
             </div>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
-              Connecticut&apos;s Most Trusted<br />
-              <span className="text-yellow-400">Roofing Company</span>
+              See Your Roof. Know Your Price.<br />
+              <span className="text-yellow-400">20-Year Guarantee.</span>
             </h1>
             <p className="text-white/70 text-lg max-w-2xl mx-auto">
               Proudly serving Suffield, CT and surrounding communities. Quality roofing backed by our industry-leading 20-year leak warranty.

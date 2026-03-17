@@ -1,13 +1,13 @@
 // Site configuration
 export const SITE = {
   name: 'Trust Proof Roofing',
-  tagline: 'Roofing You Can Trust — Backed by Proof',
+  tagline: 'Proof Overhead.',
   description: "Connecticut's trusted roofing contractor. Licensed, insured, and committed to quality. Roof replacement, repair, inspection, and emergency services across CT.",
   url: 'https://trustproofroofing.com',
   phone: '(959) 333-8569',
   email: 'info@trustproofroofing.com',
   address: {
-    street: '',
+    street: '141 Quail Run Rd',
     city: 'Suffield',
     state: 'CT',
     stateFullName: 'Connecticut',
@@ -43,7 +43,7 @@ export const SERVICES: Service[] = [
     name: 'Roof Replacement',
     shortName: 'Replacement',
     description: 'Complete roof replacement using premium shingle brands including GAF and Owens Corning. 20-year leak warranty and manufacturer warranties up to 50 years.',
-    metaTitle: 'Roof Replacement Connecticut | Trust Proof Roofing',
+    metaTitle: 'Roof Replacement in Connecticut',
     metaDescription: 'Complete roof replacement in CT. Premium shingle brands including GAF and Owens Corning. 20-year leak warranty, manufacturer warranties up to 50 years. Free estimate.',
     icon: '🏠',
     features: [
@@ -83,7 +83,7 @@ export const SERVICES: Service[] = [
     name: 'Roof Repair',
     shortName: 'Repair',
     description: 'Fast, reliable roof repairs with same-week service available. Leak detection, storm damage repair, flashing repair, and more. We fix it right the first time.',
-    metaTitle: 'Roof Repair Connecticut | Trust Proof Roofing',
+    metaTitle: 'Roof Repair in Connecticut',
     metaDescription: 'Fast roof repair in CT. Same-week service, leak detection, storm damage, flashing repair. Licensed & insured. Call (959) 333-8569.',
     icon: '🔧',
     features: [
@@ -114,7 +114,7 @@ export const SERVICES: Service[] = [
     name: 'Roof Inspection',
     shortName: 'Inspection',
     description: 'Comprehensive roof inspections for homebuyers, insurance purposes, and annual maintenance. Detailed written reports with photos delivered same day.',
-    metaTitle: 'Roof Inspection Connecticut | Trust Proof Roofing',
+    metaTitle: 'Roof Inspection in Connecticut',
     metaDescription: 'Professional roof inspections in CT. Homebuyer, insurance & maintenance inspections. Detailed photo report same day. Call (959) 333-8569.',
     icon: '🔍',
     features: [
@@ -141,7 +141,7 @@ export const SERVICES: Service[] = [
     name: 'Emergency Roofing',
     shortName: 'Emergency',
     description: 'Emergency tarping and repair available 7 days a week. Storm damage, fallen trees, sudden leaks. We respond within 2-4 hours to protect your home.',
-    metaTitle: 'Emergency Roofing Connecticut | Trust Proof Roofing',
+    metaTitle: 'Emergency Roofing in Connecticut',
     metaDescription: '24/7 emergency roofing in CT. 2-4 hour response. Storm damage, tarping, fallen trees. Call (959) 333-8569 now.',
     icon: '⚡',
     features: [
@@ -168,7 +168,7 @@ export const SERVICES: Service[] = [
     name: 'Storm Damage Restoration',
     shortName: 'Storm Damage',
     description: 'Full storm damage restoration including hail, wind, and fallen trees. We document all damage thoroughly with photos and reports to support your insurance claim.',
-    metaTitle: 'Storm Damage Roofing Connecticut | Trust Proof Roofing',
+    metaTitle: 'Storm Damage Roofing in Connecticut',
     metaDescription: 'Storm damage roof restoration in CT. Detailed photo documentation for insurance claims. Hail, wind, tree damage. Call (959) 333-8569 for free inspection.',
     icon: '🌪️',
     features: [
