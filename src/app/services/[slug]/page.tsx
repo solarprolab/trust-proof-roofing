@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const service = getServiceBySlug(params.slug);
   if (!service) return {};
   return {
-    title: service.metaTitle,
+    title: { absolute: `${service.metaTitle} | ${SITE.name}` },
     description: service.metaDescription,
     alternates: { canonical: `${SITE.url}/services/${service.slug}` },
   };
@@ -74,10 +74,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
             <span className="mx-2">›</span>
             <span>{service.name}</span>
           </nav>
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-5xl">{service.icon}</span>
-            <h1 className="font-heading text-5xl font-bold">{service.name} in Connecticut</h1>
-          </div>
+          <h1 className="font-heading text-5xl font-bold mb-4">{service.name} in Connecticut</h1>
           <p className="text-brand-200 text-xl max-w-2xl">{service.description}</p>
         </div>
       </section>
@@ -88,9 +85,8 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           <h2 className="font-heading text-3xl font-bold text-brand-800 mb-8">What&apos;s Included</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {service.features.map((feat) => (
-              <div key={feat} className="flex items-start gap-3 bg-brand-50 rounded-lg p-4">
-                <span className="text-brand-500 font-bold text-lg mt-0.5 flex-shrink-0">✓</span>
-                <span className="text-gray-800">{feat}</span>
+              <div key={feat} className="bg-brand-50 rounded-lg p-4 text-gray-800">
+                {feat}
               </div>
             ))}
           </div>
