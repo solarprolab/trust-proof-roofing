@@ -12,8 +12,8 @@ export async function generateMetadata({ params }: { params: { city: string } })
   const city = getCityBySlug(params.city);
   if (!city) return {};
   return {
-    title: `Roofing Contractor in ${city.city}, CT | ${SITE.name}`,
-    description: `Trusted roofing contractor in ${city.city}, Connecticut. Roof replacement ($${city.avgRoofReplacementCost}), repair, inspection & emergency service. Licensed & insured. Free estimate.`,
+    title: `Roofing Contractor in ${city.city}, CT`,
+    description: `Trusted roofing contractor in ${city.city}, Connecticut. Roof replacement, repair, inspection & emergency service. Licensed & insured. Free estimate.`,
     alternates: { canonical: `${SITE.url}/roofing/ct/${city.slug}` },
   };
 }
@@ -96,51 +96,12 @@ export default function CityPage({ params }: { params: { city: string } }) {
         </div>
       </section>
 
-      {/* Quick stats */}
-      <section className="bg-white border-b border-gray-100 py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { label: 'Avg. Replacement Cost', value: city.avgRoofReplacementCost },
-              { label: 'Median Home Value', value: `$${city.medianHomeValue.toLocaleString()}` },
-              { label: 'Most Common Roof Type', value: city.commonRoofType },
-              { label: 'Avg. Roof Age', value: `${city.avgRoofAge} years` },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl font-bold text-brand-700">{stat.value}</div>
-                <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Local angle */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <div>
-              <h2 className="font-heading text-3xl font-bold text-brand-800 mb-6">Roofing in {city.city}: What You Need to Know</h2>
-              <p className="text-gray-700 leading-relaxed text-lg">{city.localAngle}</p>
-            </div>
-            <div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
-                <h3 className="font-semibold text-amber-900 mb-2">🍂 Seasonal Tip for {city.city}</h3>
-                <p className="text-amber-800 text-sm leading-relaxed">{city.seasonalNote}</p>
-              </div>
-
-              <div className="bg-brand-50 rounded-xl p-6">
-                <h3 className="font-semibold text-brand-800 mb-3">Common Weather Challenges</h3>
-                <ul className="space-y-2">
-                  {city.weatherChallenges.map((challenge) => (
-                    <li key={challenge} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="text-brand-500 mt-0.5">⚠</span>
-                      {challenge}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+          <div className="max-w-3xl">
+            <h2 className="font-heading text-3xl font-bold text-brand-800 mb-6">Roofing in {city.city}: What You Need to Know</h2>
+            <p className="text-gray-700 leading-relaxed text-lg">{city.localAngle}</p>
           </div>
 
           {/* Neighborhoods + zip codes */}
@@ -174,13 +135,10 @@ export default function CityPage({ params }: { params: { city: string } }) {
               <Link
                 key={service.slug}
                 href={`/services/${service.slug}`}
-                className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-4 hover:border-brand-400 hover:shadow-sm transition-all"
+                className="bg-white border border-gray-200 rounded-lg p-4 hover:border-brand-400 hover:shadow-sm transition-all"
               >
-                <span className="text-2xl">{service.icon}</span>
-                <div>
-                  <div className="font-medium text-gray-900">{service.name}</div>
-                  <div className="text-xs text-gray-500">{service.shortName} in {city.city}</div>
-                </div>
+                <div className="font-medium text-gray-900">{service.name}</div>
+                <div className="text-xs text-gray-500 mt-1">{service.shortName} in {city.city}</div>
               </Link>
             ))}
           </div>
