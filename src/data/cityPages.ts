@@ -13,6 +13,7 @@ export interface CityPage {
   localAngle: string;
   seasonalNote: string;
   nearbyCity: { city: string; slug: string }[];
+  localContext?: string;
   faq: { q: string; a: string }[];
 }
 
