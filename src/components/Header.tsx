@@ -28,7 +28,7 @@ export default function Header() {
             alt="Trust Proof Roofing"
             width={44}
             height={36}
-            className="object-contain"
+            style={{objectFit: 'contain'}}
           />
           <div className="text-white font-black text-lg tracking-wide font-heading">{SITE.name}</div>
         </Link>
