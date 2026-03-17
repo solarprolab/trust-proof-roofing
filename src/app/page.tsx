@@ -26,7 +26,6 @@ const localBusinessSchema = {
   name: 'Trust Proof Roofing LLC',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: '141 Quail Run Rd',
     addressLocality: 'Suffield',
     addressRegion: 'CT',
     postalCode: '06078',

@@ -7,7 +7,7 @@ export const SITE = {
   phone: '(959) 333-8569',
   email: 'info@trustproofroofing.com',
   address: {
-    street: '141 Quail Run Rd',
+    street: '',
     city: 'Suffield',
     state: 'CT',
     stateFullName: 'Connecticut',
