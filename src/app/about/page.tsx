@@ -46,7 +46,7 @@ export default function AboutPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-black text-gray-900 mb-1">Tenzin Thupten</h2>
+              <h2 className="text-2xl font-black text-gray-900 mb-1">Tenzin</h2>
               <p className="text-yellow-500 font-semibold text-sm mb-3">Founder &amp; Managing Member — Trust Proof Roofing LLC</p>
               <p className="text-gray-600 leading-relaxed">Connecticut-licensed home improvement contractor (HIC.0703927) serving homeowners across the state. I started Trust Proof Roofing because I believe every homeowner deserves honest advice about their roof — whether that means a full replacement or just a minor repair. No upselling. No pressure. Just straight talk and quality work.</p>
             </div>

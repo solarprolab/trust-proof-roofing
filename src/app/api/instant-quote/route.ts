@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
               <p style="margin:6px 0 0;font-size:12px;opacity:0.75">No charge · No obligation · Full roof video</p>
             </div>` : ''}
             <p style="font-size:14px;color:#374151">Every replacement I do comes with a <strong>20-year leak warranty</strong> — not a manufacturer program, my personal commitment in writing.</p>
-            <p style="font-size:14px;color:#374151">— Tenzin Thupten, Founder<br>Trust Proof Roofing<br><a href="tel:9593338569" style="color:#1B3C6B">(959) 333-8569</a></p>
+            <p style="font-size:14px;color:#374151">— Tenzin, Founder<br>Trust Proof Roofing<br><a href="tel:9593338569" style="color:#1B3C6B">(959) 333-8569</a></p>
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">
             <p style="font-size:11px;color:#9ca3af">Trust Proof Roofing LLC · 141 Quail Run Rd, Suffield, CT 06078 · CT HIC #HIC.0703927</p>
           </div>`,
