@@ -14,10 +14,10 @@ export default function Footer() {
             <div className="flex items-center gap-2 mb-4">
               <img
                 src="/logo-icon-white.png"
-                alt="Trust Proof Roofing"
-                width={36}
+                alt="Trust Proof Roofing logo"
+                width={38}
                 height={30}
-                className="object-contain"
+                style={{objectFit: 'contain'}}
               />
               <span className="text-white font-bold text-lg font-heading">{SITE.name}</span>
             </div>

@@ -25,9 +25,9 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-3 group">
           <img
             src="/logo-icon-yellow.png"
-            alt="Trust Proof Roofing"
-            width={44}
-            height={36}
+            alt="Trust Proof Roofing logo"
+            width={48}
+            height={38}
             style={{objectFit: 'contain'}}
           />
           <div className="text-white font-black text-lg tracking-wide font-heading">{SITE.name}</div>
