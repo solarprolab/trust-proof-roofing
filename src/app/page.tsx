@@ -58,7 +58,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1f3d] via-[#0f2d52] to-[#1e3a5f]">
         <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
         <div className="relative border-b border-white/10 py-3">
-          <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-1">
+          <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
             {['✓ CT HIC Licensed & Insured','✓ 20-Year Leak Warranty','✓ Free Drone Assessment','✓ Response Within 2 Hours'].map(t => (
               <span key={t} className="text-white/70 text-xs font-medium tracking-wide">{t}</span>
             ))}
@@ -70,7 +70,7 @@ export default function HomePage() {
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/></svg>
               Get a Real Number — Not 'Call for Pricing'
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
               Connecticut&apos;s Most Trusted<br />
               <span className="text-yellow-400">Roofing Company</span>
             </h1>
@@ -89,7 +89,7 @@ export default function HomePage() {
             <div className="relative">
               <InstantQuote />
             </div>
-            <div className="relative mt-4 grid grid-cols-3 gap-3">
+            <div className="relative mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 {icon:'🛰️',label:'Your Roof, Measured',sub:'We size it to your actual property — not a guess'},
                 {icon:'💰',label:'Real Price Range',sub:'Not a "call for pricing" runaround'},
@@ -159,7 +159,7 @@ export default function HomePage() {
       {/* Services grid */}
       <section className="py-20 bg-white" id="services">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-black text-gray-900 text-center mb-4">Roofing Services in Connecticut</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-4">Roofing Services in Connecticut</h2>
           <p className="text-center text-gray-500 max-w-2xl mx-auto mb-12">
             From complete roof replacements to emergency repairs, we handle every aspect of residential and commercial roofing across CT.
           </p>
@@ -233,7 +233,7 @@ export default function HomePage() {
       {/* Why Choose Us */}
       <section className="py-20 bg-gray-50" id="why-us">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-black text-gray-900 text-center mb-12">Why CT Homeowners Choose Us</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-12">Why CT Homeowners Choose Us</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -270,7 +270,7 @@ export default function HomePage() {
       {/* Service Areas */}
       <section className="py-20 bg-white" id="areas">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-black text-gray-900 text-center mb-4">We Serve All of Connecticut</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-4">We Serve All of Connecticut</h2>
           <p className="text-center text-gray-500 mb-10">Click your city for local pricing, common roof issues, and neighborhood-specific information.</p>
           <div className="flex flex-wrap justify-center gap-3">
             {CT_CITIES.map((city) => (
@@ -289,7 +289,7 @@ export default function HomePage() {
       {/* FAQ */}
       <section className="py-20 bg-gray-50" id="faq">
         <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-4xl font-black text-gray-900 text-center mb-12">Frequently Asked Questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {faqItems.map((item) => (
               <details key={item.q} className="bg-white border border-gray-200 rounded-xl overflow-hidden group">
@@ -325,7 +325,7 @@ export default function HomePage() {
             <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             <span className="text-yellow-400 text-xs font-semibold uppercase tracking-wider">Free — No Obligation</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
             Get Your Free<br /><span className="text-yellow-400">Roof Assessment</span>
           </h2>
           <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">

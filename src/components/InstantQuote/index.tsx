@@ -201,7 +201,7 @@ export default function InstantQuote() {
         </div>
       </div>
 
-      <div className="p-5 sm:p-6">
+      <div className="p-4 sm:p-6">
 
         {/* Step 1 */}
         {step === 1 && (
