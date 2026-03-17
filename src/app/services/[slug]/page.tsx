@@ -97,6 +97,28 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
         </div>
       </section>
 
+      {/* Content sections */}
+      {service.sections.map((section, i) => (
+        <section key={section.heading} className={`py-14 ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="font-heading text-2xl font-bold text-brand-800 mb-5">{section.heading}</h2>
+            {section.body && (
+              <p className="text-gray-700 leading-relaxed text-lg">{section.body}</p>
+            )}
+            {section.items && (
+              <ul className="space-y-3">
+                {section.items.map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <span className="text-brand-500 font-bold mt-1 flex-shrink-0">✓</span>
+                    <span className="text-gray-700 leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ))}
+
       {/* FAQ */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4">
