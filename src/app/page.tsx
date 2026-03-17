@@ -55,43 +55,57 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-[#0f2d52] to-[#1e3a5f]">
-        {/* Content */}
-        <div className="relative max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left: Copy */}
-          <div className="text-white">
-            <div className="inline-flex items-center gap-2 bg-yellow-400 text-gray-900 font-bold px-5 py-2 rounded-full mb-6">
-              <span className="text-lg">✓</span>
-              <div>
-                <div className="text-sm font-extrabold tracking-wide">20-YEAR LEAK WARRANTY</div>
-                <div className="text-xs font-medium opacity-80">INDUSTRY LEADING PROTECTION</div>
-              </div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1f3d] via-[#0f2d52] to-[#1e3a5f]">
+        <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
+        <div className="relative border-b border-white/10 py-3">
+          <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-1">
+            {['✓ CT HIC Licensed & Insured','✓ 20-Year Leak Warranty','✓ Free Drone Assessment','✓ Response Within 2 Hours'].map(t => (
+              <span key={t} className="text-white/70 text-xs font-medium tracking-wide">{t}</span>
+            ))}
+          </div>
+        </div>
+        <div className="relative max-w-5xl mx-auto px-6 pt-14 pb-20">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-widest uppercase">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/></svg>
+              Only in CT — Satellite-Powered Real Quote
             </div>
-            <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
               Connecticut&apos;s Most Trusted<br />
               <span className="text-yellow-400">Roofing Company</span>
             </h1>
-            <p className="text-xl text-white/80 max-w-xl mb-8">
+            <p className="text-white/70 text-lg max-w-2xl mx-auto">
               Proudly serving Suffield, CT and surrounding communities. Quality roofing backed by our industry-leading 20-year leak warranty.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                href="/contact"
-                className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
-              >
-                Get Your Free Quote
-              </Link>
-              <a
-                href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-                className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors backdrop-blur-sm"
-              >
-                Call {SITE.phone}
-              </a>
-            </div>
           </div>
-
-          <div className="w-full lg:w-[480px] flex-shrink-0">
-            <InstantQuote />
+          <div className="relative max-w-2xl mx-auto">
+            <div className="absolute -inset-4 bg-yellow-400/10 rounded-3xl blur-2xl" />
+            <div className="relative flex justify-center mb-3">
+              <div className="inline-flex items-center gap-2.5 bg-yellow-400 text-gray-900 text-sm font-black px-5 py-2 rounded-full shadow-lg">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
+                CT&apos;s Only Real-Time Satellite Quote Tool
+              </div>
+            </div>
+            <div className="relative">
+              <InstantQuote />
+            </div>
+            <div className="relative mt-4 grid grid-cols-3 gap-3">
+              {[
+                {icon:'🛰️',label:'Satellite Roof Measurement',sub:'Auto-detects your roof size'},
+                {icon:'💰',label:'Real Price Range',sub:'Not a "call for pricing" runaround'},
+                {icon:'🚁',label:'Free Drone Followup',sub:'Exact price confirmed on-site'},
+              ].map(p => (
+                <div key={p.label} className="bg-white/[0.08] border border-white/10 rounded-xl p-3 text-center">
+                  <div className="text-xl mb-1">{p.icon}</div>
+                  <div className="text-white text-xs font-semibold leading-tight">{p.label}</div>
+                  <div className="text-white/50 text-[10px] mt-0.5">{p.sub}</div>
+                </div>
+              ))}
+            </div>
+            <div className="relative mt-5 text-center">
+              <span className="text-white/40 text-sm">Prefer to talk? </span>
+              <a href="tel:9593338569" className="text-yellow-400 font-bold text-sm hover:text-yellow-300 transition-colors">Call (959) 333-8569 →</a>
+            </div>
           </div>
         </div>
       </section>
