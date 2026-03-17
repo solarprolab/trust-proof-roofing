@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;">
           <div style="background:#1c4735;padding:24px;text-align:center;">
             <h1 style="color:white;margin:0;font-size:24px;">🛡️ Trust Proof Roofing</h1>
-            <p style="color:#b5dbc7;margin:8px 0 0;">Roofing You Can Trust — Backed by Proof</p>
+            <p style="color:#b5dbc7;margin:8px 0 0;">Proof Overhead.</p>
           </div>
           <div style="padding:32px;">
             <p style="font-size:18px;color:#1c4735;">Hi ${firstName},</p>
