@@ -72,6 +72,10 @@ function sqftWithWaste(sqft: number, pct: number): number {
   return Math.round(sqft * (1 + pct / 100));
 }
 function fmtMoney(n: number): string { return '$' + Math.round(n).toLocaleString(); }
+function azimuthToCompass(az: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  return dirs[Math.round(((az % 360) + 360) % 360 / 45) % 8];
+}
 
 /* ═══════════════════════════════════════════════════════
    COMPONENT
@@ -105,9 +109,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   /* ── Solar / Street View state ─────────────────────── */
   const [solarSegments,    setSolarSegments]    = useState<any[]>([]);
-  const [selectedSegIds,   setSelectedSegIds]   = useState<Set<number>>(new Set());
+  const [excludedSegIds,   setExcludedSegIds]   = useState<Set<number>>(new Set());
   const [svAvailable,      setSvAvailable]      = useState<boolean | null>(null);
-  const [solarDetectedSqft, setSolarDetectedSqft] = useState(0);
+  const [useDrawnOverSolar, setUseDrawnOverSolar] = useState(false);
 
   /* ── Section state ─────────────────────────────────── */
   const [sections,   setSections]   = useState<Section[]>([]);
@@ -264,13 +268,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       .then(d => {
         if (Array.isArray(d.roofSegmentStats)) {
           setSolarSegments(d.roofSegmentStats);
-          const total = Math.round(
-            d.roofSegmentStats.reduce((sum: number, seg: any) => sum + (seg.stats?.areaMeters2 ?? 0) * 10.764, 0)
-          );
-          if (total > 0) {
-            setSolarDetectedSqft(total);
-            setManualSqft(String(total)); // pre-populate override field
-          }
         }
       })
       .catch(() => {});
@@ -310,10 +307,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       });
       poly.setMap(mapRef.current);
       poly.addListener('click', () => {
-        setSelectedSegIds(prev => {
+        setExcludedSegIds(prev => {
           const next = new Set(prev);
-          if (next.has(i)) { next.delete(i); poly.setOptions({ fillOpacity: 0.25 }); }
-          else             { next.add(i);    poly.setOptions({ fillOpacity: 0.55 }); }
+          if (next.has(i)) { next.delete(i); poly.setOptions({ fillOpacity: 0.35, strokeOpacity: 1 }); }
+          else             { next.add(i);    poly.setOptions({ fillOpacity: 0.08, strokeOpacity: 0.4 }); }
           return next;
         });
       });
@@ -442,19 +439,24 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     // ── Priority order for sqft ──────────────────────
     const manualVal = manualSqft ? parseInt(manualSqft, 10) : 0;
     const drawnTotal = replaceSections.reduce((sum, s) => sum + s.sqft, 0);
+    const solarIncluded = Math.round(solarSegments.reduce((sum: number, seg: any, i: number) =>
+      excludedSegIds.has(i) ? sum : sum + (seg.stats?.areaMeters2 ?? 0) * 10.764, 0));
     let effectiveSqft: number;
     let sqftSource: string;
-    const usePerSection = replaceSections.length > 0 && !(manualSqft && manualVal > 0);
+    const usePerSection = replaceSections.length > 0 && !(manualSqft && manualVal > 0) && (useDrawnOverSolar || solarIncluded === 0);
 
     if (manualSqft && !isNaN(manualVal) && manualVal > 0) {
       effectiveSqft = manualVal;
       sqftSource = 'Manual override';
+    } else if (drawnTotal > 0 && (useDrawnOverSolar || solarIncluded === 0)) {
+      effectiveSqft = drawnTotal;
+      sqftSource = `Drawn sections (${replaceSections.length})`;
+    } else if (solarIncluded > 0) {
+      effectiveSqft = solarIncluded;
+      sqftSource = 'Google Solar API';
     } else if (drawnTotal > 0) {
       effectiveSqft = drawnTotal;
       sqftSource = `Drawn sections (${replaceSections.length})`;
-    } else if (solarDetectedSqft > 0) {
-      effectiveSqft = solarDetectedSqft;
-      sqftSource = 'Google Solar API estimate';
     } else {
       effectiveSqft = 0;
       sqftSource = '';
@@ -522,12 +524,32 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       rangeMin: Math.max(0, subtotal - 1000), rangeMax: subtotal + 1000, midpoint: subtotal,
       effectiveSqft, sqftSource,
     };
-  }, [sections, material, linear, addOns, manualSqft, solarDetectedSqft, overridePitch, overrideWaste]);
+  }, [sections, material, linear, addOns, manualSqft, solarSegments, excludedSegIds, useDrawnOverSolar, overridePitch, overrideWaste]);
 
   /* ═══════════════ DERIVED ════════════════════════════ */
-  const selectedSegmentSqft = useMemo(() =>
-    Math.round(Array.from(selectedSegIds).reduce((sum, i) => sum + (solarSegments[i]?.stats?.areaMeters2 ?? 0) * 10.764, 0)),
-  [selectedSegIds, solarSegments]);
+  const includedSolarSqft = useMemo(() =>
+    Math.round(solarSegments.reduce((sum: number, seg: any, i: number) =>
+      excludedSegIds.has(i) ? sum : sum + (seg.stats?.areaMeters2 ?? 0) * 10.764, 0)),
+  [solarSegments, excludedSegIds]);
+
+  const buildingGroups = useMemo<number[]>(() => {
+    if (solarSegments.length === 0) return [];
+    const indexed = solarSegments.map((seg: any, i: number) => ({ i, az: seg.azimuthDegrees ?? 0 }));
+    indexed.sort((a: any, b: any) => a.az - b.az);
+    const groups = new Array(solarSegments.length).fill(0);
+    let cur = 0;
+    groups[indexed[0].i] = 0;
+    for (let k = 1; k < indexed.length; k++) {
+      if (indexed[k].az - indexed[k - 1].az > 90) cur++;
+      groups[indexed[k].i] = cur;
+    }
+    return groups;
+  }, [solarSegments]);
+
+  const segmentDisplayOrder = useMemo(() =>
+    solarSegments.map((_: any, i: number) => i).sort((a: number, b: number) =>
+      (buildingGroups[a] ?? 0) - (buildingGroups[b] ?? 0)),
+  [solarSegments, buildingGroups]);
 
   const pitchSummary = useMemo(() => {
     const replSecs = sections.filter(s => s.workType === 'replace');
@@ -741,13 +763,25 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
         {/* ── Section list ──────────────────────────── */}
         <div className="flex-1 overflow-y-auto bg-gray-950 p-3 space-y-2">
-          {sections.length === 0 && !pendingShape && (
-            <div className="text-center py-8 text-gray-600">
-              <p className="text-sm">No sections drawn yet.</p>
-              <p className="text-xs mt-1">Use the tools above to draw roof sections on the map.</p>
+
+          {/* Empty state — only if both drawn AND solar are empty */}
+          {sections.length === 0 && solarSegments.length === 0 && !pendingShape && (
+            <div className="py-6 px-3">
+              <p className="text-sm text-gray-500 text-center mb-1">Could not detect roof automatically.</p>
+              <p className="text-xs text-gray-600 text-center mb-3">Use the drawing tools above to trace the roof, or enter sq ft below.</p>
+              <div className="flex gap-2">
+                <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                  placeholder="Enter sq ft manually"
+                  className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${manualSqft ? 'border-yellow-500/50' : 'border-gray-700 focus:border-blue-500'}`}
+                />
+                {manualSqft && (
+                  <button onClick={() => setManualSqft('')} className="px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
+                )}
+              </div>
             </div>
           )}
 
+          {/* Drawn sections */}
           {sections.map(s => {
             const sw = Math.round(s.sqft * 1.1);
             const { label: pLabel, badge: pBadge } = getPitchLabel(s.pitch);
@@ -756,6 +790,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               <div key={s.id} className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                 <div className="flex items-center gap-2 px-3 py-2.5">
                   <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: s.color }} />
+                  <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 px-1.5 py-0.5 rounded font-medium flex-shrink-0">DRAWN</span>
                   {isRenaming ? (
                     <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') { updateSection(s.id, { name: renameVal.trim() || s.name }); setRenamingId(null); } if (e.key === 'Escape') setRenamingId(null); }}
@@ -770,7 +805,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   )}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-xs text-blue-300 font-medium">{s.sqft.toLocaleString()} sqft</span>
-                    <span className="text-xs text-gray-500">→ {sw.toLocaleString()} adj (×110%)</span>
+                    <span className="text-xs text-gray-500">→ {sw.toLocaleString()} adj</span>
                     <button onClick={() => deleteSection(s.id)} className="text-gray-600 hover:text-red-400 transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -842,93 +877,159 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             );
           })}
 
-          {/* Area summary */}
-          {sections.length > 0 && (
-            <div className="bg-gray-900 rounded-xl border border-gray-800 p-3 mt-2">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Area Summary</span>
-              <table className="w-full text-xs mt-2">
-                <thead><tr className="text-gray-500"><th className="text-left py-0.5">Section</th><th className="text-right">Net</th><th className="text-right">+Waste</th></tr></thead>
-                <tbody>
-                  {sections.map(s => (
-                    <tr key={s.id} className="border-t border-gray-800">
-                      <td className="py-1 text-gray-300 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-sm inline-block flex-shrink-0" style={{ backgroundColor: s.color }} />{s.name}
-                      </td>
-                      <td className="text-right text-gray-300">{s.sqft.toLocaleString()}</td>
-                      <td className="text-right text-blue-300">{sqftWithWaste(s.sqft, parseInt(overrideWaste||'0')||s.wasteFactor).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                  <tr className="border-t-2 border-gray-700 font-semibold">
-                    <td className="py-1 text-white">Total</td>
-                    <td className="text-right text-white">{sections.reduce((s,x) => s+x.sqft, 0).toLocaleString()}</td>
-                    <td className="text-right text-blue-400">{sections.reduce((s,x) => s + sqftWithWaste(x.sqft, parseInt(overrideWaste||'0')||x.wasteFactor), 0).toLocaleString()}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Solar segments */}
-          {solarSegments.length > 0 && (
-            <div className="bg-gray-900 rounded-xl border border-gray-800 p-3 mt-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Solar API Segments</span>
-                <span className="text-[10px] text-gray-500">{solarSegments.length} detected · click to select</span>
-              </div>
-              <div className="space-y-1">
-                {solarSegments.map((seg, i) => {
-                  const isSelected = selectedSegIds.has(i);
-                  const sqft  = Math.round((seg.stats?.areaMeters2 ?? 0) * 10.764);
-                  const pitch = Math.round(seg.pitchDegrees ?? 0);
-                  const az    = Math.round(seg.azimuthDegrees ?? 0);
-                  const color = SEG_COLORS[i % SEG_COLORS.length];
-                  return (
-                    <button key={i}
-                      onClick={() => {
-                        setSelectedSegIds(prev => {
-                          const next = new Set(prev);
-                          const poly = segmentPolysRef.current.get(i);
-                          if (next.has(i)) { next.delete(i); poly?.setOptions({ fillOpacity: 0.25 }); }
-                          else             { next.add(i);    poly?.setOptions({ fillOpacity: 0.55 }); }
-                          return next;
-                        });
-                      }}
-                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all ${isSelected ? 'bg-blue-600/20 border border-blue-500/40' : 'bg-gray-800 border border-transparent hover:border-gray-700'}`}>
-                      <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: color }} />
-                      <span className={`flex-1 text-left ${isSelected ? 'text-white' : 'text-gray-400'}`}>Segment {i + 1}</span>
-                      <span className="text-gray-500">{sqft.toLocaleString()} sqft</span>
-                      <span className="text-gray-600">{pitch}° pitch</span>
-                      <span className="text-gray-600">{az}° az</span>
-                      {isSelected && <svg className="w-3 h-3 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>}
-                    </button>
-                  );
-                })}
-              </div>
-              {selectedSegIds.size > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-800 flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{selectedSegIds.size} segment{selectedSegIds.size !== 1 ? 's' : ''} selected</span>
-                  <span className="text-xs font-semibold text-blue-400">Detected total: {selectedSegmentSqft.toLocaleString()} sqft</span>
+          {/* Solar API detected segments — shown immediately, before drawing */}
+          {solarSegments.length > 0 && (() => {
+            const numGroups = new Set(buildingGroups).size;
+            return segmentDisplayOrder.map((i, displayIdx) => {
+              const seg = solarSegments[i];
+              const excluded = excludedSegIds.has(i);
+              const sqft    = Math.round((seg.stats?.areaMeters2 ?? 0) * 10.764);
+              const pitch   = Math.round(seg.pitchDegrees ?? 0);
+              const az      = Math.round(seg.azimuthDegrees ?? 0);
+              const compass = azimuthToCompass(az);
+              const color   = SEG_COLORS[i % SEG_COLORS.length];
+              const group   = buildingGroups[i] ?? 0;
+              const prevGroup = displayIdx > 0 ? (buildingGroups[segmentDisplayOrder[displayIdx - 1]] ?? 0) : group;
+              const showGroupHeader = numGroups > 1 && group !== prevGroup;
+              const groupLabel = String.fromCharCode(65 + group);
+              return (
+                <div key={`solar-${i}`}>
+                  {showGroupHeader && (
+                    <div className="flex items-center gap-2 my-1">
+                      <div className="flex-1 h-px bg-gray-800" />
+                      <span className="text-[10px] text-gray-500 font-medium px-1">Building {groupLabel}</span>
+                      <div className="flex-1 h-px bg-gray-800" />
+                    </div>
+                  )}
+                  {numGroups > 1 && displayIdx === 0 && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 h-px bg-gray-800" />
+                      <span className="text-[10px] text-gray-500 font-medium px-1">Building A</span>
+                      <div className="flex-1 h-px bg-gray-800" />
+                    </div>
+                  )}
+                  <div className={`bg-gray-900 rounded-xl border overflow-hidden transition-opacity ${excluded ? 'border-gray-800 opacity-50' : 'border-gray-700'}`}>
+                    <div className="flex items-center gap-2 px-3 py-2.5">
+                      <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: color }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-semibold text-white">Roof Plane {i + 1}</span>
+                          <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded font-medium">DETECTED</span>
+                          {numGroups > 1 && <span className="text-[9px] bg-gray-700 text-gray-400 border border-gray-600 px-1.5 py-0.5 rounded font-medium">Bldg {groupLabel}</span>}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-xs text-blue-300 font-medium">{sqft.toLocaleString()} sq ft</span>
+                          <span className="text-xs text-gray-500">{pitch}° pitch</span>
+                          <span className="text-xs text-gray-500">{compass}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setExcludedSegIds(prev => {
+                            const next = new Set(prev);
+                            const poly = segmentPolysRef.current.get(i);
+                            if (next.has(i)) { next.delete(i); poly?.setOptions({ fillOpacity: 0.35, strokeOpacity: 1 }); }
+                            else             { next.add(i);    poly?.setOptions({ fillOpacity: 0.08, strokeOpacity: 0.4 }); }
+                            return next;
+                          });
+                        }}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 ${
+                          excluded
+                            ? 'bg-gray-700 text-gray-500 border border-gray-600 hover:bg-gray-600 hover:text-gray-300'
+                            : 'bg-green-600/20 text-green-400 border border-green-500/40 hover:bg-green-600/30'
+                        }`}
+                      >
+                        {excluded ? (
+                          <>✕ EXCLUDED</>
+                        ) : (
+                          <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg> INCLUDE</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              );
+            });
+          })()}
+
+          {/* Total area display + manual override */}
+          {(sections.length > 0 || solarSegments.length > 0 || (manualSqft && parseInt(manualSqft, 10) > 0)) && (() => {
+            const drawnTotal = sections.filter(s => s.workType === 'replace').reduce((sum, s) => sum + s.sqft, 0);
+            const manualVal  = manualSqft ? parseInt(manualSqft, 10) : 0;
+            const hasManual  = !!(manualSqft && !isNaN(manualVal) && manualVal > 0);
+            const hasSolar   = includedSolarSqft > 0;
+            const hasDrawn   = drawnTotal > 0;
+            const includedCount = solarSegments.length - excludedSegIds.size;
+
+            let displaySqft: number;
+            let source: 'manual' | 'solar' | 'drawn';
+            if (hasManual) {
+              displaySqft = manualVal; source = 'manual';
+            } else if (hasDrawn && (useDrawnOverSolar || !hasSolar)) {
+              displaySqft = drawnTotal; source = 'drawn';
+            } else if (hasSolar) {
+              displaySqft = includedSolarSqft; source = 'solar';
+            } else {
+              displaySqft = 0; source = 'drawn';
+            }
+
+            return (
+              <div className="bg-gray-900 rounded-xl border border-gray-700 p-3 mt-1">
+                {/* Big number */}
+                <div className="flex items-baseline gap-2 mb-1 flex-wrap">
+                  <span className="text-2xl font-black text-white">{displaySqft > 0 ? displaySqft.toLocaleString() : '—'}</span>
+                  {displaySqft > 0 && <span className="text-sm text-white font-medium">sq ft</span>}
+                  {hasManual && <span className="text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Manual override active</span>}
+                </div>
+
+                {/* Segment count */}
+                {solarSegments.length > 0 && !hasManual && (
+                  <p className="text-xs text-gray-500 mb-2">
+                    {includedCount} segment{includedCount !== 1 ? 's' : ''} included of {solarSegments.length} total
+                    {excludedSegIds.size > 0 && <span className="text-gray-600 ml-1">({excludedSegIds.size} excluded)</span>}
+                  </p>
+                )}
+
+                {/* Source badge + drawn/solar toggle */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {hasManual && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full font-medium">Source: Manual override</span>}
+                  {!hasManual && source === 'solar' && <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Source: Google Solar API</span>}
+                  {!hasManual && source === 'drawn' && <span className="text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full font-medium">Source: Drawn sections</span>}
+                  {!hasManual && hasDrawn && hasSolar && (
+                    <div className="flex rounded overflow-hidden border border-gray-700 ml-auto">
+                      <button onClick={() => setUseDrawnOverSolar(false)}
+                        className={`px-2 py-0.5 text-[10px] font-medium transition-all ${!useDrawnOverSolar ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
+                        Detected
+                      </button>
+                      <button onClick={() => setUseDrawnOverSolar(true)}
+                        className={`px-2 py-0.5 text-[10px] font-medium transition-all ${useDrawnOverSolar ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
+                        Drawn
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Manual override input — always visible here */}
+                <div className="mt-3 pt-3 border-t border-gray-800">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] text-gray-500 flex-shrink-0">Manual sq ft:</label>
+                    <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                      placeholder={displaySqft > 0 ? `${displaySqft.toLocaleString()} (auto)` : 'Override…'}
+                      className={`flex-1 px-2 py-1 bg-gray-800 border rounded text-white text-xs focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
+                    />
+                    {manualSqft && (
+                      <button onClick={() => setManualSqft('')} className="text-gray-500 hover:text-white transition-colors text-xs px-1">✕</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
       {/* ══════════════ RIGHT PANEL ═════════════════════ */}
       <div className="lg:w-[45%] overflow-y-auto bg-gray-950 p-4 space-y-4">
-
-        {/* Google Solar detected area info box */}
-        {solarDetectedSqft > 0 && (
-          <div className="bg-blue-950/50 border border-blue-800/50 rounded-xl p-3 flex items-start gap-3">
-            <svg className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div>
-              <p className="text-xs font-semibold text-blue-300">Google-detected roof area</p>
-              <p className="text-lg font-black text-white mt-0.5">{solarDetectedSqft.toLocaleString()} sq ft</p>
-              <p className="text-[10px] text-blue-400/70 mt-0.5">Pre-loaded from Google Solar API · draw sections or override below to refine</p>
-            </div>
-          </div>
-        )}
 
         {/* MATERIAL */}
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
@@ -977,7 +1078,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 </div>
                 <div className="flex gap-2">
                   <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
-                    placeholder={solarDetectedSqft > 0 ? `${solarDetectedSqft.toLocaleString()} (from Solar API)` : 'e.g. 2400'}
+                    placeholder={includedSolarSqft > 0 ? `${includedSolarSqft.toLocaleString()} (from Solar API)` : 'e.g. 2400'}
                     className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
                   />
                   {manualSqft && (
