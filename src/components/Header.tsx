@@ -24,7 +24,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <img
-            src="/logo.png"
+            src="/logo-navy.png"
             alt="Trust Proof Roofing logo"
             width={48}
             height={38}
