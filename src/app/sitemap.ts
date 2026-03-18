@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next';
-import { SERVICES } from '@/lib/config';
 import { CT_CITIES } from '@/data/cityPages';
 
 export const dynamic = 'force-static';
@@ -7,8 +6,14 @@ export const dynamic = 'force-static';
 const BASE_URL = 'https://trustproofroofing.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  try {
-  const staticRoutes: MetadataRoute.Sitemap = [
+  const cityRoutes: MetadataRoute.Sitemap = CT_CITIES.map((city) => ({
+    url: `${BASE_URL}/roofing/ct/${city.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  return [
     {
       url: BASE_URL,
       lastModified: new Date(),
@@ -31,7 +36,37 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE_URL}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.7,
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/services/roof-replacement`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/services/roof-repair`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/services/roof-inspection`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/services/emergency-roofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/services/storm-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
     },
     {
       url: `${BASE_URL}/privacy`,
@@ -45,25 +80,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    ...cityRoutes,
   ];
-
-  const serviceRoutes: MetadataRoute.Sitemap = SERVICES.map((service) => ({
-    url: `${BASE_URL}/services/${service.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.9,
-  }));
-
-  const cityRoutes: MetadataRoute.Sitemap = CT_CITIES.map((city) => ({
-    url: `${BASE_URL}/roofing/ct/${city.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
-
-  return [...staticRoutes, ...serviceRoutes, ...cityRoutes];
-  } catch (err) {
-    console.error('[sitemap] Error generating sitemap:', err);
-    return [];
-  }
 }
