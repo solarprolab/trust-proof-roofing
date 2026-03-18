@@ -85,7 +85,7 @@ export default function HomePage() {
               <span className="text-[#38BDF8]">20-Year Guarantee.</span>
             </h1>
             <p className="text-white/70 text-lg leading-relaxed mb-4 max-w-xl">
-              Enter your address and get a real price range in 60 seconds — measured from your actual roof, not made up. We show you everything before we start, put it all in writing, and back every replacement with a 20-year leak warranty.
+              Enter your address and get a real price range based on your actual roof — AI-powered, satellite-measured, delivered in 60 seconds. Everything in writing. 20-year leak warranty on every replacement.
             </p>
 
             {/* Tech proof points */}
