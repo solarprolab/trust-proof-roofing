@@ -27,13 +27,6 @@ const steps = [
   { n: '04', title: 'Work Begins', desc: '20-year leak warranty on every replacement, in writing. Manufacturer warranties up to 50 years. Both transferable.' },
 ];
 
-const placeholderReviews = [
-  { name: 'Homeowner in Suffield, CT', text: 'Review coming soon — leave us a Google review and we\'ll feature it here.' },
-  { name: 'Homeowner in Enfield, CT', text: 'Review coming soon — leave us a Google review and we\'ll feature it here.' },
-  { name: 'Homeowner in Windsor, CT', text: 'Review coming soon — leave us a Google review and we\'ll feature it here.' },
-  { name: 'Homeowner in Simsbury, CT', text: 'Review coming soon — leave us a Google review and we\'ll feature it here.' },
-  { name: 'Homeowner in West Hartford, CT', text: 'Review coming soon — leave us a Google review and we\'ll feature it here.' },
-];
 
 const localBusinessSchema = {
   '@context': 'https://schema.org',
@@ -173,28 +166,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── REVIEW STRIP ──────────────────────────────────────── */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-3">What CT Homeowners Are Saying</h2>
-          <p className="text-center text-gray-500 mb-10">Real reviews from homeowners across Connecticut.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {placeholderReviews.map((r) => (
-              <div key={r.name} className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex flex-col gap-3">
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map((s) => (
-                    <svg key={s} className="w-4 h-4 text-[#38BDF8]" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-400 text-sm italic leading-relaxed flex-1">{r.text}</p>
-                <p className="text-gray-500 text-xs font-semibold">{r.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── SERVICES GRID ─────────────────────────────────────── */}
       <section className="py-20 bg-gray-50" id="services">
