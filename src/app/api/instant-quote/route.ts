@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function fmt(n: number) { return '$' + n.toLocaleString(); }
 
 export async function POST(req: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     const body = await req.json();
     const { name, email, phone, address, projectType, material, addOns, estimatedRange, sqft, pitchSurcharge } = body;

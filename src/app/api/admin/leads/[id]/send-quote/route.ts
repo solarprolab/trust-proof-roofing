@@ -3,8 +3,6 @@ import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function fmtMoney(n: number) { return '$' + Math.round(n).toLocaleString(); }
 
 /* ─── PDF generation ──────────────────────────────────── */
@@ -279,6 +277,7 @@ function generateProposalPDF(data: {
 
 /* ─── Route handler ───────────────────────────────────── */
 export async function POST(req: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     const body = await req.json();
     const {
