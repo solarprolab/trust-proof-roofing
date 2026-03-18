@@ -41,7 +41,7 @@ const businessSchema = {
   '@context': 'https://schema.org',
   '@type': 'RoofingContractor',
   name: 'Trust Proof Roofing LLC',
-  description: "Trust Proof Roofing is Connecticut's only local roofer combining drone inspection, instant online pricing, and a standalone 20-year workmanship warranty.",
+  description: "Trust Proof Roofing is Connecticut's only local roofer combining instant online pricing, detailed written documentation, and a standalone 20-year workmanship warranty.",
   url: SITE.url,
   telephone: SITE.phone,
   email: SITE.email,

@@ -65,7 +65,7 @@ export const SERVICES: Service[] = [
     sections: [
       {
         heading: 'The Trust Proof Replacement Process',
-        body: 'Most roofing companies show up, tear off your old roof, and install the new one while you hope for the best. We do it differently. Before a single shingle comes off, we fly a drone over your entire roof so you can see exactly what we\'re working with — every layer, every problem area, every inch of decking condition. You watch the footage with us. Nothing is hidden. From there you get a written proposal within 24 hours — itemized materials, exact scope, payment schedule, and start date. No verbal estimates, no surprise line items on the final invoice.',
+        body: 'Most roofing companies show up, tear off your old roof, and install the new one while you hope for the best. We do it differently. Before a single shingle comes off, we do a full documented inspection of your entire roof so you can see exactly what we\'re working with — every layer, every problem area, every inch of decking condition. You review the findings with us. Nothing is hidden. From there you get a written proposal within 24 hours — itemized materials, exact scope, payment schedule, and start date. No verbal estimates, no surprise line items on the final invoice.',
       },
       {
         heading: "What's Included in Every Replacement",
@@ -77,7 +77,7 @@ export const SERVICES: Service[] = [
           'New drip edge, step flashing, and counter flashing at all walls and chimneys.',
           'Ridge vent installation for proper attic ventilation.',
           'Magnetic nail sweep of the entire property at completion.',
-          'Final aerial drone shot of the finished roof.',
+          'Final walkthrough and photo documentation of the finished roof.',
         ],
       },
       {
@@ -131,7 +131,7 @@ export const SERVICES: Service[] = [
     sections: [
       {
         heading: 'How We Diagnose Before We Fix',
-        body: 'The most common roofing mistake in Connecticut is patching the symptom instead of the source. A water stain on your ceiling might be caused by a failed flashing at your chimney — 12 feet from where the water appeared. We fly the drone first, every time, before recommending any repair. You see what we see. Then we give you a written scope before touching anything.',
+        body: 'The most common roofing mistake in Connecticut is patching the symptom instead of the source. A water stain on your ceiling might be caused by a failed flashing at your chimney — 12 feet from where the water appeared. We inspect every inch first, every time, before recommending any repair. You see what we see. Then we give you a written scope before touching anything.',
       },
       {
         heading: 'Common CT Repair Scenarios',
@@ -176,20 +176,20 @@ export const SERVICES: Service[] = [
     sections: [
       {
         heading: 'What a Trust Proof Inspection Covers',
-        body: 'We fly a drone over your entire roof before setting foot on it — capturing video of every plane, valley, flashing point, ridge, and penetration. You get a written report with photos delivered the same day, documenting existing conditions, any areas of concern, estimated remaining lifespan, and specific recommendations. No vague assessments — specific findings, specific locations, specific next steps.',
+        body: 'We do a full inspection of every plane, valley, flashing point, ridge, and penetration. You get a written report with photos delivered the same day, documenting existing conditions, any areas of concern, estimated remaining lifespan, and specific recommendations. No vague assessments — specific findings, specific locations, specific next steps.',
       },
       {
         heading: 'When You Need One',
         items: [
           'Before buying a home — a roof inspection is one of the most important pre-purchase steps a CT buyer can take. A 22-year-old roof that needs replacement in year 1 is a $12,000–$16,000 negotiating point.',
-          'After a major storm — hail and high winds cause damage that isn\'t always visible from the ground. An inspection with drone documentation gives you evidence for an insurance claim if damage exists.',
+          'After a major storm — hail and high winds cause damage that isn\'t always visible from the ground. A professional inspection with photo documentation gives you evidence for an insurance claim if damage exists.',
           'Annual maintenance — catching a failed flashing or small leak early costs hundreds. Ignored, it costs thousands in interior damage.',
           'Before selling — knowing your roof condition lets you price accurately and avoid surprises during the buyer\'s inspection.',
         ],
       },
       {
-        heading: 'The Drone Difference',
-        body: 'A traditional roof inspection means someone walking your roof and eyeballing it. Our drone captures footage of every inch, including areas a person cannot safely reach on steep pitches or complex roof lines. The footage is yours — we share it with you directly. If you ever need to reference existing conditions for an insurance claim, a sale, or a dispute, you have dated, documented visual evidence.',
+        heading: 'The Documentation Difference',
+        body: 'A traditional roof inspection means someone walking your roof and giving you a verbal summary. We deliver a written report with photos covering every inch, including areas that are difficult to see from the ground. The documentation is yours — we share it with you directly. If you ever need to reference existing conditions for an insurance claim, a sale, or a dispute, you have dated, documented visual evidence.',
       },
     ],
     faq: [
@@ -226,7 +226,7 @@ export const SERVICES: Service[] = [
       },
       {
         heading: 'Our Emergency Response',
-        body: 'We respond within 2–4 hours for active emergencies. First priority is stopping water infiltration — emergency tarping or temporary patching to protect your home\'s interior while we assess the full scope. We document all damage with drone footage and photos before any work begins. You get a written scope and price before we proceed with permanent repairs.',
+        body: 'We respond within 2–4 hours for active emergencies. First priority is stopping water infiltration — emergency tarping or temporary patching to protect your home\'s interior while we assess the full scope. We document all damage with detailed photos before any work begins. You get a written scope and price before we proceed with permanent repairs.',
       },
       {
         heading: 'Storm Season in Connecticut',
@@ -263,12 +263,12 @@ export const SERVICES: Service[] = [
     sections: [
       {
         heading: 'Documentation First — Always',
-        body: 'Insurance adjusters visit your property once, often briefly, and their assessment determines your claim outcome. The single most important thing you can do after storm damage is get professional documentation before anything is touched or repaired. We respond same-day after major storm events specifically for this reason — drone footage and a written damage report from a licensed CT contractor carries weight with insurers in a way that phone photos alone do not.',
+        body: 'Insurance adjusters visit your property once, often briefly, and their assessment determines your claim outcome. The single most important thing you can do after storm damage is get professional documentation before anything is touched or repaired. We respond same-day after major storm events specifically for this reason — detailed photo documentation and a written damage report from a licensed CT contractor carries weight with insurers in a way that phone photos alone do not.',
       },
       {
         heading: 'What We Document',
         items: [
-          'Every affected roof plane captured on drone video.',
+          'Every affected roof plane photographed and documented.',
           'Individual photos of each damaged area with location context.',
           'Identification of hail strikes vs. wind damage vs. pre-existing wear — adjusters sometimes attribute storm damage to wear and tear to minimize payouts.',
           'A written damage assessment on Trust Proof letterhead with our CT HIC license number.',
@@ -280,7 +280,7 @@ export const SERVICES: Service[] = [
       },
       {
         heading: 'Hail vs. Wind — What to Look For',
-        body: 'Hail damage shows up as soft spots or circular impact marks on shingles — often invisible from the ground, clearly visible on drone footage. Wind damage is more obvious: lifted, creased, or missing shingles, damaged ridge caps, separated flashing. Both can occur in the same storm. CT\'s spring hail events are frequently underestimated — a storm that felt minor at ground level can leave significant impact damage on roofing materials.',
+        body: 'Hail damage shows up as soft spots or circular impact marks on shingles — often invisible from the ground, clearly visible on close-up inspection. Wind damage is more obvious: lifted, creased, or missing shingles, damaged ridge caps, separated flashing. Both can occur in the same storm. CT\'s spring hail events are frequently underestimated — a storm that felt minor at ground level can leave significant impact damage on roofing materials.',
       },
     ],
     faq: [

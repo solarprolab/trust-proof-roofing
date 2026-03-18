@@ -80,10 +80,10 @@ export async function POST(req: NextRequest) {
             <div style="background:#1B3C6B;color:#fff;border-radius:10px;padding:16px 20px;margin:20px 0">
               <p style="margin:0;font-size:11px;opacity:0.7">Your estimated range</p>
               <p style="margin:4px 0 0;font-size:22px;font-weight:700">${fmt(estimatedRange[0])} – ${fmt(estimatedRange[1])}</p>
-              <p style="margin:6px 0 0;font-size:11px;opacity:0.6">Exact price confirmed after free drone assessment</p>
+              <p style="margin:6px 0 0;font-size:11px;opacity:0.6">Exact price confirmed after free on-site inspection</p>
             </div>` : estimatedRange === null ? `
             <div style="background:#1B3C6B;color:#fff;border-radius:10px;padding:16px 20px;margin:20px 0;text-align:center">
-              <p style="margin:0;font-size:18px;font-weight:700">Free Drone Assessment</p>
+              <p style="margin:0;font-size:18px;font-weight:700">Free Roof Inspection</p>
               <p style="margin:6px 0 0;font-size:12px;opacity:0.75">No charge · No obligation · Full roof video</p>
             </div>` : ''}
             <p style="font-size:14px;color:#374151">Every replacement I do comes with a <strong>20-year leak warranty</strong> — not a manufacturer program, my personal commitment in writing.</p>

@@ -22,7 +22,7 @@ const faqItems = [
 
 const steps = [
   { n: '01', title: 'Enter Your Address', desc: 'Get a real price range based on your actual roof — measured to your property, not estimated from a zip code.' },
-  { n: '02', title: 'We Come To You', desc: 'Full roof assessment, documented in detail. Drone footage, photos, written findings. You see exactly what we see.' },
+  { n: '02', title: 'We Come To You', desc: 'Full roof assessment documented in detail. Photos, written findings, and satellite measurements. You see exactly what we see.' },
   { n: '03', title: 'See Everything In Writing', desc: 'Itemized proposal within 24 hours. Materials, scope, payment schedule, start date. No verbal estimates.' },
   { n: '04', title: 'Work Begins', desc: '20-year leak warranty on every replacement, in writing. Manufacturer warranties up to 50 years. Both transferable.' },
 ];

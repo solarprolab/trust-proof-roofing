@@ -85,14 +85,14 @@ export default function InstantQuote() {
         `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`
       );
       const geocodeData = await geocodeRes.json();
-      if (!geocodeData.results?.[0]) { setLookupError('Address not found — we will measure during the drone assessment.'); setLookingUp(false); return; }
+      if (!geocodeData.results?.[0]) { setLookupError('Address not found — we will measure during your on-site inspection.'); setLookingUp(false); return; }
       const { lat, lng } = geocodeData.results[0].geometry.location;
       const solarRes = await fetch(
         `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${lat}&location.longitude=${lng}&requiredQuality=LOW&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`
       );
       const solarData = await solarRes.json();
       const sqm = solarData?.solarPotential?.wholeRoofStats?.areaMeters2;
-      if (!sqm) { setLookupError('Roof data unavailable — we will measure during the drone assessment.'); setLookingUp(false); return; }
+      if (!sqm) { setLookupError('Roof data unavailable — we will measure during your on-site inspection.'); setLookingUp(false); return; }
       const sqft = Math.round(sqm * 10.764);
       setRoofSqft(sqft);
 
@@ -115,7 +115,7 @@ export default function InstantQuote() {
       else if (avgPitchDeg >= 18.4) surcharge = 0.5;
       setPitchSurcharge(surcharge);
     } catch {
-      setLookupError('Could not auto-detect roof — we will measure during the drone assessment.');
+      setLookupError('Could not auto-detect roof — we will measure during your on-site inspection.');
     } finally {
       setLookingUp(false);
     }
@@ -158,7 +158,7 @@ export default function InstantQuote() {
           <div className="bg-[#1B3C6B] text-white rounded-xl p-4 mb-4">
             <p className="text-xs opacity-70 mb-1">Your estimated range</p>
             <p className="text-2xl font-bold">{fmt(range[0])} – {fmt(range[1])}</p>
-            <p className="text-xs opacity-60 mt-1">Final price confirmed after free drone assessment</p>
+            <p className="text-xs opacity-60 mt-1">Final price confirmed after free on-site inspection</p>
           </div>
         )}
         <div className="flex items-center justify-center gap-2 text-sm font-semibold text-[#1B3C6B]">
@@ -273,7 +273,7 @@ export default function InstantQuote() {
               {([
                 ['replacement','Full roof replacement','Remove old roof, install new shingles','20-yr warranty','bg-green-100 text-green-700'],
                 ['repair','Roof repair','Fix a leak, patch damage, or an isolated issue','1-yr warranty','bg-blue-100 text-blue-700'],
-                ['inspection','Free drone inspection',"See exactly what's on your roof — no obligation",'No cost','bg-amber-100 text-amber-700'],
+                ['inspection','Free roof inspection',"See exactly what's on your roof — no obligation",'No cost','bg-amber-100 text-amber-700'],
               ] as const).map(([id, label, sub, badge, badgeCls]) => (
                 <button key={id} onClick={() => setForm(f => ({ ...f, projectType: id }))} className={`w-full ${card(form.projectType === id)} flex items-start justify-between gap-3`}>
                   <div>
@@ -315,12 +315,12 @@ export default function InstantQuote() {
               </>
             ) : (
               <div className="text-center py-4">
-                <div className="text-4xl mb-3">{form.projectType === 'repair' ? '🔧' : '🚁'}</div>
-                <h3 className="text-lg font-bold text-[#1B3C6B] mb-2">{form.projectType === 'repair' ? 'Repair selected' : 'Free drone inspection'}</h3>
+                <div className="text-4xl mb-3">{form.projectType === 'repair' ? '🔧' : '🔍'}</div>
+                <h3 className="text-lg font-bold text-[#1B3C6B] mb-2">{form.projectType === 'repair' ? 'Repair selected' : 'Free roof inspection'}</h3>
                 <p className="text-sm text-gray-500">
                   {form.projectType === 'repair'
                     ? "We'll assess the exact damage before recommending the most cost-effective repair — no upsell."
-                    : "We'll fly drone footage of your entire roof so you can see exactly what you're dealing with."}
+                    : "We'll do a full assessment of your roof so you can see exactly what you're dealing with."}
                 </p>
                 <p className="text-[#1B3C6B] text-sm font-semibold mt-3">Continue to optional add-ons →</p>
               </div>
@@ -369,14 +369,14 @@ export default function InstantQuote() {
             <p className="text-sm text-gray-500 mb-4">Enter your info to see your range and get your exact quote.</p>
             {form.projectType === 'inspection' ? (
               <div className="bg-[#1B3C6B] text-white rounded-xl p-4 mb-4 text-center">
-                <p className="text-lg font-bold">Free Drone Assessment</p>
-                <p className="text-xs opacity-70 mt-1">No charge · No obligation · Full roof video</p>
+                <p className="text-lg font-bold">Free Roof Inspection</p>
+                <p className="text-xs opacity-70 mt-1">No charge · No obligation · Full written report</p>
               </div>
             ) : range && (
               <div className="bg-[#1B3C6B] text-white rounded-xl p-4 mb-4">
                 <p className="text-xs opacity-70 mb-0.5">Estimated project range</p>
                 <p className="text-2xl font-bold">{fmt(range[0])} – {fmt(range[1])}</p>
-                <p className="text-xs opacity-60 mt-1">Exact price confirmed after free drone assessment</p>
+                <p className="text-xs opacity-60 mt-1">Exact price confirmed after free on-site inspection</p>
               </div>
             )}
             <div className="space-y-3">

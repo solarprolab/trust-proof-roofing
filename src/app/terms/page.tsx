@@ -57,7 +57,7 @@ export default function TermsPage() {
                 <li>An estimate provided by the Instant Quote tool is not a binding bid, proposal, or offer.</li>
               </ul>
               <p className="text-gray-600 leading-relaxed mt-3">
-                Actual project pricing is determined only after an on-site or drone assessment and will be provided in a formal written estimate.
+                Actual project pricing is determined only after an on-site inspection and will be provided in a formal written estimate.
               </p>
             </div>
 

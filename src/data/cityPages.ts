@@ -409,11 +409,11 @@ export const CT_CITIES: CityPage[] = [
       },
       {
         q: 'How much does roof replacement cost in Suffield CT?',
-        a: 'Most Suffield homeowners pay $10,000 to $17,000 for a full asphalt replacement. We provide free drone assessments and written estimates with no obligation.',
+        a: 'Most Suffield homeowners pay $10,000 to $17,000 for a full asphalt replacement. We provide free on-site inspections and written estimates with no obligation.',
       },
       {
         q: 'What makes Trust Proof Roofing different from other Suffield roofers?',
-        a: 'We are local, licensed, and we put everything in writing — drone footage before we start, itemized proposals, daily photo updates, and a 20-year leak warranty. No verbal promises, no surprises.',
+        a: 'We are local, licensed, and we put everything in writing — detailed inspection before we start, itemized proposals, daily photo updates, and a 20-year leak warranty. No verbal promises, no surprises.',
       },
     ],
   },
@@ -445,7 +445,7 @@ export const CT_CITIES: CityPage[] = [
       },
       {
         q: 'Do you serve Enfield, CT for roofing?',
-        a: 'Yes. Trust Proof Roofing is based in neighboring Suffield and serves Enfield including Thompsonville, Hazardville, Scitico, and Shaker Pines. We offer free drone assessments and same-week scheduling.',
+        a: 'Yes. Trust Proof Roofing is based in neighboring Suffield and serves Enfield including Thompsonville, Hazardville, Scitico, and Shaker Pines. We offer free on-site inspections and same-week scheduling.',
       },
       {
         q: 'What causes ice dams on Enfield roofs?',
@@ -477,7 +477,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'How much does roof replacement cost in Windsor Locks, CT?',
-        a: 'Windsor Locks roof replacements typically run $8,500 to $14,000 for a standard colonial or cape cod. We provide free written estimates after a drone assessment of your specific roof.',
+        a: 'Windsor Locks roof replacements typically run $8,500 to $14,000 for a standard colonial or cape cod. We provide free written estimates after an on-site inspection of your specific roof.',
       },
       {
         q: 'Do you serve Windsor Locks for roofing repairs and replacement?',
@@ -498,7 +498,7 @@ export const CT_CITIES: CityPage[] = [
     neighborhoods: ['East Granby Center', 'Copper Hill', 'North Granby Road corridor'],
     zipCodes: ['06026'],
     localAngle: "East Granby is a small, heavily wooded town where the biggest roofing threat most homeowners face is not weather — it is trees. The dense tree canopy throughout East Granby means moss and algae growth is accelerated, branches scrape and puncture shingles constantly, and debris accumulates in valleys and gutters year-round. Copper Hill sits at higher elevation than the rest of Hartford County, and homes there see more wind damage than residents typically expect. East Granby's tight-knit community means reputation travels fast — homeowners here ask neighbors before they call anyone. Trust Proof Roofing serves East Granby from our Suffield base, which is one town over.",
-    seasonalNote: "East Granby's tree coverage means your gutters need clearing at least twice per fall. Debris-clogged gutters in winter become ice dams by January. We offer gutter checks as part of every drone assessment at no extra charge.",
+    seasonalNote: "East Granby's tree coverage means your gutters need clearing at least twice per fall. Debris-clogged gutters in winter become ice dams by January. We offer gutter checks as part of every on-site inspection at no extra charge.",
     nearbyCity: [
       { city: 'Suffield', slug: 'suffield' },
       { city: 'Granby', slug: 'granby' },
@@ -509,7 +509,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve East Granby, CT for roofing?',
-        a: 'Yes. Trust Proof Roofing serves East Granby from our Suffield base. We offer free drone inspections and written estimates with no obligation.',
+        a: 'Yes. Trust Proof Roofing serves East Granby from our Suffield base. We offer free on-site inspections and written estimates with no obligation.',
       },
       {
         q: 'How much does a roof replacement cost in East Granby, CT?',
@@ -545,7 +545,7 @@ export const CT_CITIES: CityPage[] = [
       },
       {
         q: 'Do you serve Granby CT for roofing?',
-        a: 'Yes. Trust Proof Roofing serves all of Granby including Granby Center, West Granby, and North Granby. Free drone assessment and written estimate.',
+        a: 'Yes. Trust Proof Roofing serves all of Granby including Granby Center, West Granby, and North Granby. Free on-site inspection and written estimate.',
       },
     ],
   },
@@ -561,8 +561,8 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Open terrain wind exposure', 'Heavy snow', 'Ice dams', 'Hail from summer storms'],
     neighborhoods: ['Somers Center', 'North Somers', 'Sodom Road corridor', 'Hall Hill'],
     zipCodes: ['06071'],
-    localAngle: "Somers is a quiet Tolland County town that borders Suffield directly to the east. The open agricultural terrain throughout Somers means wind crosses the landscape with nothing to slow it down, and roofs here take more wind-driven rain and debris impact than in more sheltered towns. The town's housing stock is largely single-family colonials and raised ranches from the 1970s through 1990s — a generation of roofs that is either at end of life or close to it. Somers homeowners are accustomed to driving to Enfield or Springfield for services, which means local quality options are genuinely underserved. Trust Proof Roofing brings the same drone assessment, instant quote, and 20-year warranty technology to Somers that larger towns take for granted.",
-    seasonalNote: "Somers' open fields mean summer hail storms travel fast and hit hard with no tree canopy to absorb impact. After any hail event, call us for a free drone assessment before contacting your insurance company — documentation collected immediately is far more valuable than documentation collected weeks later.",
+    localAngle: "Somers is a quiet Tolland County town that borders Suffield directly to the east. The open agricultural terrain throughout Somers means wind crosses the landscape with nothing to slow it down, and roofs here take more wind-driven rain and debris impact than in more sheltered towns. The town's housing stock is largely single-family colonials and raised ranches from the 1970s through 1990s — a generation of roofs that is either at end of life or close to it. Somers homeowners are accustomed to driving to Enfield or Springfield for services, which means local quality options are genuinely underserved. Trust Proof Roofing brings the same detailed inspection, instant quote, and 20-year warranty to Somers that larger towns take for granted.",
+    seasonalNote: "Somers' open fields mean summer hail storms travel fast and hit hard with no tree canopy to absorb impact. After any hail event, call us for a free on-site inspection before contacting your insurance company — documentation collected immediately is far more valuable than documentation collected weeks later.",
     nearbyCity: [
       { city: 'Suffield', slug: 'suffield' },
       { city: 'Enfield', slug: 'enfield' },
@@ -573,7 +573,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve Somers, CT for roofing?',
-        a: 'Yes. Somers borders Suffield directly and is one of our primary service towns. Free drone assessments and same-week scheduling available.',
+        a: 'Yes. Somers borders Suffield directly and is one of our primary service towns. Free on-site inspections and same-week scheduling available.',
       },
       {
         q: 'How much does roof replacement cost in Somers, CT?',
@@ -594,7 +594,7 @@ export const CT_CITIES: CityPage[] = [
     neighborhoods: ['Broad Brook', 'Warehouse Point', 'Melrose', 'Windsorville'],
     zipCodes: ['06016', '06088'],
     localAngle: "East Windsor straddles the Connecticut River Valley in a way that makes it one of the coldest pockets in Hartford County during winter — cold air pools here and temperatures drop faster than surrounding towns. Broad Brook and Warehouse Point have dense concentrations of older homes, many with original or once-replaced roofs well past their prime. The town's agricultural and industrial history means there is significant variation in housing stock — from farmhouses with complex rooflines to postwar ranches with simpler but aging systems. East Windsor homeowners tend to be cost-conscious and research-driven, which is exactly who Trust Proof's transparent pricing model and instant quote tool is built for.",
-    seasonalNote: "East Windsor's river valley position makes it a freeze-thaw hotspot. Temperature swings between day and night in March and April cause more shingle cracking here than in elevated towns. Spring is the best time to inspect — schedule a free drone assessment after the last frost.",
+    seasonalNote: "East Windsor's river valley position makes it a freeze-thaw hotspot. Temperature swings between day and night in March and April cause more shingle cracking here than in elevated towns. Spring is the best time to inspect — schedule a free on-site inspection after the last frost.",
     nearbyCity: [
       { city: 'Enfield', slug: 'enfield' },
       { city: 'Windsor Locks', slug: 'windsor-locks' },
@@ -605,7 +605,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve East Windsor CT for roofing?',
-        a: 'Yes. We serve all of East Windsor including Broad Brook, Warehouse Point, and Melrose. Free drone inspection and written estimate with no obligation.',
+        a: 'Yes. We serve all of East Windsor including Broad Brook, Warehouse Point, and Melrose. Free on-site inspection and written estimate with no obligation.',
       },
       {
         q: 'How much does roof replacement cost in East Windsor CT?',
@@ -625,7 +625,7 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Hartford metro weather patterns', 'Ice dams', 'Wind damage', 'Aging housing stock'],
     neighborhoods: ['Bloomfield Center', 'Blue Hills', 'Wintonbury', 'Tunxis'],
     zipCodes: ['06002'],
-    localAngle: "Bloomfield sits immediately northwest of Hartford and carries all of the weather exposure of the Hartford metro without the density of services available in the city. Blue Hills and Wintonbury have large concentrations of mid-century homes — split levels, colonials, and raised ranches built primarily between 1950 and 1980. That housing stock is entering its second or third roof cycle, and many homeowners are doing this replacement for the first time without a trusted contractor in mind. Bloomfield's diverse community deserves the same technology-forward, transparent roofing experience that has historically been reserved for wealthier suburbs. Trust Proof Roofing serves Bloomfield with the same drone assessment and 20-year warranty as every other town we cover.",
+    localAngle: "Bloomfield sits immediately northwest of Hartford and carries all of the weather exposure of the Hartford metro without the density of services available in the city. Blue Hills and Wintonbury have large concentrations of mid-century homes — split levels, colonials, and raised ranches built primarily between 1950 and 1980. That housing stock is entering its second or third roof cycle, and many homeowners are doing this replacement for the first time without a trusted contractor in mind. Bloomfield's diverse community deserves the same technology-forward, transparent roofing experience that has historically been reserved for wealthier suburbs. Trust Proof Roofing serves Bloomfield with the same detailed inspection process and 20-year warranty as every other town we cover.",
     seasonalNote: "Bloomfield's proximity to Hartford means it catches the full force of nor'easters that track up the Connecticut River Valley. Inspect your roof every spring and after any major storm — the older homes in Blue Hills are particularly prone to flashing failures around chimneys and dormers.",
     nearbyCity: [
       { city: 'Windsor', slug: 'windsor' },
@@ -637,7 +637,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve Bloomfield CT for roofing?',
-        a: 'Yes. Trust Proof Roofing serves all of Bloomfield including Blue Hills, Wintonbury, and Tunxis. Free drone assessment and written estimate.',
+        a: 'Yes. Trust Proof Roofing serves all of Bloomfield including Blue Hills, Wintonbury, and Tunxis. Free on-site inspection and written estimate.',
       },
       {
         q: 'How much does roof replacement cost in Bloomfield CT?',
@@ -669,11 +669,11 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'How much does roof replacement cost in Windsor CT?',
-        a: 'Windsor roof replacements typically run $9,500 to $16,000 depending on size and complexity. We provide free written estimates after a drone assessment.',
+        a: 'Windsor roof replacements typically run $9,500 to $16,000 depending on size and complexity. We provide free written estimates after an on-site inspection.',
       },
       {
         q: 'Do you serve Windsor CT for roofing repairs and replacement?',
-        a: 'Yes. We serve all of Windsor including Poquonock, Wilson, Hayden Station, and Day Hill. Free drone inspection available.',
+        a: 'Yes. We serve all of Windsor including Poquonock, Wilson, Hayden Station, and Day Hill. Free on-site inspection available.',
       },
     ],
   },
@@ -689,7 +689,7 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Valley and ridge wind patterns', 'Heavy snow at elevation', 'Ice dams', 'Tree canopy debris'],
     neighborhoods: ['Simsbury Center', 'Weatogue', 'Tariffville', 'West Simsbury', 'Latimer Lane'],
     zipCodes: ['06070', '06089', '06092'],
-    localAngle: "Simsbury is one of the most affluent towns in Hartford County, with a housing market that reflects it — large colonials, center-halls, and Capes with complex rooflines, multiple dormers, and premium finishes that require careful, detail-oriented installation. The Farmington River Valley runs through Simsbury, and the topographic variation between the valley floor and the Talcott Mountain ridge creates real variation in weather exposure across the town. Weatogue and West Simsbury sit at higher elevations and see more wind and snow accumulation than Simsbury Center. Tariffville's older housing stock along the river has its own challenges with moisture and moss. Simsbury homeowners research extensively and expect a contractor who can match their standards. Trust Proof's drone documentation, itemized proposals, and 20-year warranty in writing are built exactly for this customer.",
+    localAngle: "Simsbury is one of the most affluent towns in Hartford County, with a housing market that reflects it — large colonials, center-halls, and Capes with complex rooflines, multiple dormers, and premium finishes that require careful, detail-oriented installation. The Farmington River Valley runs through Simsbury, and the topographic variation between the valley floor and the Talcott Mountain ridge creates real variation in weather exposure across the town. Weatogue and West Simsbury sit at higher elevations and see more wind and snow accumulation than Simsbury Center. Tariffville's older housing stock along the river has its own challenges with moisture and moss. Simsbury homeowners research extensively and expect a contractor who can match their standards. Trust Proof's detailed documentation, itemized proposals, and 20-year warranty in writing are built exactly for this customer.",
     seasonalNote: "Simsbury's Talcott Mountain ridge creates wind channeling that can lift poorly fastened shingles in winter storms. If you are seeing lifted or curled shingles along your ridge line, do not wait — water gets under curled shingles fast once temperatures drop.",
     nearbyCity: [
       { city: 'Granby', slug: 'granby' },
@@ -721,7 +721,7 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Farmington Valley elevation exposure', 'Ice dams', 'Heavy snow', 'Wind on Avon Mountain'],
     neighborhoods: ['Avon Center', 'Avon Old Farms', 'Countryside', 'Nod Road corridor'],
     zipCodes: ['06001'],
-    localAngle: "Avon is consistently one of Connecticut's most desirable towns, and its housing reflects that — large, well-maintained homes on significant lots where curb appeal and property value protection are paramount. Avon Mountain creates a genuine orographic effect: homes on the eastern slope see more precipitation and wind than those in the valley, and the elevation differential across town is enough to meaningfully affect both snowfall and roof wear rates. Avon Old Farms and the Nod Road corridor have some of the most expensive residential real estate in Hartford County — homeowners here are not looking for the cheapest roofer, they are looking for the one they can trust most. Trust Proof's full photo documentation, drone assessment standard, and written 20-year warranty are exactly the signals Avon buyers respond to.",
+    localAngle: "Avon is consistently one of Connecticut's most desirable towns, and its housing reflects that — large, well-maintained homes on significant lots where curb appeal and property value protection are paramount. Avon Mountain creates a genuine orographic effect: homes on the eastern slope see more precipitation and wind than those in the valley, and the elevation differential across town is enough to meaningfully affect both snowfall and roof wear rates. Avon Old Farms and the Nod Road corridor have some of the most expensive residential real estate in Hartford County — homeowners here are not looking for the cheapest roofer, they are looking for the one they can trust most. Trust Proof's full photo documentation, on-site inspection standard, and written 20-year warranty are exactly the signals Avon buyers respond to.",
     seasonalNote: "Avon Mountain homeowners: your elevation means you see 20-30% more precipitation than the valley below. Annual inspections are not optional here — they are the difference between catching a $300 flashing fix and discovering a $15,000 deck replacement.",
     nearbyCity: [
       { city: 'Simsbury', slug: 'simsbury' },
@@ -732,11 +732,11 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'How much does roof replacement cost in Avon CT?',
-        a: 'Avon roof replacements typically run $12,500 to $21,000 given the larger homes and more complex rooflines common in town. We provide free written estimates after a drone assessment.',
+        a: 'Avon roof replacements typically run $12,500 to $21,000 given the larger homes and more complex rooflines common in town. We provide free written estimates after an on-site inspection.',
       },
       {
         q: 'Do you serve Avon CT for roofing?',
-        a: 'Yes. We serve all of Avon including Avon Center, Avon Old Farms, and the Nod Road corridor. Free drone inspection available.',
+        a: 'Yes. We serve all of Avon including Avon Center, Avon Old Farms, and the Nod Road corridor. Free on-site inspection available.',
       },
     ],
   },
@@ -795,7 +795,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve South Windsor CT for roofing?',
-        a: 'Yes. We serve all of South Windsor including Wapping and the Nevers Road corridor. Free drone assessment and written estimate.',
+        a: 'Yes. We serve all of South Windsor including Wapping and the Nevers Road corridor. Free on-site inspection and written estimate.',
       },
       {
         q: 'How much does roof replacement cost in South Windsor CT?',
@@ -815,7 +815,7 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Urban heat island effect', 'Ice dams in older housing', 'Wind damage', 'Aging housing stock'],
     neighborhoods: ['Manchester Center', 'Cheney', 'Buckley', 'Highland Park', 'Bowers'],
     zipCodes: ['06040', '06042', '06045'],
-    localAngle: "Manchester is the largest town in eastern Hartford County and one of the most densely populated in the state. The Cheney Brothers mill complex and surrounding historic neighborhoods represent some of the most architecturally complex roofing work in the region — Victorian-era mill housing with steep pitches, decorative gables, and flashing challenges that demand experienced hands. Beyond the historic core, Manchester's postwar subdivisions in Buckley and Highland Park are working through a wave of aging roofs installed in the 1980s and 1990s. Manchester's density means word of mouth travels extremely fast. Trust Proof Roofing's documentation standard — drone footage before every job, daily photo updates, and a 20-year written warranty — is built to generate the kind of referrals Manchester's connected neighborhoods produce.",
+    localAngle: "Manchester is the largest town in eastern Hartford County and one of the most densely populated in the state. The Cheney Brothers mill complex and surrounding historic neighborhoods represent some of the most architecturally complex roofing work in the region — Victorian-era mill housing with steep pitches, decorative gables, and flashing challenges that demand experienced hands. Beyond the historic core, Manchester's postwar subdivisions in Buckley and Highland Park are working through a wave of aging roofs installed in the 1980s and 1990s. Manchester's density means word of mouth travels extremely fast. Trust Proof Roofing's documentation standard — detailed inspection before every job, daily photo updates, and a 20-year written warranty — is built to generate the kind of referrals Manchester's connected neighborhoods produce.",
     seasonalNote: "Manchester's higher density means trees and neighboring structures can create localized shade on roof sections, accelerating moss growth. If you see dark streaking on your north or east-facing slopes, schedule a free inspection — moss holds moisture against shingles and dramatically shortens their life.",
     nearbyCity: [
       { city: 'South Windsor', slug: 'south-windsor' },
@@ -826,7 +826,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve Manchester CT for roofing?',
-        a: 'Yes. We serve all of Manchester including Cheney, Buckley, and Highland Park. Free drone assessment and written estimate available.',
+        a: 'Yes. We serve all of Manchester including Cheney, Buckley, and Highland Park. Free on-site inspection and written estimate available.',
       },
       {
         q: 'How much does roof replacement cost in Manchester CT?',
@@ -857,7 +857,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve Vernon CT for roofing?',
-        a: 'Yes. We serve all of Vernon including Rockville, Talcottville, and Vernon Center. Free drone assessment available.',
+        a: 'Yes. We serve all of Vernon including Rockville, Talcottville, and Vernon Center. Free on-site inspection available.',
       },
       {
         q: 'How much does roof replacement cost in Vernon CT?',
@@ -888,7 +888,7 @@ export const CT_CITIES: CityPage[] = [
     faq: [
       {
         q: 'Do you serve Ellington CT for roofing?',
-        a: 'Yes. We serve all of Ellington including Ellington Center and Crystal Lake. Free drone inspection and written estimate.',
+        a: 'Yes. We serve all of Ellington including Ellington Center and Crystal Lake. Free on-site inspection and written estimate.',
       },
       {
         q: 'How much does roof replacement cost in Ellington CT?',
@@ -908,7 +908,7 @@ export const CT_CITIES: CityPage[] = [
     weatherChallenges: ['Elevated terrain cold', 'Heavy snow accumulation', 'Ice dams', 'Wind exposure'],
     neighborhoods: ['Tolland Center', 'Tolland Green', 'Crystal Lake', 'Old Post Road corridor'],
     zipCodes: ['06084'],
-    localAngle: "Tolland is the county seat of Tolland County and sits at one of the higher elevations in the region. The historic Tolland Green is one of Connecticut's best-preserved 18th-century town centers, surrounded by period homes that require careful, historically sensitive roofing work. Beyond the historic core, Tolland's residential areas are a mix of 1970s and 1980s colonials and more recent construction — a broad range of roof ages and conditions. University of Connecticut's proximity in neighboring Storrs gives Tolland a more educated, research-oriented homeowner base that appreciates documentation and transparency. Trust Proof's drone-first, everything-in-writing approach resonates strongly here.",
+    localAngle: "Tolland is the county seat of Tolland County and sits at one of the higher elevations in the region. The historic Tolland Green is one of Connecticut's best-preserved 18th-century town centers, surrounded by period homes that require careful, historically sensitive roofing work. Beyond the historic core, Tolland's residential areas are a mix of 1970s and 1980s colonials and more recent construction — a broad range of roof ages and conditions. University of Connecticut's proximity in neighboring Storrs gives Tolland a more educated, research-oriented homeowner base that appreciates documentation and transparency. Trust Proof's inspection-first, everything-in-writing approach resonates strongly here.",
     seasonalNote: "Tolland's elevation means it typically receives 10-15% more snowfall than Hartford. Plan for at minimum one roof inspection per year — late spring after snow season is the best time to catch winter damage before summer rain tests the same vulnerabilities.",
     nearbyCity: [
       { city: 'Ellington', slug: 'ellington' },
@@ -923,7 +923,7 @@ export const CT_CITIES: CityPage[] = [
       },
       {
         q: 'How much does roof replacement cost in Tolland CT?',
-        a: 'Tolland replacements typically run $10,000 to $17,000. Free written estimate after drone assessment.',
+        a: 'Tolland replacements typically run $10,000 to $17,000. Free written estimate after on-site inspection.',
       },
     ],
   },
