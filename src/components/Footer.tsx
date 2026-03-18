@@ -90,7 +90,11 @@ export default function Footer() {
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-sm text-gray-500">
           <p>© {currentYear} {SITE.name}. All rights reserved. CT License #{SITE.license}</p>
-          <p>Proudly serving all of Connecticut — Hartford, Fairfield, New Haven &amp; Tolland Counties</p>
+          <div className="flex items-center gap-4">
+            <p>Proudly serving all of Connecticut — Hartford, Fairfield, New Haven &amp; Tolland Counties</p>
+            <Link href="/terms" className="hover:text-gray-300 transition-colors whitespace-nowrap">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-gray-300 transition-colors whitespace-nowrap">Privacy Policy</Link>
+          </div>
         </div>
       </div>
       <Link href="/admin" className="fixed bottom-4 right-4 text-xs text-gray-600 hover:text-gray-400 transition-colors z-50 opacity-40 hover:opacity-100">
