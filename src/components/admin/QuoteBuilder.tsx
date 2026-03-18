@@ -349,7 +349,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           const heading = google.maps.geometry.spherical.computeHeading(panoLatLng, houseLatLng);
           new google.maps.StreetViewPanorama(svDivRef.current, {
             position: geocodedLoc,
-            pov: { heading, pitch: 10, zoom: 1 },
+            pov: { heading, pitch: 10 },
             addressControl: true,
           });
         }
