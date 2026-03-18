@@ -97,9 +97,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <Link href="/admin" className="fixed bottom-4 right-4 text-xs text-gray-600 hover:text-gray-400 transition-colors z-50 opacity-40 hover:opacity-100">
-        Admin
-      </Link>
     </footer>
   );
 }
