@@ -146,7 +146,6 @@ export default function HomePage() {
       <section className="py-20 bg-gray-50" id="quote">
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-3">See Your Real Price Range</h2>
-          <p className="text-center text-gray-500 mb-10">No email required. No sales call. A real number based on your actual roof.</p>
           <InstantQuoteTrigger />
         </div>
       </section>
