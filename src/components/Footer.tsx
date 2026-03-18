@@ -91,7 +91,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-sm text-gray-500">
           <p>© {currentYear} {SITE.name}. All rights reserved. CT License #{SITE.license}</p>
           <div className="flex items-center gap-4">
-            <p>Proudly serving all of Connecticut — Hartford, Fairfield, New Haven &amp; Tolland Counties</p>
+            <p>Based in Suffield, CT — Hartford, Fairfield, New Haven &amp; Tolland Counties</p>
             <Link href="/terms" className="hover:text-gray-300 transition-colors whitespace-nowrap">Terms of Service</Link>
             <Link href="/privacy" className="hover:text-gray-300 transition-colors whitespace-nowrap">Privacy Policy</Link>
           </div>

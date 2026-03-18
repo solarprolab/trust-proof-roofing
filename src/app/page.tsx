@@ -5,7 +5,7 @@ import { CT_CITIES } from '@/data/cityPages';
 import InstantQuoteTrigger from '@/components/InstantQuoteTrigger';
 
 export const metadata: Metadata = {
-  title: `${SITE.name} | Connecticut Roofing Contractor`,
+  title: `${SITE.name} | Connecticut's Roofing Tech Company`,
   description: SITE.description,
   alternates: { canonical: SITE.url },
 };

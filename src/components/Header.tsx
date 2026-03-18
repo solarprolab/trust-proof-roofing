@@ -12,7 +12,7 @@ export default function Header() {
       {/* Top bar */}
       <div className="bg-brand-900 text-brand-200 text-sm py-1.5">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <span className="hidden sm:block">Serving all of Connecticut — Licensed &amp; Insured | {SITE.license}</span>
+          <span className="hidden sm:block">Based in Suffield, CT — Licensed &amp; Insured | {SITE.license}</span>
           <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="font-semibold text-accent-400 hover:text-accent-300 transition-colors">
             {SITE.phone}
           </a>
