@@ -28,7 +28,7 @@ export default function Header() {
             alt="Trust Proof Roofing logo"
             width={48}
             height={38}
-            style={{objectFit: 'contain'}}
+            style={{objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(18%) sepia(49%) saturate(800%) hue-rotate(190deg) brightness(90%)'}}
           />
           <div className="text-[#1B3A6B] font-black text-lg tracking-wide font-heading">{SITE.name}</div>
         </Link>
