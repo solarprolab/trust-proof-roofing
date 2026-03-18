@@ -112,6 +112,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [excludedSegIds,   setExcludedSegIds]   = useState<Set<number>>(new Set());
   const [svAvailable,      setSvAvailable]      = useState<boolean | null>(null);
   const [useDrawnOverSolar, setUseDrawnOverSolar] = useState(false);
+  const [solarApiStatus,   setSolarApiStatus]   = useState<'idle' | 'loading' | 'ok' | 'failed'>('idle');
 
   /* ── Section state ─────────────────────────────────── */
   const [sections,   setSections]   = useState<Section[]>([]);
@@ -153,19 +154,47 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     document.head.appendChild(s);
   }, []);
 
-  /* ── 2. Geocode address ────────────────────────────── */
+  /* ── 2. Geocode address (Places API → geocoding fallback) */
   useEffect(() => {
     if (!lead.address) return;
-    fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(lead.address)}&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`)
+    const addr = lead.address;
+    const geocodeFallback = () => {
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.results?.[0]) {
+            const { lat, lng } = d.results[0].geometry.location;
+            setGeocodedLoc({ lat, lng });
+          }
+        })
+        .catch(() => {});
+    };
+    // Try Places autocomplete → Details for precise building footprint
+    fetch(`/api/autocomplete?input=${encodeURIComponent(addr)}`)
       .then(r => r.json())
       .then(d => {
-        if (d.results?.[0]) {
-          const { lat, lng } = d.results[0].geometry.location;
-          setGeocodedLoc({ lat, lng });
-        }
+        const placeId = d.predictions?.[0]?.place_id;
+        if (!placeId) { geocodeFallback(); return; }
+        return fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry,name&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`)
+          .then(r => r.json())
+          .then(d2 => {
+            const loc = d2.result?.geometry?.location;
+            if (loc?.lat != null && loc?.lng != null) {
+              setGeocodedLoc({ lat: loc.lat, lng: loc.lng });
+            } else {
+              geocodeFallback();
+            }
+          });
       })
-      .catch(() => {});
+      .catch(() => geocodeFallback());
   }, [lead.address]);
+
+  /* ── 2a. Re-centre map whenever geocodedLoc updates ── */
+  useEffect(() => {
+    if (!mapRef.current || !geocodedLoc) return;
+    mapRef.current.setCenter(geocodedLoc);
+    mapRef.current.setZoom(20);
+  }, [geocodedLoc]);
 
   /* ── 3. Init map ───────────────────────────────────── */
   useEffect(() => {
@@ -260,17 +289,21 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapsReady, geocodedLoc]);
 
-  /* ── 3a. Solar API fetch + pre-populate sqft ────────── */
+  /* ── 3a. Solar API fetch ────────────────────────────── */
   useEffect(() => {
     if (!geocodedLoc) return;
+    setSolarApiStatus('loading');
     fetch(`https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${geocodedLoc.lat}&location.longitude=${geocodedLoc.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`)
       .then(r => r.json())
       .then(d => {
-        if (Array.isArray(d.roofSegmentStats)) {
+        if (Array.isArray(d.roofSegmentStats) && d.roofSegmentStats.length > 0) {
           setSolarSegments(d.roofSegmentStats);
+          setSolarApiStatus('ok');
+        } else {
+          setSolarApiStatus('failed');
         }
       })
-      .catch(() => {});
+      .catch(() => setSolarApiStatus('failed'));
   }, [geocodedLoc]);
 
   /* ── 3b. Draw Solar segment polygons ───────────────── */
@@ -766,19 +799,46 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
           {/* Empty state — only if both drawn AND solar are empty */}
           {sections.length === 0 && solarSegments.length === 0 && !pendingShape && (
-            <div className="py-6 px-3">
-              <p className="text-sm text-gray-500 text-center mb-1">Could not detect roof automatically.</p>
-              <p className="text-xs text-gray-600 text-center mb-3">Use the drawing tools above to trace the roof, or enter sq ft below.</p>
-              <div className="flex gap-2">
-                <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
-                  placeholder="Enter sq ft manually"
-                  className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${manualSqft ? 'border-yellow-500/50' : 'border-gray-700 focus:border-blue-500'}`}
-                />
-                {manualSqft && (
-                  <button onClick={() => setManualSqft('')} className="px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
-                )}
-              </div>
-            </div>
+            <>
+              {/* Detecting… spinner */}
+              {solarApiStatus === 'loading' && (
+                <div className="text-center py-8 text-gray-500">
+                  <svg className="w-6 h-6 animate-spin text-blue-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                  <p className="text-xs">Detecting roof segments…</p>
+                </div>
+              )}
+
+              {/* Solar API failed — yellow banner + large manual input */}
+              {solarApiStatus === 'failed' && (
+                <div className="px-1 py-2 space-y-3">
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 flex items-start gap-2">
+                    <svg className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                    <p className="text-xs text-yellow-300 leading-relaxed">Roof auto-detection unavailable for this address — use drawing tools or enter sq ft manually</p>
+                  </div>
+                  <div className="bg-gray-900 rounded-xl border border-gray-700 p-3">
+                    <label className="block text-xs font-semibold text-gray-300 mb-2">Total Roof Area (sq ft)</label>
+                    <div className="flex gap-2">
+                      <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                        placeholder="e.g. 2400"
+                        className={`flex-1 px-3 py-3 bg-gray-800 border rounded-lg text-white text-lg font-semibold focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-600 focus:border-blue-500'}`}
+                      />
+                      {manualSqft && (
+                        <button onClick={() => setManualSqft('')} className="px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
+                      )}
+                    </div>
+                    {manualSqft && <p className="text-[10px] text-yellow-400 mt-1.5">Manual override active — drawing tools still work</p>}
+                  </div>
+                </div>
+              )}
+
+              {/* Idle / no geocode yet */}
+              {(solarApiStatus === 'idle' || !geocodedLoc) && (
+                <div className="text-center py-8 text-gray-600">
+                  <p className="text-sm">No sections drawn yet.</p>
+                  <p className="text-xs mt-1">Use the tools above to draw roof sections on the map.</p>
+                </div>
+              )}
+            </>
           )}
 
           {/* Drawn sections */}
