@@ -464,25 +464,31 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     const pitchSurchOverride = overridePitch ? (PITCH_SURCHARGE_MAP[overridePitch] ?? 0) : null;
     const wasteOverrideVal   = overrideWaste ? parseInt(overrideWaste, 10) : null;
 
-    const lineItems: { label: string; amount: number; isRange?: boolean }[] = [];
+    const lineItems: { label: string; homeownerLabel?: string; amount: number; isRange?: boolean }[] = [];
 
-    // ── Area pricing ─────────────────────────────────
+    // ── Area pricing (110% material factor, always) ──
     if (usePerSection) {
       replaceSections.forEach(s => {
-        const waste = wasteOverrideVal ?? s.wasteFactor;
-        const sw    = sqftWithWaste(s.sqft, waste);
+        const adjustedSqft = Math.round(s.sqft * 1.1);
         const rate  = baseRate + (pitchSurchOverride ?? getPitchSurcharge(s.pitch));
-        lineItems.push({ label: `${s.name} — ${sw.toLocaleString()} sqft × $${rate.toFixed(2)}/sqft`, amount: Math.round(sw * rate) });
+        lineItems.push({
+          label: `${s.name} — ${s.sqft.toLocaleString()} sq ft × 110% = ${adjustedSqft.toLocaleString()} sq ft × $${rate.toFixed(2)}/sq ft`,
+          homeownerLabel: s.name,
+          amount: Math.round(adjustedSqft * rate),
+        });
         if (s.layers === 2) lineItems.push({ label: `${s.name} — 2-layer tearoff surcharge`, amount: 500 });
       });
       repairSections.forEach(s => {
         lineItems.push({ label: `${s.name} — Repair estimate ($350–$2,500)`, amount: 1425, isRange: true });
       });
     } else if (effectiveSqft > 0) {
-      const waste = wasteOverrideVal ?? 12;
-      const sw    = sqftWithWaste(effectiveSqft, waste);
+      const adjustedSqft = Math.round(effectiveSqft * 1.1);
       const rate  = baseRate + (pitchSurchOverride ?? 0);
-      lineItems.push({ label: `Total area — ${sw.toLocaleString()} sqft × $${rate.toFixed(2)}/sqft`, amount: Math.round(sw * rate) });
+      lineItems.push({
+        label: `Total area — ${effectiveSqft.toLocaleString()} sq ft × 110% = ${adjustedSqft.toLocaleString()} sq ft × $${rate.toFixed(2)}/sq ft`,
+        homeownerLabel: 'Roof Replacement',
+        amount: Math.round(adjustedSqft * rate),
+      });
     }
 
     // ── Linear ───────────────────────────────────────
@@ -498,10 +504,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     }
 
     // ── Add-ons ──────────────────────────────────────
-    const wasteForAddOns = wasteOverrideVal ?? 12;
     const totalSqftWaste = usePerSection
-      ? replaceSections.reduce((sum, s) => sum + sqftWithWaste(s.sqft, wasteOverrideVal ?? s.wasteFactor), 0)
-      : sqftWithWaste(effectiveSqft, wasteForAddOns);
+      ? replaceSections.reduce((sum, s) => sum + Math.round(s.sqft * 1.1), 0)
+      : Math.round(effectiveSqft * 1.1);
 
     if (addOns.ridgeVent) lineItems.push({ label: 'Ridge Vent Upgrade', amount: 300 });
     if (addOns.iceWaterFull && totalSqftWaste > 0)
@@ -591,7 +596,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             addOns.gutterInspection && 'Gutter Inspection (Complimentary)',
           ].filter(Boolean) as string[],
           skylights: addOns.skylights, chimneys: addOns.chimneys,
-          priceBreakdown: { lineItems: priceCalc.lineItems, subtotal: priceCalc.subtotal, rangeMin: priceCalc.rangeMin, rangeMax: priceCalc.rangeMax },
+          priceBreakdown: {
+            lineItems: priceCalc.lineItems.map(li => ({ label: li.homeownerLabel ?? li.label, amount: li.amount })),
+            subtotal: priceCalc.subtotal, rangeMin: priceCalc.rangeMin, rangeMax: priceCalc.rangeMax,
+          },
           scopeNotes, leadId,
         }),
       });
@@ -741,7 +749,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           )}
 
           {sections.map(s => {
-            const sw = sqftWithWaste(s.sqft, parseInt(overrideWaste || '0') || s.wasteFactor);
+            const sw = Math.round(s.sqft * 1.1);
             const { label: pLabel, badge: pBadge } = getPitchLabel(s.pitch);
             const isRenaming = renamingId === s.id;
             return (
@@ -762,7 +770,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   )}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-xs text-blue-300 font-medium">{s.sqft.toLocaleString()} sqft</span>
-                    <span className="text-xs text-gray-500">→ {sw.toLocaleString()} w/waste</span>
+                    <span className="text-xs text-gray-500">→ {sw.toLocaleString()} adj (×110%)</span>
                     <button onClick={() => deleteSection(s.id)} className="text-gray-600 hover:text-red-400 transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>

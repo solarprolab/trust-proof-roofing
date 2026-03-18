@@ -227,29 +227,34 @@ function generateProposalPDF(data: {
 
   y = (doc as any).lastAutoTable.finalY + 8;
 
-  // ESTIMATED INVESTMENT
+  // YOUR INVESTMENT
   doc.setTextColor(...NAVY);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('ESTIMATED INVESTMENT', 12, y);
+  doc.text('YOUR INVESTMENT', 12, y);
   y += 6;
 
-  const boxH = 30;
+  const boxH = 38;
   doc.setFillColor(...NAVY);
-  doc.roundedRect(12, y, pw - 24, boxH, 3, 3, 'F');
+  doc.setDrawColor(150, 175, 220);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(12, y, pw - 24, boxH, 3, 3, 'FD');
   doc.setTextColor(...WHITE);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Estimated Project Range', pw / 2, y + 8, { align: 'center' });
+  doc.text('Your Investment', pw / 2, y + 9, { align: 'center' });
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text(`${fmtMoney(rangeMin)} – ${fmtMoney(rangeMax)}`, pw / 2, y + 20, { align: 'center' });
+  doc.setFontSize(28);
+  doc.text(`${fmtMoney(rangeMin)} – ${fmtMoney(rangeMax)}`, pw / 2, y + 25, { align: 'center' });
 
-  y += boxH + 5;
+  y += boxH + 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(...GRAY);
-  doc.text('Final price confirmed after free drone assessment. Price valid for 30 days.', pw / 2, y, { align: 'center' });
+  doc.setTextColor(...DARK);
+  const exactPricingText = 'This proposal is based on drone assessment measurements and is exact pricing — not an estimate range.';
+  const epLines = doc.splitTextToSize(exactPricingText, pw - 24);
+  doc.text(epLines, pw / 2, y, { align: 'center' });
+  y += epLines.length * 4 + 4;
   y += 8;
 
   // Scope notes
@@ -343,6 +348,12 @@ function generateProposalPDF(data: {
     y += lines.length * 5 + 7;
   });
 
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...NAVY);
+  doc.text('— Tenzin, Trust Proof Roofing', 12, y);
+  y += 12;
+
   // Next Steps
   doc.setTextColor(...NAVY);
   doc.setFont('helvetica', 'bold');
@@ -382,6 +393,7 @@ export async function POST(req: NextRequest) {
       material, priceBreakdown, scopeNotes, leadId,
     } = body;
 
+    const firstName = (name as string).split(' ')[0];
     const { rangeMin, rangeMax, lineItems, subtotal } = priceBreakdown as PriceBreakdown;
     const materialLabel = material === 'premium'
       ? 'Premium Asphalt (GAF Timberline UHDZ, 50-yr mfr warranty)'
@@ -452,7 +464,7 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: 'Tenzin at Trust Proof Roofing <info@trustproofroofing.com>',
       to: email,
-      subject: 'Your Roofing Proposal — Trust Proof Roofing',
+      subject: `Your Roofing Proposal from Trust Proof Roofing — ${address}`,
       attachments,
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
@@ -462,14 +474,14 @@ export async function POST(req: NextRequest) {
           </div>
 
           <div style="border:1px solid #e5e7eb;border-top:none;padding:24px 28px;border-radius:0 0 12px 12px">
-            <p style="font-size:15px;color:#111827;margin-top:0">Hi ${name},</p>
+            <p style="font-size:15px;color:#111827;margin-top:0">Hi ${firstName},</p>
             <p style="font-size:14px;color:#374151;line-height:1.6">I've reviewed your property at <strong>${address}</strong> and put together a detailed quote based on your roof's measurements and specifications.</p>
             ${pdfBase64 ? '<p style="font-size:14px;color:#374151;line-height:1.6">I\'ve attached a full <strong>proposal PDF</strong> for your records — it includes your quote details, a section-by-section breakdown, our 20-year warranty terms, and next steps.</p>' : ''}
 
             <div style="background:#1B3C6B;color:#fff;border-radius:10px;padding:20px 24px;margin:20px 0;text-align:center">
-              <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Estimated Project Range</p>
+              <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Your Investment</p>
               <p style="margin:8px 0 4px;font-size:32px;font-weight:800;line-height:1">${fmtMoney(rangeMin)} – ${fmtMoney(rangeMax)}</p>
-              <p style="margin:0;font-size:12px;opacity:0.6">Exact price confirmed after free drone assessment</p>
+              <p style="margin:6px 0 0;font-size:11px;opacity:0.8">This proposal is based on drone assessment measurements and is exact pricing — not an estimate range.</p>
             </div>
 
             <h3 style="font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Price Breakdown</h3>
@@ -495,7 +507,7 @@ export async function POST(req: NextRequest) {
             </div>
 
             <p style="font-size:14px;color:#374151;line-height:1.8;margin-top:20px">
-              — Tenzin, Founder<br>
+              — Tenzin<br>
               <strong>Trust Proof Roofing</strong><br>
               <a href="tel:9593338569" style="color:#1B3C6B;text-decoration:none">(959) 333-8569</a><br>
               <a href="https://trustproofroofing.com" style="color:#1B3C6B;text-decoration:none">trustproofroofing.com</a><br>
