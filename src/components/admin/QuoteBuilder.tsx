@@ -92,6 +92,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const pendingOvRef    = useRef<google.maps.Polygon | google.maps.Rectangle | null>(null);
   const counterRef      = useRef(0);
   const segmentPolysRef = useRef<Map<number, google.maps.Polygon>>(new Map());
+  const bbRectRef       = useRef<google.maps.Rectangle | null>(null);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -113,6 +114,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [svAvailable,      setSvAvailable]      = useState<boolean | null>(null);
   const [useDrawnOverSolar, setUseDrawnOverSolar] = useState(false);
   const [solarApiStatus,   setSolarApiStatus]   = useState<'idle' | 'loading' | 'ok' | 'failed'>('idle');
+  const [solarBuildingBBox, setSolarBuildingBBox] = useState<any>(null);
 
   /* ── Section state ─────────────────────────────────── */
   const [sections,   setSections]   = useState<Section[]>([]);
@@ -298,6 +300,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       .then(d => {
         if (Array.isArray(d.roofSegmentStats) && d.roofSegmentStats.length > 0) {
           setSolarSegments(d.roofSegmentStats);
+          if (d.boundingBox?.ne && d.boundingBox?.sw) setSolarBuildingBBox(d.boundingBox);
           setSolarApiStatus('ok');
         } else {
           setSolarApiStatus('failed');
@@ -351,6 +354,50 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapInitialized, solarSegments]);
+
+  /* ── 3c. Fit map to Solar API building bounding box ── */
+  useEffect(() => {
+    if (!mapInitialized || !mapRef.current || !solarBuildingBBox) return;
+    const { ne, sw } = solarBuildingBBox;
+    if (!ne || !sw) return;
+
+    const bounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(sw.latitude, sw.longitude),
+      new google.maps.LatLng(ne.latitude, ne.longitude),
+    );
+
+    mapRef.current.fitBounds(bounds, 24); // 24px padding
+
+    // Enforce minimum zoom of 19 after fitBounds settles
+    google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
+      if (mapRef.current && (mapRef.current.getZoom() ?? 0) < 19) {
+        mapRef.current.setZoom(19);
+      }
+    });
+
+    // Remove any previous bbox rectangle
+    if (bbRectRef.current) bbRectRef.current.setMap(null);
+
+    // Draw dashed white outline of detected building bounding box
+    bbRectRef.current = new google.maps.Rectangle({
+      bounds,
+      strokeColor: '#FFFFFF',
+      strokeOpacity: 0.75,
+      strokeWeight: 1.5,
+      fillOpacity: 0,
+      map: mapRef.current,
+      clickable: false,
+      zIndex: 0,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapInitialized, solarBuildingBBox]);
+
+  /* ── 3d. Solar API failed → hybrid view for footprints */
+  useEffect(() => {
+    if (solarApiStatus !== 'failed' || !mapInitialized || !mapRef.current) return;
+    mapRef.current.setMapTypeId('hybrid');
+    mapRef.current.setZoom(21);
+  }, [solarApiStatus, mapInitialized]);
 
   /* ── 4. Sync draw mode ─────────────────────────────── */
   useEffect(() => {
