@@ -74,8 +74,8 @@ export default function HomePage() {
           {/* Left: copy + CTA */}
           <div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6">
-              Real Pricing. Real Warranty.<br />
-              <span className="text-yellow-400">No Runaround.</span>
+              Know Your Roof. Know Your Price.<br />
+              <span className="text-yellow-400">20-Year Guarantee.</span>
             </h1>
             <p className="text-white/70 text-lg leading-relaxed mb-8 max-w-xl">
               Enter your address and get a real price range in 60 seconds — measured from your actual roof, not made up. We show you everything before we start, put it all in writing, and back every replacement with a 20-year leak warranty.
