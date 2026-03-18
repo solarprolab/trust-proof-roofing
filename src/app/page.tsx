@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE, SERVICES } from '@/lib/config';
 import { CT_CITIES } from '@/data/cityPages';
-import InstantQuote from '@/components/InstantQuote';
+import InstantQuoteTrigger from '@/components/InstantQuoteTrigger';
 
 export const metadata: Metadata = {
   title: `${SITE.name} | Connecticut Roofing Contractor`,
@@ -147,7 +147,7 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-3">See Your Real Price Range</h2>
           <p className="text-center text-gray-500 mb-10">No email required. No sales call. A real number based on your actual roof.</p>
-          <InstantQuote />
+          <InstantQuoteTrigger />
         </div>
       </section>
 
