@@ -40,26 +40,40 @@ export const metadata: Metadata = {
 const businessSchema = {
   '@context': 'https://schema.org',
   '@type': 'RoofingContractor',
-  name: SITE.name,
-  description: SITE.description,
+  name: 'Trust Proof Roofing LLC',
+  description: "Trust Proof Roofing is Connecticut's only local roofer combining drone inspection, instant online pricing, and a standalone 20-year workmanship warranty.",
   url: SITE.url,
   telephone: SITE.phone,
   email: SITE.email,
   founder: { '@type': 'Person', name: SITE.owner },
   address: {
     '@type': 'PostalAddress',
-    addressLocality: SITE.address.city,
-    addressRegion: SITE.address.state,
-    postalCode: SITE.address.zip,
+    streetAddress: 'Suffield',
+    addressLocality: 'Suffield',
+    addressRegion: 'CT',
+    postalCode: '06078',
     addressCountry: 'US',
   },
-  areaServed: {
-    '@type': 'State',
-    name: 'Connecticut',
-  },
+  areaServed: [
+    { '@type': 'AdministrativeArea', name: 'Hartford County, CT' },
+    { '@type': 'AdministrativeArea', name: 'Tolland County, CT' },
+    { '@type': 'AdministrativeArea', name: 'Fairfield County, CT' },
+    { '@type': 'AdministrativeArea', name: 'New Haven County, CT' },
+    { '@type': 'AdministrativeArea', name: 'Middlesex County, CT' },
+    { '@type': 'AdministrativeArea', name: 'Windham County, CT' },
+    { '@type': 'AdministrativeArea', name: 'Litchfield County, CT' },
+    { '@type': 'AdministrativeArea', name: 'New London County, CT' },
+  ],
+  openingHours: 'Mo-Sa 08:00-20:00',
   image: `${SITE.url}/logo.png`,
-  license: SITE.license,
-  priceRange: '$$',
+  priceRange: '$',
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Trust Proof Roofing LLC',
+  url: SITE.url,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -69,6 +83,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
       <body className="font-body bg-white text-gray-900 antialiased">
