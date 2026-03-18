@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Header from '@/components/Header';
+import HeaderWrapper from '@/components/HeaderWrapper';
 import Footer from '@/components/Footer';
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
@@ -9,7 +9,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const isAdmin = pathname.startsWith('/admin');
   return (
     <>
-      {!isAdmin && <Header />}
+      <HeaderWrapper />
       <main>{children}</main>
       {!isAdmin && <Footer />}
     </>
