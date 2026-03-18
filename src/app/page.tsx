@@ -70,20 +70,37 @@ export default function HomePage() {
 
       {/* ── HERO ──────────────────────────────────────────────── */}
       <section className="bg-[#0a1f3d] text-white">
-        <div className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left: copy + CTA */}
           <div>
+            {/* Badge */}
+            <div className="inline-flex items-center mb-6">
+              <span className="text-xs font-semibold uppercase tracking-widest border border-[#38BDF8]/50 text-[#38BDF8] px-3 py-1.5 rounded-full">
+                Connecticut&apos;s Roofing Tech Company
+              </span>
+            </div>
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6">
               Know Your Roof. Know Your Price.<br />
-              <span className="text-yellow-400">20-Year Guarantee.</span>
+              <span className="text-[#38BDF8]">20-Year Guarantee.</span>
             </h1>
-            <p className="text-white/70 text-lg leading-relaxed mb-8 max-w-xl">
+            <p className="text-white/70 text-lg leading-relaxed mb-4 max-w-xl">
               Enter your address and get a real price range in 60 seconds — measured from your actual roof, not made up. We show you everything before we start, put it all in writing, and back every replacement with a 20-year leak warranty.
             </p>
+
+            {/* Tech proof points */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/40 mb-8">
+              <span>AI-Powered Quotes</span>
+              <span className="text-white/20">·</span>
+              <span>Satellite Measurement</span>
+              <span className="text-white/20">·</span>
+              <span>Digital Proposals</span>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="#quote"
-                  className="inline-block bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black px-8 py-4 rounded-xl text-lg transition-colors text-center"
+                className="inline-block bg-[#38BDF8] hover:bg-[#0EA5E9] text-white font-black px-8 py-4 rounded-xl text-lg transition-colors text-center"
               >
                 Get Your Instant Estimate
               </a>
@@ -96,21 +113,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: founder placeholder + pull quote */}
-          <div className="flex flex-col items-center lg:items-end gap-6">
-            <div className="w-full max-w-xs">
-              {/* Headshot placeholder */}
-              <div className="bg-[#1e3a5f] rounded-2xl w-full aspect-[3/4] flex flex-col items-center justify-center border border-white/10">
-                <div className="w-20 h-20 rounded-full bg-white/10 mb-4" />
-                <p className="text-white font-bold text-lg">Tenzin, Founder</p>
-                <p className="text-white/50 text-sm mt-1">CT HIC #{SITE.license}</p>
-              </div>
-              {/* Pull quote */}
-              <div className="mt-4 bg-yellow-400/10 border border-yellow-400/30 rounded-xl px-5 py-4 text-center">
-                <p className="text-yellow-300 font-bold text-lg italic">&ldquo;I put my name on every job.&rdquo;</p>
-                <p className="text-white/50 text-sm mt-1">— Tenzin, Owner</p>
-              </div>
-            </div>
+          {/* Right: Quote widget */}
+          <div className="w-full">
+            <InstantQuoteTrigger />
           </div>
         </div>
       </section>
