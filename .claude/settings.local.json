@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(grep -o \"slug: ''''[^'''']*''''\" src/data/cityPages.ts)",
+      "Bash(npm install:*)",
+      "Bash(npm list:*)"
+    ]
+  }
+}
