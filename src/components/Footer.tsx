@@ -21,7 +21,7 @@ export default function Footer() {
               />
               <span className="text-white font-bold text-lg font-heading">{SITE.name}</span>
             </div>
-            <p className="text-sm text-gray-400 mb-4">{SITE.tagline}</p>
+            <p className="text-sm text-gray-400 italic font-light mb-4">{SITE.tagline}</p>
             <address className="not-italic text-sm space-y-1 text-gray-400">
               {SITE.address.street && <div>{SITE.address.street}</div>}
               <div>{SITE.address.city}, {SITE.address.state} {SITE.address.zip}</div>

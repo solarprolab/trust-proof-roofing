@@ -30,7 +30,10 @@ export default function Header() {
             height={38}
             style={{objectFit: 'contain'}}
           />
-          <div className="text-[#1B3A6B] font-black text-lg tracking-wide font-heading">{SITE.name}</div>
+          <div className="flex flex-col leading-tight">
+            <div className="text-[#1B3A6B] font-black text-lg tracking-wide font-heading">{SITE.name}</div>
+            <div className="text-[#64748B] text-xs italic font-light">{SITE.tagline}</div>
+          </div>
         </Link>
 
         {/* Desktop nav links */}
