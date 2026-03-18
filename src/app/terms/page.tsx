@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { SITE } from '@/lib/config';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Trust Proof Roofing',
+  title: { absolute: 'Terms of Service | Trust Proof Roofing' },
   description: 'Terms of Service for Trust Proof Roofing LLC. Governing the use of our website and instant quote tool.',
   alternates: { canonical: `${SITE.url}/terms` },
   robots: { index: false, follow: false },
