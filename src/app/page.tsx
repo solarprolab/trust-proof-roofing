@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const faqItems = [
   { q: 'How do I know if I need a new roof?', a: 'Look for missing or curling shingles, granules in your gutters, daylight in the attic, water stains on ceilings, or a roof over 20 years old. A free inspection from Trust Proof Roofing will give you a clear, honest answer.' },
-  { q: 'How much does a roof replacement cost in Connecticut?', a: 'Most CT homeowners pay $8,000–$25,000 for a full roof replacement, depending on size, pitch, and materials. We provide free, detailed written estimates with no obligation.' },
+  { q: 'How much does a roof replacement cost in Connecticut?', a: 'Most CT homeowners pay $12,000–$16,000 for a full roof replacement, depending on size, pitch, layers, and materials. We provide a free instant estimate online and a detailed written proposal with no obligation.' },
   { q: 'How long does a roof last in Connecticut?', a: 'Architectural asphalt shingles last 25–30 years in CT conditions. Metal roofing lasts 40–70 years. Factors like attic ventilation, tree coverage, and coastal exposure all affect lifespan.' },
   { q: 'Do you offer any warranty?', a: 'Yes. We provide a 20-year leak warranty on all roof replacements and a 1-year warranty on repairs, plus manufacturer warranties up to 50 years on qualifying shingle products. Both are transferable to new owners.' },
   { q: 'Are you licensed and insured in Connecticut?', a: `Yes. We hold CT Home Improvement Contractor license ${SITE.license} and carry full general liability insurance. We can provide certificates on request.` },

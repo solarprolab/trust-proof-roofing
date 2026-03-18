@@ -92,7 +92,7 @@ export const SERVICES: Service[] = [
     faq: [
       {
         q: 'How much does a roof replacement cost in Connecticut?',
-        a: 'Most CT homeowners pay between $8,000 and $25,000 for a full roof replacement, depending on roof size, pitch, material choice, and the complexity of the job. We provide free, detailed written estimates so you know exactly what to expect before signing anything.',
+        a: 'Most CT homeowners pay $12,000–$16,000 for a full roof replacement, depending on size, pitch, layers, and materials. We provide a free instant estimate online and a detailed written proposal with no obligation.',
       },
       {
         q: 'How long does a roof replacement take?',
