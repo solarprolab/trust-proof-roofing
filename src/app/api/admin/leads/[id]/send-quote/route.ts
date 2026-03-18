@@ -29,14 +29,13 @@ async function fetchLogo(): Promise<string | null> {
 /* ─── Types ───────────────────────────────────────────── */
 interface QuoteSection {
   name: string; sqft: number; sqftWithWaste: number;
-  pitch: number; workType: 'replace' | 'repair'; layers: 1 | 2; wastePercent: number;
+  pitch: number; workType: 'replace' | 'repair'; layers: 1 | 2;
 }
-interface LinearMeasurements { ridge: number; valley: number; rake: number; eave: number; }
 interface LineItem { label: string; amount: number; }
 interface PriceBreakdown { lineItems: LineItem[]; subtotal: number; rangeMin: number; rangeMax: number; }
 interface PDFData {
   name: string; email: string; phone: string; address: string;
-  sections: QuoteSection[]; linearMeasurements: LinearMeasurements;
+  sections: QuoteSection[];
   addOns: string[]; skylights: number; chimneys: number;
   material: string; priceBreakdown: PriceBreakdown; scopeNotes?: string; leadId: string;
 }
@@ -562,7 +561,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       name, email, phone, address,
-      sections, linearMeasurements, addOns, skylights, chimneys,
+      sections, addOns, skylights, chimneys,
       material, priceBreakdown, scopeNotes, leadId, proposalType,
     } = body;
 
@@ -579,7 +578,6 @@ export async function POST(req: NextRequest) {
     const pdfData: PDFData = {
       name, email, phone, address,
       sections: sections as QuoteSection[],
-      linearMeasurements: linearMeasurements as LinearMeasurements,
       addOns: addOns as string[],
       skylights: Number(skylights), chimneys: Number(chimneys),
       material, priceBreakdown: priceBreakdown as PriceBreakdown,

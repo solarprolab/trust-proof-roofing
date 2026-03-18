@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 type WorkType = 'replace' | 'repair';
 type DrawMode = 'polygon' | 'rectangle' | null;
 type MapType  = 'satellite' | 'hybrid' | 'roadmap';
+type PitchCategory = 'low' | 'moderate' | 'steep' | 'very_steep';
 
 interface Section {
   id: number; name: string; sqft: number; pitch: number;
@@ -15,16 +16,13 @@ interface Section {
   color: string; centroidLat: number; centroidLng: number;
 }
 
-interface LinearMeasurements { ridge: number; valley: number; rake: number; eave: number; }
-
 interface AddOnsState {
-  ridgeVent: boolean; gutterInspection: boolean; iceWaterFull: boolean;
-  dripEdgeUpgrade: boolean; skylights: number; chimneys: number;
+  ridgeVent: boolean; gutterCleaning: boolean; skylights: number; chimneys: number;
 }
 
 interface PendingShape { id: number; sqft: number; color: string; }
 
-interface Lead { id?: string; name?: string; email?: string; phone?: string; address?: string; }
+interface Lead { id?: string; name?: string; email?: string; phone?: string; address?: string; quote_data?: any; }
 
 interface Props { lead: Lead; leadId: string; }
 
@@ -41,17 +39,16 @@ const COMMON_PITCHES = [
   { label: '10/12', deg: 40 }, { label: '12/12', deg: 45 },
 ];
 
-const PITCH_OVERRIDE_OPTIONS = [
-  { label: '— No override —',       value: '' },
-  { label: 'Low (under 18°)',        value: 'low',        surcharge: 0 },
-  { label: 'Moderate (18–30°)',      value: 'moderate',   surcharge: 0.50 },
-  { label: 'Steep (30–40°)',         value: 'steep',      surcharge: 1.00 },
-  { label: 'Very Steep (40°+)',      value: 'very_steep', surcharge: 1.75 },
-];
-
 const PITCH_SURCHARGE_MAP: Record<string, number> = {
   low: 0, moderate: 0.50, steep: 1.00, very_steep: 1.75,
 };
+
+const PITCH_CATEGORY_OPTIONS = [
+  { value: 'low'       as PitchCategory, label: 'Low (under 18°)',   surcharge: 0,    badge: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'moderate'  as PitchCategory, label: 'Moderate (18–30°)', surcharge: 0.50, badge: 'bg-yellow-400/20 text-yellow-400 border-yellow-400/30' },
+  { value: 'steep'     as PitchCategory, label: 'Steep (30–40°)',    surcharge: 1.00, badge: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  { value: 'very_steep'as PitchCategory, label: 'Very Steep (40°+)', surcharge: 1.75, badge: 'bg-red-500/20 text-red-400 border-red-500/30' },
+];
 
 /* ═══════════════════════════════════════════════════════
    HELPERS
@@ -97,6 +94,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const measureLabelsRef   = useRef<any[]>([]);
   const measureCounterRef  = useRef(0);
   const measurePointsRef   = useRef<google.maps.LatLng[]>([]);
+  const highlightPolyRef   = useRef<google.maps.Polyline | null>(null);
+  const lastSavedDataRef   = useRef<string>('');
+  const initialLoadDoneRef = useRef(false);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -125,30 +125,48 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameVal,  setRenameVal]  = useState('');
 
-  /* ── Override state ────────────────────────────────── */
+  /* ── Override / measure state ──────────────────────── */
   const [manualSqft,        setManualSqft]        = useState('');
   const [manualSqftSource,  setManualSqftSource]  = useState<'solar' | 'manual' | ''>('');
-  const [overridePitch,   setOverridePitch]   = useState('');
-  const [overrideWaste,   setOverrideWaste]   = useState('');
-  const [linear,          setLinear]          = useState<LinearMeasurements>({ ridge: 0, valley: 0, rake: 0, eave: 0 });
-  const [overridesOpen,         setOverridesOpen]         = useState(true);
-  const [measureMode,           setMeasureMode]           = useState(false);
-  const [measurePoints,         setMeasurePoints]         = useState<google.maps.LatLng[]>([]);
-  const [completedMeasurements, setCompletedMeasurements] = useState<Array<{ id: number; name: string; totalFt: number; points: google.maps.LatLng[] }>>([]);
+  const [pitchCategory,     setPitchCategory]     = useState<PitchCategory>('moderate');
+  const [overridesOpen,     setOverridesOpen]     = useState(true);
+  const [measureMode,       setMeasureMode]       = useState(false);
+  const [measurePoints,     setMeasurePoints]     = useState<{lat: number; lng: number}[]>([]);
+  const [completedMeasurements, setCompletedMeasurements] = useState<Array<{ id: number; name: string; totalFt: number; points: {lat: number; lng: number}[] }>>([]);
+  const [highlightedMeasId,  setHighlightedMeasId]  = useState<number | null>(null);
+  const [renamingMeasId,     setRenamingMeasId]     = useState<number | null>(null);
+  const [renameMeasVal,      setRenameMeasVal]      = useState('');
 
   /* ── Quote state ───────────────────────────────────── */
   const [proposalType, setProposalType] = useState<'pre' | 'post'>('post');
   const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
   const [addOns,      setAddOns]      = useState<AddOnsState>({
-    ridgeVent: false, gutterInspection: false, iceWaterFull: false,
-    dripEdgeUpgrade: false, skylights: 0, chimneys: 0,
+    ridgeVent: false, gutterCleaning: false, skylights: 0, chimneys: 0,
   });
   const [scopeNotes,  setScopeNotes]  = useState('');
   const [saving,      setSaving]      = useState(false);
   const [sending,     setSending]     = useState(false);
   const [sentBanner,  setSentBanner]  = useState(false);
   const [sendError,   setSendError]   = useState('');
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveStatus,  setSaveStatus]  = useState<'idle' | 'saved' | 'unsaved'>('idle');
+
+  /* ── 0. Restore quote_data on mount ────────────────── */
+  useEffect(() => {
+    const qd = lead.quote_data;
+    if (!qd) { initialLoadDoneRef.current = true; return; }
+    if (qd.manualSqft !== undefined) setManualSqft(qd.manualSqft);
+    if (qd.manualSqftSource !== undefined) setManualSqftSource(qd.manualSqftSource);
+    if (qd.pitchCategory) setPitchCategory(qd.pitchCategory);
+    if (qd.proposalType) setProposalType(qd.proposalType);
+    if (qd.material) setMaterial(qd.material);
+    if (qd.addOns) setAddOns(qd.addOns);
+    if (qd.scopeNotes !== undefined) setScopeNotes(qd.scopeNotes);
+    if (qd.useDrawnOverSolar !== undefined) setUseDrawnOverSolar(qd.useDrawnOverSolar);
+    if (Array.isArray(qd.excludedSegIds)) setExcludedSegIds(new Set(qd.excludedSegIds));
+    if (Array.isArray(qd.completedMeasurements)) setCompletedMeasurements(qd.completedMeasurements);
+    setTimeout(() => { initialLoadDoneRef.current = true; }, 100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── 1. Load Google Maps JS API ────────────────────── */
   useEffect(() => {
@@ -180,7 +198,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         })
         .catch(() => {});
     };
-    // Try Places autocomplete → Details for precise building footprint
     fetch(`/api/autocomplete?input=${encodeURIComponent(addr)}`)
       .then(r => r.json())
       .then(d => {
@@ -380,19 +397,16 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       new google.maps.LatLng(ne.latitude, ne.longitude),
     );
 
-    mapRef.current.fitBounds(bounds, 24); // 24px padding
+    mapRef.current.fitBounds(bounds, 24);
 
-    // Enforce minimum zoom of 19 after fitBounds settles
     google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
       if (mapRef.current && (mapRef.current.getZoom() ?? 0) < 19) {
         mapRef.current.setZoom(19);
       }
     });
 
-    // Remove any previous bbox rectangle
     if (bbRectRef.current) bbRectRef.current.setMap(null);
 
-    // Draw dashed white outline of detected building bounding box
     bbRectRef.current = new google.maps.Rectangle({
       bounds,
       strokeColor: '#FFFFFF',
@@ -417,15 +431,19 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   useEffect(() => {
     if (!measureMode || !mapInitialized || !mapRef.current) return;
     const map = mapRef.current;
+    // start fresh for each measurement session
     measurePointsRef.current = [];
     setMeasurePoints([]);
+    if (measurePolyRef.current) { measurePolyRef.current.setMap(null); measurePolyRef.current = null; }
+    measureLabelsRef.current.forEach(l => l.setMap(null));
+    measureLabelsRef.current = [];
     map.setOptions({ disableDoubleClickZoom: true });
 
     const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
       if (!e.latLng) return;
       const newPts = [...measurePointsRef.current, e.latLng];
       measurePointsRef.current = newPts;
-      setMeasurePoints([...newPts]);
+      setMeasurePoints(newPts.map(p => ({ lat: p.lat(), lng: p.lng() })));
       if (!measurePolyRef.current) {
         measurePolyRef.current = new google.maps.Polyline({
           path: newPts, strokeColor: '#FBBF24', strokeWeight: 2.5, strokeOpacity: 0.9, map,
@@ -453,7 +471,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         }
         const id = measureCounterRef.current++;
         setCompletedMeasurements(prev => [...prev, {
-          id, name: `Measurement ${id + 1}`, totalFt: Math.round(totalFt), points: [...pts],
+          id, name: `Measurement ${id + 1}`, totalFt: Math.round(totalFt),
+          points: pts.map(p => ({ lat: p.lat(), lng: p.lng() })),
         }]);
       }
       setMeasureMode(false);
@@ -471,6 +490,25 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [measureMode, mapInitialized]);
+
+  /* ── 3f. Highlight saved measurement on map ─────────── */
+  useEffect(() => {
+    if (!mapInitialized || !mapRef.current) return;
+    if (highlightPolyRef.current) { highlightPolyRef.current.setMap(null); highlightPolyRef.current = null; }
+    if (highlightedMeasId === null) return;
+    const meas = completedMeasurements.find(m => m.id === highlightedMeasId);
+    if (!meas || meas.points.length < 2) return;
+    const path = meas.points.map(p => new google.maps.LatLng(p.lat, p.lng));
+    highlightPolyRef.current = new google.maps.Polyline({
+      path, strokeColor: '#FBBF24', strokeWeight: 4, strokeOpacity: 1, map: mapRef.current, zIndex: 10,
+    });
+    const t = setTimeout(() => {
+      if (highlightPolyRef.current) { highlightPolyRef.current.setMap(null); highlightPolyRef.current = null; }
+      setHighlightedMeasId(null);
+    }, 3000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightedMeasId, mapInitialized]);
 
   /* ── 4. Sync draw mode ─────────────────────────────── */
   useEffect(() => {
@@ -496,7 +534,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       if (status === google.maps.StreetViewStatus.OK) {
         setSvAvailable(true);
         if (svDivRef.current) {
-          // Compute bearing from the Street View pano position toward the house
           const panoLatLng = data?.location?.latLng ?? new google.maps.LatLng(geocodedLoc.lat, geocodedLoc.lng);
           const houseLatLng = new google.maps.LatLng(geocodedLoc.lat, geocodedLoc.lng);
           const heading = google.maps.geometry.spherical.computeHeading(panoLatLng, houseLatLng);
@@ -519,6 +556,22 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       if (entry?.label) entry.label.update(`<strong>${s.name}</strong><br>${s.sqft.toLocaleString()} sqft`);
     });
   }, [sections]);
+
+  /* ── Unsaved changes tracking ───────────────────────── */
+  const currentStateJson = useMemo(() => {
+    return JSON.stringify({
+      manualSqft, pitchCategory, proposalType, material, addOns, scopeNotes,
+      useDrawnOverSolar, excludedSegIds: Array.from(excludedSegIds).sort(),
+      completedMeasurements: completedMeasurements.map(m => ({ id: m.id, name: m.name, totalFt: m.totalFt })),
+    });
+  }, [manualSqft, pitchCategory, proposalType, material, addOns, scopeNotes, useDrawnOverSolar, excludedSegIds, completedMeasurements]);
+
+  useEffect(() => {
+    if (!initialLoadDoneRef.current) return;
+    if (lastSavedDataRef.current && currentStateJson !== lastSavedDataRef.current) {
+      setSaveStatus('unsaved');
+    }
+  }, [currentStateJson]);
 
   /* ═══════════════ MAP HANDLERS ═══════════════════════ */
 
@@ -575,8 +628,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   }
 
   function clearAllOverrides() {
-    setManualSqft(''); setManualSqftSource(''); setOverridePitch(''); setOverrideWaste('');
-    setLinear({ ridge: 0, valley: 0, rake: 0, eave: 0 });
+    setManualSqft(''); setManualSqftSource('');
   }
 
   function snapZoom(z: number) { mapRef.current?.setZoom(z); }
@@ -586,14 +638,15 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   /* ═══════════════ PRICE CALCULATION ═════════════════ */
   const priceCalc = useMemo(() => {
     const baseRate        = material === 'premium' ? 8 : 7;
+    const pitchSurcharge  = PITCH_SURCHARGE_MAP[pitchCategory] ?? 0;
     const replaceSections = sections.filter(s => s.workType === 'replace');
     const repairSections  = sections.filter(s => s.workType === 'repair');
 
-    // ── Priority order for sqft ──────────────────────
-    const manualVal = manualSqft ? parseInt(manualSqft, 10) : 0;
-    const drawnTotal = replaceSections.reduce((sum, s) => sum + s.sqft, 0);
+    const manualVal    = manualSqft ? parseInt(manualSqft, 10) : 0;
+    const drawnTotal   = replaceSections.reduce((sum, s) => sum + s.sqft, 0);
     const solarIncluded = Math.round(solarSegments.reduce((sum: number, seg: any, i: number) =>
       excludedSegIds.has(i) ? sum : sum + (seg.stats?.areaMeters2 ?? 0) * 10.764, 0));
+
     let effectiveSqft: number;
     let sqftSource: string;
     const usePerSection = replaceSections.length > 0 && !(manualSqft && manualVal > 0) && (useDrawnOverSolar || solarIncluded === 0);
@@ -615,17 +668,12 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       sqftSource = '';
     }
 
-    // ── Override values ─────────────────────────────
-    const pitchSurchOverride = overridePitch ? (PITCH_SURCHARGE_MAP[overridePitch] ?? 0) : null;
-    const wasteOverrideVal   = overrideWaste ? parseInt(overrideWaste, 10) : null;
-
     const lineItems: { label: string; homeownerLabel?: string; amount: number; isRange?: boolean }[] = [];
 
-    // ── Area pricing (110% material factor, always) ──
     if (usePerSection) {
       replaceSections.forEach(s => {
         const adjustedSqft = Math.round(s.sqft * 1.1);
-        const rate  = baseRate + (pitchSurchOverride ?? getPitchSurcharge(s.pitch));
+        const rate = baseRate + pitchSurcharge;
         lineItems.push({
           label: `${s.name} — ${s.sqft.toLocaleString()} sq ft × 110% = ${adjustedSqft.toLocaleString()} sq ft × $${rate.toFixed(2)}/sq ft`,
           homeownerLabel: s.name,
@@ -638,7 +686,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       });
     } else if (effectiveSqft > 0) {
       const adjustedSqft = Math.round(effectiveSqft * 1.1);
-      const rate  = baseRate + (pitchSurchOverride ?? 0);
+      const rate = baseRate + pitchSurcharge;
       lineItems.push({
         label: `Total area — ${effectiveSqft.toLocaleString()} sq ft × 110% = ${adjustedSqft.toLocaleString()} sq ft × $${rate.toFixed(2)}/sq ft`,
         homeownerLabel: 'Roof Replacement',
@@ -646,39 +694,21 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       });
     }
 
-    // ── Linear ───────────────────────────────────────
-    const linearTotal = linear.ridge * 8 + linear.valley * 12 + linear.rake * 5 + linear.eave * 4;
-    if (linearTotal > 0) {
-      const parts = [
-        linear.ridge  > 0 && `${linear.ridge}lf ridge×$8`,
-        linear.valley > 0 && `${linear.valley}lf valley×$12`,
-        linear.rake   > 0 && `${linear.rake}lf rake×$5`,
-        linear.eave   > 0 && `${linear.eave}lf eave×$4`,
-      ].filter(Boolean).join(', ');
-      lineItems.push({ label: `Linear items (${parts})`, amount: linearTotal });
-    }
-
-    // ── Add-ons ──────────────────────────────────────
-    const totalSqftWaste = usePerSection
-      ? replaceSections.reduce((sum, s) => sum + Math.round(s.sqft * 1.1), 0)
-      : Math.round(effectiveSqft * 1.1);
-
+    // Add-ons
     if (addOns.ridgeVent) lineItems.push({ label: 'Ridge Vent Upgrade', amount: 300 });
-    if (addOns.iceWaterFull && totalSqftWaste > 0)
-      lineItems.push({ label: `Full Ice & Water Shield (${totalSqftWaste.toLocaleString()} sqft × $0.85)`, amount: Math.round(totalSqftWaste * 0.85) });
-    if (addOns.dripEdgeUpgrade && linear.eave > 0)
-      lineItems.push({ label: `Drip Edge Upgrade (${linear.eave}lf × $2.50)`, amount: Math.round(linear.eave * 2.5) });
+    if (addOns.gutterCleaning && effectiveSqft > 0)
+      lineItems.push({ label: `Gutter Cleaning (${effectiveSqft.toLocaleString()} sqft × $5)`, homeownerLabel: 'Gutter Cleaning', amount: Math.round(effectiveSqft * 5) });
     if (addOns.skylights > 0) lineItems.push({ label: `Skylight Flashing (${addOns.skylights} × $250)`, amount: addOns.skylights * 250 });
     if (addOns.chimneys  > 0) lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} × $400)`,   amount: addOns.chimneys * 400 });
 
     const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
     return {
-      lineItems, subtotal, totalSqftWaste,
+      lineItems, subtotal,
       rangeMin: Math.max(0, subtotal - 1000), rangeMax: subtotal + 1000, midpoint: subtotal,
       preRangeMin: Math.max(0, subtotal - 2000), preRangeMax: subtotal + 2000,
       effectiveSqft, sqftSource,
     };
-  }, [sections, material, linear, addOns, manualSqft, solarSegments, excludedSegIds, useDrawnOverSolar, overridePitch, overrideWaste]);
+  }, [sections, material, pitchCategory, addOns, manualSqft, solarSegments, excludedSegIds, useDrawnOverSolar]);
 
   /* ═══════════════ DERIVED ════════════════════════════ */
   const includedSolarSqft = useMemo(() =>
@@ -705,41 +735,34 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       (buildingGroups[a] ?? 0) - (buildingGroups[b] ?? 0)),
   [solarSegments, buildingGroups]);
 
-  const pitchSummary = useMemo(() => {
-    const replSecs = sections.filter(s => s.workType === 'replace');
-    if (replSecs.length === 0) return null;
-    const totalArea = replSecs.reduce((sum, s) => sum + s.sqft, 0);
-    const avgPitch  = totalArea > 0 ? replSecs.reduce((sum, s) => sum + s.pitch * s.sqft, 0) / totalArea : 0;
-    return { avgPitch, sections: replSecs.map(s => ({ name: s.name, pitch: s.pitch, surcharge: getPitchSurcharge(s.pitch) })) };
-  }, [sections]);
-
-  // Whether any override is active (for "Clear all" button visibility)
-  const anyOverride = !!((manualSqft && manualSqftSource !== 'solar') || overridePitch || overrideWaste || linear.ridge || linear.valley || linear.rake || linear.eave);
+  const anyOverride = !!(manualSqft && manualSqftSource !== 'solar');
+  const activePitchOption = PITCH_CATEGORY_OPTIONS.find(o => o.value === pitchCategory)!;
 
   /* ═══════════════ SAVE / SEND ════════════════════════ */
   async function handleSave() {
     setSaving(true);
     try {
       const totalSqft = priceCalc.effectiveSqft || parseInt(manualSqft || '0', 10);
+      const quoteData = {
+        manualSqft, manualSqftSource, pitchCategory, proposalType, material, addOns, scopeNotes,
+        useDrawnOverSolar, excludedSegIds: Array.from(excludedSegIds),
+        completedMeasurements,
+      };
       await fetch(`/api/admin/leads/${leadId}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quote_amount: priceCalc.midpoint, roof_size: String(totalSqft) }),
+        body: JSON.stringify({ quote_amount: priceCalc.midpoint, roof_size: String(totalSqft), quote_data: quoteData }),
       });
+      lastSavedDataRef.current = currentStateJson;
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(s => s === 'saved' ? 'idle' : s), 3000);
       const sectionLines = sections.map(s =>
-        `  • ${s.name}: ${s.sqft.toLocaleString()} sqft | ${s.workType} | pitch ${s.pitch}° | waste ${s.wasteFactor}% | ${s.layers === 2 ? '2 layers' : '1 layer'}`
+        `  • ${s.name}: ${s.sqft.toLocaleString()} sqft | ${s.workType} | pitch ${s.pitch}°`
       ).join('\n');
-      const overrideLines = [
-        manualSqft    && `Manual sqft override: ${manualSqft}`,
-        overridePitch && `Pitch override: ${overridePitch}`,
-        overrideWaste && `Waste override: ${overrideWaste}%`,
-      ].filter(Boolean).join(' | ');
       const summary = [
         '=== Quote Builder ===',
         sections.length > 0 ? `Sections:\n${sectionLines}` : `Area source: ${priceCalc.sqftSource || 'none'} (${totalSqft} sqft)`,
-        overrideLines || null,
         `Material: ${material === 'premium' ? 'Premium (UHDZ, 50-yr)' : 'Standard (HDZ, 30-yr)'}`,
-        linear.ridge || linear.valley || linear.rake || linear.eave
-          ? `Linear: ridge ${linear.ridge}lf | valley ${linear.valley}lf | rake ${linear.rake}lf | eave ${linear.eave}lf` : null,
+        `Pitch: ${activePitchOption.label} (+$${activePitchOption.surcharge.toFixed(2)}/sqft)`,
         `Price range: ${fmtMoney(priceCalc.rangeMin)} – ${fmtMoney(priceCalc.rangeMax)}`,
         scopeNotes ? `Notes: ${scopeNotes}` : null,
       ].filter(Boolean).join('\n');
@@ -747,7 +770,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: summary }),
       });
-      setSaveSuccess(true); setTimeout(() => setSaveSuccess(false), 3000);
     } finally { setSaving(false); }
   }
 
@@ -760,16 +782,13 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           name: lead.name, email: lead.email, phone: lead.phone, address: lead.address,
           sections: sections.map(s => ({
             name: s.name, sqft: s.sqft,
-            sqftWithWaste: sqftWithWaste(s.sqft, parseInt(overrideWaste || '0') || s.wasteFactor),
+            sqftWithWaste: Math.round(s.sqft * 1.1),
             pitch: s.pitch, workType: s.workType, layers: s.layers,
-            wastePercent: parseInt(overrideWaste || '0') || s.wasteFactor,
           })),
-          linearMeasurements: linear, material, proposalType,
+          material, proposalType, pitchCategory,
           addOns: [
-            addOns.ridgeVent        && 'Ridge Vent Upgrade (+$300)',
-            addOns.iceWaterFull     && 'Full Ice & Water Shield (+$0.85/sqft)',
-            addOns.dripEdgeUpgrade  && linear.eave > 0 && `Drip Edge Upgrade (${linear.eave}lf × $2.50)`,
-            addOns.gutterInspection && 'Gutter Inspection (Complimentary)',
+            addOns.ridgeVent && 'Ridge Vent Upgrade (+$300)',
+            addOns.gutterCleaning && priceCalc.effectiveSqft > 0 && `Gutter Cleaning (${priceCalc.effectiveSqft.toLocaleString()} sqft × $5)`,
           ].filter(Boolean) as string[],
           skylights: addOns.skylights, chimneys: addOns.chimneys,
           priceBreakdown: {
@@ -795,7 +814,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       active ? 'bg-blue-600 text-white' :
                'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
     }`;
-  const ovBadge = 'text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto';
 
   /* ═══════════════ JSX ══════════════════════════════════ */
   return (
@@ -824,7 +842,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           </button>
           <button onClick={() => { setMeasureMode(m => !m); setDrawMode(null); }} className={tbBtn(measureMode)}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
-            Measure {measureMode && <span className="text-[10px] opacity-70">(ON)</span>}
+            Measure {measureMode && <span className="text-[10px] opacity-70">(click · dbl-click to finish)</span>}
           </button>
           {clearConfirm ? (
             <div className="flex items-center gap-1">
@@ -888,7 +906,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                     let totalFt = 0;
                     if (measurePoints.length >= 2) {
                       for (let i = 1; i < measurePoints.length; i++) {
-                        totalFt += google.maps.geometry.spherical.computeDistanceBetween(measurePoints[i - 1], measurePoints[i]) * 3.28084;
+                        totalFt += google.maps.geometry.spherical.computeDistanceBetween(
+                          new google.maps.LatLng(measurePoints[i - 1].lat, measurePoints[i - 1].lng),
+                          new google.maps.LatLng(measurePoints[i].lat, measurePoints[i].lng)
+                        ) * 3.28084;
                       }
                       totalFt = Math.round(totalFt);
                     }
@@ -955,27 +976,42 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
               Measurements
+              <span className="text-[9px] text-gray-600 normal-case font-normal ml-1">Click to highlight on map</span>
             </h4>
             {completedMeasurements.map(m => (
-              <div key={m.id} className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2">
-                <span className="text-xs font-semibold text-white flex-shrink-0">{m.name}</span>
-                <span className="text-xs text-yellow-300 font-medium">{m.totalFt} ft</span>
-                <select
-                  value=""
-                  onChange={e => {
-                    const key = e.target.value as keyof LinearMeasurements;
-                    if (key) setLinear(prev => ({ ...prev, [key]: m.totalFt }));
-                  }}
-                  className="ml-auto bg-gray-700 border border-gray-600 rounded text-[10px] text-gray-300 px-2 py-1 focus:outline-none"
-                >
-                  <option value="">Use this value →</option>
-                  <option value="ridge">Apply to Ridge/Hip</option>
-                  <option value="valley">Apply to Valley</option>
-                  <option value="rake">Apply to Rake</option>
-                  <option value="eave">Apply to Eave</option>
-                </select>
+              <div key={m.id}
+                className={`flex items-center gap-2 bg-gray-800 border rounded-lg px-3 py-2 cursor-pointer transition-all ${highlightedMeasId === m.id ? 'border-yellow-500/60 bg-yellow-500/5' : 'border-gray-700 hover:border-gray-600'}`}
+                onClick={() => setHighlightedMeasId(prev => prev === m.id ? null : m.id)}
+              >
+                <svg className={`w-3 h-3 flex-shrink-0 transition-colors ${highlightedMeasId === m.id ? 'text-yellow-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
+                {renamingMeasId === m.id ? (
+                  <input autoFocus value={renameMeasVal}
+                    onChange={e => setRenameMeasVal(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        setCompletedMeasurements(prev => prev.map(x => x.id === m.id ? { ...x, name: renameMeasVal.trim() || x.name } : x));
+                        setRenamingMeasId(null);
+                      }
+                      if (e.key === 'Escape') setRenamingMeasId(null);
+                    }}
+                    onBlur={() => {
+                      setCompletedMeasurements(prev => prev.map(x => x.id === m.id ? { ...x, name: renameMeasVal.trim() || x.name } : x));
+                      setRenamingMeasId(null);
+                    }}
+                    onClick={e => e.stopPropagation()}
+                    className="flex-1 px-1.5 py-0.5 bg-gray-700 border border-blue-500 rounded text-white text-xs focus:outline-none"
+                  />
+                ) : (
+                  <button
+                    onClick={e => { e.stopPropagation(); setRenamingMeasId(m.id); setRenameMeasVal(m.name); }}
+                    className="flex-1 text-left text-xs font-semibold text-white hover:text-blue-400 transition-colors truncate"
+                  >
+                    {m.name}
+                  </button>
+                )}
+                <span className="text-xs text-yellow-300 font-medium flex-shrink-0">{m.totalFt} ft</span>
                 <button
-                  onClick={() => setCompletedMeasurements(prev => prev.filter(x => x.id !== m.id))}
+                  onClick={e => { e.stopPropagation(); setCompletedMeasurements(prev => prev.filter(x => x.id !== m.id)); if (highlightedMeasId === m.id) setHighlightedMeasId(null); }}
                   className="text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -988,10 +1024,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         {/* ── Section list ──────────────────────────── */}
         <div className="flex-1 overflow-y-auto bg-gray-950 p-3 space-y-2">
 
-          {/* Empty state — only if both drawn AND solar are empty */}
           {sections.length === 0 && solarSegments.length === 0 && !pendingShape && (
             <>
-              {/* Detecting… spinner */}
               {solarApiStatus === 'loading' && (
                 <div className="text-center py-8 text-gray-500">
                   <svg className="w-6 h-6 animate-spin text-blue-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
@@ -999,7 +1033,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 </div>
               )}
 
-              {/* Solar API failed — yellow banner + large manual input */}
               {solarApiStatus === 'failed' && (
                 <div className="px-1 py-2 space-y-3">
                   <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 flex items-start gap-2">
@@ -1023,7 +1056,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 </div>
               )}
 
-              {/* Idle / no geocode yet */}
               {(solarApiStatus === 'idle' || !geocodedLoc) && (
                 <div className="text-center py-8 text-gray-600">
                   <p className="text-sm">No sections drawn yet.</p>
@@ -1107,29 +1139,13 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                         </div>
                       </div>
                     )}
-                    {s.workType === 'replace' && !overrideWaste && (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="text-[10px] text-gray-500">Waste Factor</label>
-                          <span className="text-[10px] text-blue-400 font-medium">{s.wasteFactor}%</span>
-                        </div>
-                        <input type="range" min={10} max={25} value={s.wasteFactor}
-                          onChange={e => updateSection(s.id, { wasteFactor: Number(e.target.value) })}
-                          className="w-full h-1.5 accent-blue-500"
-                        />
-                        {s.wasteFactor >= 15 && <p className="text-[9px] text-gray-500 mt-0.5">Hip/Complex roofs need more waste</p>}
-                      </div>
-                    )}
-                    {overrideWaste && s.workType === 'replace' && (
-                      <p className="text-[10px] text-yellow-400">Waste overridden: {overrideWaste}%</p>
-                    )}
                   </div>
                 </div>
               </div>
             );
           })}
 
-          {/* Solar API detected segments — shown immediately, before drawing */}
+          {/* Solar API detected segments */}
           {solarSegments.length > 0 && (() => {
             const numGroups = new Set(buildingGroups).size;
             return segmentDisplayOrder.map((i, displayIdx) => {
@@ -1227,7 +1243,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
             return (
               <div className="bg-gray-900 rounded-xl border border-gray-700 p-3 mt-1">
-                {/* Big number */}
                 <div className="flex items-baseline gap-2 mb-1 flex-wrap">
                   <span className="text-2xl font-black text-white">{displaySqft > 0 ? displaySqft.toLocaleString() : '—'}</span>
                   {displaySqft > 0 && <span className="text-sm text-white font-medium">sq ft</span>}
@@ -1235,7 +1250,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   {hasManual && manualSqftSource === 'solar' && <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Auto-filled · Solar API</span>}
                 </div>
 
-                {/* Segment count */}
                 {solarSegments.length > 0 && !hasManual && (
                   <p className="text-xs text-gray-500 mb-2">
                     {includedCount} segment{includedCount !== 1 ? 's' : ''} included of {solarSegments.length} total
@@ -1243,7 +1257,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   </p>
                 )}
 
-                {/* Source badge + drawn/solar toggle */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {hasManual && manualSqftSource === 'solar' && <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Source: Google Solar API estimate</span>}
                   {hasManual && manualSqftSource === 'manual' && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full font-medium">Source: Manual override</span>}
@@ -1263,7 +1276,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   )}
                 </div>
 
-                {/* Manual override input — always visible here */}
                 <div className="mt-3 pt-3 border-t border-gray-800">
                   <div className="flex items-center gap-2">
                     <label className="text-[10px] text-gray-500 flex-shrink-0">Manual sq ft:</label>
@@ -1333,7 +1345,23 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           </div>
         </div>
 
-        {/* MANUAL OVERRIDES */}
+        {/* ROOF PITCH */}
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Roof Pitch</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {PITCH_CATEGORY_OPTIONS.map(opt => (
+              <button key={opt.value} onClick={() => setPitchCategory(opt.value)}
+                className={`text-left rounded-lg border px-3 py-2.5 transition-all ${pitchCategory === opt.value ? `${opt.badge} border-current` : 'bg-gray-800 border-gray-700 hover:border-gray-600'}`}>
+                <p className={`text-xs font-semibold ${pitchCategory === opt.value ? '' : 'text-gray-300'}`}>{opt.label}</p>
+                <p className={`text-[10px] mt-0.5 ${pitchCategory === opt.value ? 'opacity-70' : 'text-gray-500'}`}>
+                  {opt.surcharge === 0 ? 'No surcharge' : `+$${opt.surcharge.toFixed(2)}/sqft`}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* MANUAL OVERRIDES — sqft only */}
         <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
           <button
             onClick={() => setOverridesOpen(o => !o)}
@@ -1349,13 +1377,16 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
           {overridesOpen && (
             <div className="px-4 pb-4 space-y-3 border-t border-gray-800 pt-3">
-
               {/* Total sq ft */}
               <div>
                 <div className="flex items-center mb-1">
-                  <label className="text-xs text-gray-400">Total sq ft</label>
-                  {manualSqft && manualSqftSource === 'manual' && <span className={ovBadge}>Override</span>}
-                  {manualSqft && manualSqftSource === 'solar' && <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Solar API</span>}
+                  <label className="text-xs text-gray-400">Total sq ft override</label>
+                  {manualSqft && manualSqftSource === 'manual' && (
+                    <span className="text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Override</span>
+                  )}
+                  {manualSqft && manualSqftSource === 'solar' && (
+                    <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Solar API</span>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <input type="number" value={manualSqft} onChange={e => { setManualSqft(e.target.value); setManualSqftSource(e.target.value ? 'manual' : ''); }}
@@ -1370,72 +1401,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 {manualSqftSource === 'manual' && <p className="text-[10px] text-gray-400 mt-1">Source: Manual entry</p>}
               </div>
 
-              {/* Pitch category */}
-              <div>
-                <div className="flex items-center mb-1">
-                  <label className="text-xs text-gray-400">Pitch category</label>
-                  {overridePitch && <span className={ovBadge}>Override</span>}
-                </div>
-                <select value={overridePitch} onChange={e => setOverridePitch(e.target.value)}
-                  className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${overridePitch ? 'border-yellow-500/50' : 'border-gray-700 focus:border-blue-500'}`}>
-                  {PITCH_OVERRIDE_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}{o.value ? ` (+$${(o as any).surcharge.toFixed(2)}/sqft)` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Waste factor */}
-              <div>
-                <div className="flex items-center mb-1">
-                  <label className="text-xs text-gray-400">Waste factor % (overrides all sections)</label>
-                  {overrideWaste && <span className={ovBadge}>Override</span>}
-                </div>
-                <div className="flex gap-2">
-                  <input type="number" min={5} max={30} value={overrideWaste} onChange={e => setOverrideWaste(e.target.value)}
-                    placeholder="e.g. 15 (per-section if blank)"
-                    className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${overrideWaste ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
-                  />
-                  {overrideWaste && (
-                    <button onClick={() => setOverrideWaste('')} className="px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
-                  )}
-                </div>
-              </div>
-
-              {/* Linear measurements */}
-              <div className="grid grid-cols-2 gap-2.5">
-                {([
-                  ['ridge',  'Ridge / Hip (lf)',  '$8/lf',  'Measure the peak lines of the roof'],
-                  ['valley', 'Valley (lf)',        '$12/lf', 'V-shaped valleys where planes meet'],
-                  ['rake',   'Rake (lf)',          '$5/lf',  'Sloped edges at the gable ends'],
-                  ['eave',   'Eave (lf)',          '$4/lf',  'Horizontal bottom edges'],
-                ] as const).map(([key, label, rate, tip]) => (
-                  <div key={key}>
-                    <div className="flex items-center gap-1 mb-1">
-                      <label className="text-xs text-gray-400">{label}</label>
-                      <span className="text-[9px] text-gray-600 bg-gray-800 px-1 rounded">{rate}</span>
-                      <span title={tip} className="text-[10px] text-gray-600 cursor-help">ⓘ</span>
-                      {linear[key] > 0 && <span className={ovBadge}>Override</span>}
-                    </div>
-                    <input type="number" min={0} value={linear[key]}
-                      onChange={e => setLinear(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                      className={`w-full px-2.5 py-1.5 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${linear[key] > 0 ? 'border-yellow-500/50' : 'border-gray-700 focus:border-blue-500'}`}
-                    />
-                  </div>
-                ))}
-              </div>
-              {(linear.ridge + linear.valley + linear.rake + linear.eave) > 0 && (
-                <p className="text-xs text-gray-500">
-                  Linear subtotal: <span className="text-white font-medium">{fmtMoney(linear.ridge*8 + linear.valley*12 + linear.rake*5 + linear.eave*4)}</span>
-                </p>
-              )}
-
-              {/* Clear all */}
               {anyOverride && (
                 <button onClick={clearAllOverrides}
                   className="w-full py-1.5 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold rounded-lg hover:bg-yellow-500/20 transition-colors">
-                  Clear all overrides
+                  Clear override
                 </button>
               )}
             </div>
@@ -1447,10 +1416,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Add-ons</h3>
           <div className="space-y-2">
             {([
-              ['ridgeVent',      'Ridge Vent Upgrade',       '+$300',         'Improves attic ventilation and extends shingle life'],
-              ['iceWaterFull',   'Full Ice & Water Shield',  '+$0.85/sqft',   'Recommended for CT winters — whole roof, not just eaves'],
-              ['dripEdgeUpgrade','Drip Edge Upgrade (alum)', '$2.50/eave lf', 'Auto-calculated from eave measurement above'],
-              ['gutterInspection','Gutter Inspection',       'Complimentary', 'Included while on-site'],
+              ['ridgeVent',     'Ridge Vent Upgrade',  '+$300',       'Improves attic ventilation and extends shingle life'],
+              ['gutterCleaning','Gutter Cleaning',     '+$5/sqft',    'Clean gutters and downspouts while on-site'],
             ] as const).map(([key, label, price, note]) => {
               const active = addOns[key as keyof AddOnsState] as boolean;
               return (
@@ -1490,39 +1457,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           </div>
         </div>
 
-        {/* PITCH SUMMARY */}
-        {pitchSummary && !overridePitch && (
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Pitch Summary</h3>
-            {pitchSummary.sections.length === 1 ? (
-              <div className="flex items-center justify-between">
-                <span className={`text-xs px-2 py-1 rounded-full border ${getPitchLabel(pitchSummary.avgPitch).badge}`}>
-                  {getPitchLabel(pitchSummary.avgPitch).label}
-                </span>
-                <span className="text-xs text-gray-400">Surcharge: <span className="text-white font-medium">+${getPitchSurcharge(pitchSummary.avgPitch).toFixed(2)}/sqft</span></span>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {pitchSummary.sections.map(s => {
-                  const pl = getPitchLabel(s.pitch);
-                  return (
-                    <div key={s.name} className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300">{s.name}</span>
-                      <span className={`px-2 py-0.5 rounded-full border text-[10px] ${pl.badge}`}>{pl.label}</span>
-                      <span className="text-gray-400">+${s.surcharge.toFixed(2)}/sqft</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* PRICE BREAKDOWN */}
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Price Breakdown</h3>
           {priceCalc.lineItems.length === 0 ? (
-            <p className="text-xs text-gray-600">Draw sections or enter measurements to see pricing.</p>
+            <p className="text-xs text-gray-600">Draw sections or enter sq ft to see pricing.</p>
           ) : (
             <div className="space-y-1.5">
               {priceCalc.lineItems.map((item, i) => (
@@ -1556,6 +1495,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               <p className="text-[10px] text-blue-300/40 mt-1.5">
                 Using: <span className="text-blue-300/70">{priceCalc.sqftSource}</span>
                 {priceCalc.effectiveSqft > 0 && ` · ${priceCalc.effectiveSqft.toLocaleString()} sq ft`}
+                {` · ${activePitchOption.label}`}
               </p>
             )}
             <p className="text-xs text-blue-300/30 mt-0.5">
@@ -1576,7 +1516,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
         {/* ACTIONS */}
         <div className="space-y-2 pb-4">
-          {saveSuccess && <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400">Saved to lead successfully.</div>}
+          {saveStatus === 'saved'   && <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400 flex items-center gap-2"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg> Saved</div>}
+          {saveStatus === 'unsaved' && <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2 text-xs text-yellow-400">Unsaved changes</div>}
           {sentBanner  && <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400">Proposal sent to {lead.email}</div>}
           {sendError   && <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 text-sm text-red-400">{sendError}</div>}
           <button onClick={handleSave} disabled={saving || priceCalc.effectiveSqft === 0}
