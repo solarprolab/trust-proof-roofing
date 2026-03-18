@@ -180,7 +180,7 @@ export default function InstantQuote() {
             <p className="text-white font-black text-base">Instant Quote Calculator</p>
             <p className="text-white/50 text-[11px]">Measured to your actual roof · Real price range · No obligation</p>
           </div>
-          <span className="bg-yellow-400 text-gray-900 text-[10px] font-black px-2 py-1 rounded-md tracking-wide uppercase flex-shrink-0">FREE</span>
+          <span className="bg-[#38BDF8] text-white text-[10px] font-black px-2 py-1 rounded-md tracking-wide uppercase flex-shrink-0">FREE</span>
         </div>
         <div className="flex justify-between mb-3">
           {STEPS.map((label, i) => {

@@ -71,7 +71,7 @@ export default function ContactForm() {
         </p>
         <a
           href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-          className="inline-block bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-6 py-3 rounded-lg transition-colors"
+          className="inline-block bg-accent-400 hover:bg-accent-500 text-white font-bold px-6 py-3 rounded-lg transition-colors"
         >
           Call {SITE.phone}
         </a>

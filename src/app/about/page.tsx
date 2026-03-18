@@ -47,7 +47,7 @@ export default function AboutPage() {
             </div>
             <div>
               <h2 className="text-2xl font-black text-gray-900 mb-1">Tenzin</h2>
-              <p className="text-yellow-500 font-semibold text-sm mb-3">Founder &amp; Managing Member — Trust Proof Roofing LLC</p>
+              <p className="text-[#38BDF8] font-semibold text-sm mb-3">Founder &amp; Managing Member — Trust Proof Roofing LLC</p>
               <p className="text-gray-600 leading-relaxed">Connecticut-licensed home improvement contractor (HIC.0703927) serving homeowners across the state. I started Trust Proof Roofing because I believe every homeowner deserves honest advice about their roof — whether that means a full replacement or just a minor repair. No upselling. No pressure. Just straight talk and quality work.</p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function AboutPage() {
           <h2 className="font-heading text-3xl font-bold mb-4">Ready to Work with a Roofer You Can Trust?</h2>
           <p className="text-brand-200 mb-8">Free inspection, honest assessment, written estimate. No pressure, no games.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors">
+            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
               Call {SITE.phone}
             </a>
             <Link href="/contact" className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">

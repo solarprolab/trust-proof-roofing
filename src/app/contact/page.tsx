@@ -119,7 +119,7 @@ export default function ContactPage() {
                     <p className="text-accent-800 text-sm mb-3">Storm damage, active leak, fallen tree — we respond 7 days a week.</p>
                     <a
                       href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-                      className="inline-block bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
+                      className="inline-block bg-accent-400 hover:bg-accent-500 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
                     >
                       Call Now: {SITE.phone}
                     </a>

@@ -49,7 +49,7 @@ export default function Header() {
           </Link>
           <a
             href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-            className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-5 py-2.5 rounded-lg transition-colors"
+            className="bg-accent-400 hover:bg-accent-500 text-white font-bold px-5 py-2.5 rounded-lg transition-colors"
           >
             Free Estimate
           </a>
@@ -93,7 +93,7 @@ export default function Header() {
             </Link>
             <a
               href={`tel:${SITE.phone.replace(/\D/g, '')}`}
-              className="block w-full bg-accent-400 text-gray-900 font-bold py-3 rounded-lg text-center"
+              className="block w-full bg-accent-400 text-white font-bold py-3 rounded-lg text-center"
             >
               Free Estimate — Call {SITE.phone}
             </a>

@@ -139,7 +139,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           <h2 className="font-heading text-3xl font-bold mb-4">Get a Free {service.shortName} Estimate</h2>
           <p className="text-brand-200 mb-8">Licensed, insured, and honest. We tell you exactly what your roof needs.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-gray-900 font-bold px-8 py-4 rounded-lg text-lg transition-colors">
+            <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="bg-accent-400 hover:bg-accent-500 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
               Call {SITE.phone}
             </a>
             <Link href="/contact" className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-lg text-lg transition-colors">
