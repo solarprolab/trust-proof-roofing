@@ -12,7 +12,6 @@ const STAGES = [
   { id: 'estimate_sent', label: 'Estimate Sent', color: 'bg-yellow-500' },
   { id: 'follow_up', label: 'Follow-Up', color: 'bg-orange-500' },
   { id: 'won', label: 'Won', color: 'bg-green-500' },
-  { id: 'in_progress', label: 'In Progress', color: 'bg-teal-500' },
   { id: 'completed', label: 'Completed', color: 'bg-emerald-600' },
   { id: 'lost', label: 'Lost', color: 'bg-red-500' },
 ];
@@ -93,13 +92,15 @@ export default function DashboardClient({ leads: initialLeads }: { leads: any[] 
       <StatsBar leads={leads} />
 
       {/* Main Content */}
-      <div className="max-w-screen-2xl mx-auto px-4 py-6">
-        {view === 'kanban' ? (
+      {view === 'kanban' ? (
+        <div className="px-3 py-4">
           <KanbanBoard leads={filtered} stages={STAGES} onMoveStage={moveStage} onDelete={deleteLead} />
-        ) : (
+        </div>
+      ) : (
+        <div className="max-w-screen-2xl mx-auto px-4 py-6">
           <LeadsList leads={filtered} stages={STAGES} onMoveStage={moveStage} onDelete={deleteLead} />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

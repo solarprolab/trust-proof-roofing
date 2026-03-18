@@ -11,7 +11,6 @@ const STAGES = [
   { id: 'estimate_sent', label: 'Estimate Sent' },
   { id: 'follow_up', label: 'Follow-Up' },
   { id: 'won', label: 'Won' },
-  { id: 'in_progress', label: 'In Progress' },
   { id: 'completed', label: 'Completed' },
   { id: 'lost', label: 'Lost' },
 ];
