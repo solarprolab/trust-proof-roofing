@@ -157,7 +157,7 @@ export default function LeadDetailPage() {
         </div>
       </div>
 
-      <div className={`${activeTab === 'quote' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-6 py-6`}>
+      <div className={activeTab === 'quote' ? '' : 'max-w-4xl mx-auto px-6 py-6'}>
         {/* DETAILS TAB */}
         {activeTab === 'details' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
