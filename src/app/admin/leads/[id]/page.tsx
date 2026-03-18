@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import QuoteBuilder from '@/components/admin/QuoteBuilder';
 
 const STAGES = [
   { id: 'new', label: 'New Lead' },
@@ -26,7 +27,7 @@ export default function LeadDetailPage() {
   const [newNote, setNewNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'files'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'files' | 'quote'>('details');
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -144,10 +145,19 @@ export default function LeadDetailPage() {
               {tab}{tab === 'notes' && notes.length > 0 && ` (${notes.length})`}{tab === 'files' && files.length > 0 && ` (${files.length})`}
             </button>
           ))}
+          <button
+            onClick={() => setActiveTab('quote')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${activeTab === 'quote' ? 'border-blue-500 text-white' : 'border-transparent text-gray-400 hover:text-white'}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Quote Builder
+          </button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-6">
+      <div className={`${activeTab === 'quote' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-6 py-6`}>
         {/* DETAILS TAB */}
         {activeTab === 'details' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -279,6 +289,11 @@ export default function LeadDetailPage() {
               </div>
             ))}
           </div>
+        )}
+
+        {/* QUOTE TAB */}
+        {activeTab === 'quote' && (
+          <QuoteBuilder lead={lead} leadId={id as string} />
         )}
 
         {/* FILES TAB */}
