@@ -92,7 +92,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const pendingOvRef    = useRef<google.maps.Polygon | google.maps.Rectangle | null>(null);
   const counterRef      = useRef(0);
   const segmentPolysRef = useRef<Map<number, google.maps.Polygon>>(new Map());
-  const bbRectRef       = useRef<google.maps.Rectangle | null>(null);
+  const bbRectRef          = useRef<google.maps.Rectangle | null>(null);
+  const measurePolyRef     = useRef<google.maps.Polyline | null>(null);
+  const measureLabelsRef   = useRef<any[]>([]);
+  const measureCounterRef  = useRef(0);
+  const measurePointsRef   = useRef<google.maps.LatLng[]>([]);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -122,11 +126,15 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [renameVal,  setRenameVal]  = useState('');
 
   /* ── Override state ────────────────────────────────── */
-  const [manualSqft,      setManualSqft]      = useState('');
+  const [manualSqft,        setManualSqft]        = useState('');
+  const [manualSqftSource,  setManualSqftSource]  = useState<'solar' | 'manual' | ''>('');
   const [overridePitch,   setOverridePitch]   = useState('');
   const [overrideWaste,   setOverrideWaste]   = useState('');
   const [linear,          setLinear]          = useState<LinearMeasurements>({ ridge: 0, valley: 0, rake: 0, eave: 0 });
-  const [overridesOpen,   setOverridesOpen]   = useState(true);
+  const [overridesOpen,         setOverridesOpen]         = useState(true);
+  const [measureMode,           setMeasureMode]           = useState(false);
+  const [measurePoints,         setMeasurePoints]         = useState<google.maps.LatLng[]>([]);
+  const [completedMeasurements, setCompletedMeasurements] = useState<Array<{ id: number; name: string; totalFt: number; points: google.maps.LatLng[] }>>([]);
 
   /* ── Quote state ───────────────────────────────────── */
   const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
@@ -305,6 +313,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         } else {
           setSolarApiStatus('failed');
         }
+        const wholeRoofM2 = d.solarPotential?.wholeRoofStats?.areaMeters2;
+        if (wholeRoofM2) {
+          setManualSqft(String(Math.round(wholeRoofM2 * 10.764)));
+          setManualSqftSource('solar');
+        }
       })
       .catch(() => setSolarApiStatus('failed'));
   }, [geocodedLoc]);
@@ -398,6 +411,65 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     mapRef.current.setMapTypeId('hybrid');
     mapRef.current.setZoom(21);
   }, [solarApiStatus, mapInitialized]);
+
+  /* ── 3e. Measure distance mode ─────────────────────── */
+  useEffect(() => {
+    if (!measureMode || !mapInitialized || !mapRef.current) return;
+    const map = mapRef.current;
+    measurePointsRef.current = [];
+    setMeasurePoints([]);
+    map.setOptions({ disableDoubleClickZoom: true });
+
+    const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
+      if (!e.latLng) return;
+      const newPts = [...measurePointsRef.current, e.latLng];
+      measurePointsRef.current = newPts;
+      setMeasurePoints([...newPts]);
+      if (!measurePolyRef.current) {
+        measurePolyRef.current = new google.maps.Polyline({
+          path: newPts, strokeColor: '#FBBF24', strokeWeight: 2.5, strokeOpacity: 0.9, map,
+        });
+      } else {
+        measurePolyRef.current.setPath(newPts);
+      }
+      if (newPts.length >= 2 && LabelClassRef.current) {
+        const p1 = newPts[newPts.length - 2];
+        const p2 = newPts[newPts.length - 1];
+        const distFt = Math.round(google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084);
+        const mid = new google.maps.LatLng((p1.lat() + p2.lat()) / 2, (p1.lng() + p2.lng()) / 2);
+        const lbl = new LabelClassRef.current(mid, `${distFt} ft`);
+        lbl.setMap(map);
+        measureLabelsRef.current.push(lbl);
+      }
+    });
+
+    const dblClickListener = map.addListener('dblclick', () => {
+      const pts = measurePointsRef.current;
+      if (pts.length >= 2) {
+        let totalFt = 0;
+        for (let i = 1; i < pts.length; i++) {
+          totalFt += google.maps.geometry.spherical.computeDistanceBetween(pts[i - 1], pts[i]) * 3.28084;
+        }
+        const id = measureCounterRef.current++;
+        setCompletedMeasurements(prev => [...prev, {
+          id, name: `Measurement ${id + 1}`, totalFt: Math.round(totalFt), points: [...pts],
+        }]);
+      }
+      setMeasureMode(false);
+    });
+
+    return () => {
+      google.maps.event.removeListener(clickListener);
+      google.maps.event.removeListener(dblClickListener);
+      if (measurePolyRef.current) { measurePolyRef.current.setMap(null); measurePolyRef.current = null; }
+      measureLabelsRef.current.forEach(l => l.setMap(null));
+      measureLabelsRef.current = [];
+      measurePointsRef.current = [];
+      setMeasurePoints([]);
+      map.setOptions({ disableDoubleClickZoom: false });
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [measureMode, mapInitialized]);
 
   /* ── 4. Sync draw mode ─────────────────────────────── */
   useEffect(() => {
@@ -502,7 +574,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   }
 
   function clearAllOverrides() {
-    setManualSqft(''); setOverridePitch(''); setOverrideWaste('');
+    setManualSqft(''); setManualSqftSource(''); setOverridePitch(''); setOverrideWaste('');
     setLinear({ ridge: 0, valley: 0, rake: 0, eave: 0 });
   }
 
@@ -640,7 +712,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   }, [sections]);
 
   // Whether any override is active (for "Clear all" button visibility)
-  const anyOverride = !!(manualSqft || overridePitch || overrideWaste || linear.ridge || linear.valley || linear.rake || linear.eave);
+  const anyOverride = !!((manualSqft && manualSqftSource !== 'solar') || overridePitch || overrideWaste || linear.ridge || linear.valley || linear.rake || linear.eave);
 
   /* ═══════════════ SAVE / SEND ════════════════════════ */
   async function handleSave() {
@@ -730,11 +802,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
         {/* ── Toolbar row 1: drawing tools ──────────── */}
         <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 flex-wrap">
-          <button onClick={() => setDrawMode(d => d === 'polygon' ? null : 'polygon')} className={tbBtn(drawMode === 'polygon')}>
+          <button onClick={() => { setDrawMode(d => d === 'polygon' ? null : 'polygon'); setMeasureMode(false); }} className={tbBtn(drawMode === 'polygon')}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6.5-6.5a2 2 0 012.828 2.828L11 15H9v-2l6.5-6.5z" /></svg>
             Draw Section
           </button>
-          <button onClick={() => setDrawMode(d => d === 'rectangle' ? null : 'rectangle')} className={tbBtn(drawMode === 'rectangle')}>
+          <button onClick={() => { setDrawMode(d => d === 'rectangle' ? null : 'rectangle'); setMeasureMode(false); }} className={tbBtn(drawMode === 'rectangle')}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1" strokeWidth={2} /></svg>
             Draw Rectangle
           </button>
@@ -745,6 +817,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           <button onClick={undoLast} className={tbBtn()}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
             Undo
+          </button>
+          <button onClick={() => { setMeasureMode(m => !m); setDrawMode(null); }} className={tbBtn(measureMode)}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
+            Measure {measureMode && <span className="text-[10px] opacity-70">(ON)</span>}
           </button>
           {clearConfirm ? (
             <div className="flex items-center gap-1">
@@ -799,6 +875,34 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         {/* ── Map ───────────────────────────────────── */}
         <div className="relative flex-shrink-0" style={{ height: 480 }}>
           <div ref={mapDivRef} style={{ height: '100%', width: '100%', display: showMap ? 'block' : 'none' }} />
+          {measureMode && showMap && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 bg-gray-900/95 border border-yellow-500/50 rounded-xl px-4 py-2.5 shadow-xl pointer-events-none">
+              <div className="flex items-center gap-3">
+                <svg className="w-4 h-4 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
+                <div>
+                  {(() => {
+                    let totalFt = 0;
+                    if (measurePoints.length >= 2) {
+                      for (let i = 1; i < measurePoints.length; i++) {
+                        totalFt += google.maps.geometry.spherical.computeDistanceBetween(measurePoints[i - 1], measurePoints[i]) * 3.28084;
+                      }
+                      totalFt = Math.round(totalFt);
+                    }
+                    return (
+                      <>
+                        <p className="text-xs text-yellow-300 font-semibold">
+                          {measurePoints.length === 0 ? 'Click to place first point' :
+                           measurePoints.length === 1 ? 'Click to add more · Double-click to finish' :
+                           `${totalFt} ft total · Double-click to finish`}
+                        </p>
+                        <p className="text-[10px] text-gray-500">{measurePoints.length} point{measurePoints.length !== 1 ? 's' : ''} placed</p>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
           {drawMode && showMap && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <svg width="32" height="32" viewBox="0 0 32 32">
@@ -841,6 +945,42 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           )}
         </div>
 
+        {/* ── Completed measurements ────────────────── */}
+        {completedMeasurements.length > 0 && (
+          <div className="border-b border-gray-800 bg-gray-900 p-3 space-y-1.5">
+            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
+              Measurements
+            </h4>
+            {completedMeasurements.map(m => (
+              <div key={m.id} className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2">
+                <span className="text-xs font-semibold text-white flex-shrink-0">{m.name}</span>
+                <span className="text-xs text-yellow-300 font-medium">{m.totalFt} ft</span>
+                <select
+                  value=""
+                  onChange={e => {
+                    const key = e.target.value as keyof LinearMeasurements;
+                    if (key) setLinear(prev => ({ ...prev, [key]: m.totalFt }));
+                  }}
+                  className="ml-auto bg-gray-700 border border-gray-600 rounded text-[10px] text-gray-300 px-2 py-1 focus:outline-none"
+                >
+                  <option value="">Use this value →</option>
+                  <option value="ridge">Apply to Ridge/Hip</option>
+                  <option value="valley">Apply to Valley</option>
+                  <option value="rake">Apply to Rake</option>
+                  <option value="eave">Apply to Eave</option>
+                </select>
+                <button
+                  onClick={() => setCompletedMeasurements(prev => prev.filter(x => x.id !== m.id))}
+                  className="text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── Section list ──────────────────────────── */}
         <div className="flex-1 overflow-y-auto bg-gray-950 p-3 space-y-2">
 
@@ -865,15 +1005,16 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   <div className="bg-gray-900 rounded-xl border border-gray-700 p-3">
                     <label className="block text-xs font-semibold text-gray-300 mb-2">Total Roof Area (sq ft)</label>
                     <div className="flex gap-2">
-                      <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                      <input type="number" value={manualSqft} onChange={e => { setManualSqft(e.target.value); setManualSqftSource(e.target.value ? 'manual' : ''); }}
                         placeholder="e.g. 2400"
                         className={`flex-1 px-3 py-3 bg-gray-800 border rounded-lg text-white text-lg font-semibold focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-600 focus:border-blue-500'}`}
                       />
                       {manualSqft && (
-                        <button onClick={() => setManualSqft('')} className="px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
+                        <button onClick={() => { setManualSqft(''); setManualSqftSource(''); }} className="px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
                       )}
                     </div>
-                    {manualSqft && <p className="text-[10px] text-yellow-400 mt-1.5">Manual override active — drawing tools still work</p>}
+                    {manualSqftSource === 'solar' && <p className="text-[10px] text-blue-400 mt-1.5">Source: Google Solar API estimate — edit if needed</p>}
+                    {manualSqftSource === 'manual' && <p className="text-[10px] text-yellow-400 mt-1.5">Source: Manual entry</p>}
                   </div>
                 </div>
               )}
@@ -1086,7 +1227,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <div className="flex items-baseline gap-2 mb-1 flex-wrap">
                   <span className="text-2xl font-black text-white">{displaySqft > 0 ? displaySqft.toLocaleString() : '—'}</span>
                   {displaySqft > 0 && <span className="text-sm text-white font-medium">sq ft</span>}
-                  {hasManual && <span className="text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Manual override active</span>}
+                  {hasManual && manualSqftSource === 'manual' && <span className="text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Manual override active</span>}
+                  {hasManual && manualSqftSource === 'solar' && <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Auto-filled · Solar API</span>}
                 </div>
 
                 {/* Segment count */}
@@ -1099,7 +1241,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
                 {/* Source badge + drawn/solar toggle */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  {hasManual && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full font-medium">Source: Manual override</span>}
+                  {hasManual && manualSqftSource === 'solar' && <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Source: Google Solar API estimate</span>}
+                  {hasManual && manualSqftSource === 'manual' && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full font-medium">Source: Manual override</span>}
                   {!hasManual && source === 'solar' && <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Source: Google Solar API</span>}
                   {!hasManual && source === 'drawn' && <span className="text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full font-medium">Source: Drawn sections</span>}
                   {!hasManual && hasDrawn && hasSolar && (
@@ -1120,14 +1263,16 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <div className="mt-3 pt-3 border-t border-gray-800">
                   <div className="flex items-center gap-2">
                     <label className="text-[10px] text-gray-500 flex-shrink-0">Manual sq ft:</label>
-                    <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                    <input type="number" value={manualSqft} onChange={e => { setManualSqft(e.target.value); setManualSqftSource(e.target.value ? 'manual' : ''); }}
                       placeholder={displaySqft > 0 ? `${displaySqft.toLocaleString()} (auto)` : 'Override…'}
-                      className={`flex-1 px-2 py-1 bg-gray-800 border rounded text-white text-xs focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
+                      className={`flex-1 px-2 py-1 bg-gray-800 border rounded text-white text-xs focus:outline-none ${manualSqft && manualSqftSource === 'manual' ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
                     />
                     {manualSqft && (
-                      <button onClick={() => setManualSqft('')} className="text-gray-500 hover:text-white transition-colors text-xs px-1">✕</button>
+                      <button onClick={() => { setManualSqft(''); setManualSqftSource(''); }} className="text-gray-500 hover:text-white transition-colors text-xs px-1">✕</button>
                     )}
                   </div>
+                  {manualSqftSource === 'solar' && <p className="text-[10px] text-blue-400 mt-1.5">Source: Google Solar API estimate — edit if needed</p>}
+                  {manualSqftSource === 'manual' && <p className="text-[10px] text-gray-400 mt-1.5">Source: Manual entry</p>}
                 </div>
               </div>
             );
@@ -1181,17 +1326,20 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               <div>
                 <div className="flex items-center mb-1">
                   <label className="text-xs text-gray-400">Total sq ft</label>
-                  {manualSqft && <span className={ovBadge}>Override</span>}
+                  {manualSqft && manualSqftSource === 'manual' && <span className={ovBadge}>Override</span>}
+                  {manualSqft && manualSqftSource === 'solar' && <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium ml-auto">Solar API</span>}
                 </div>
                 <div className="flex gap-2">
-                  <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                  <input type="number" value={manualSqft} onChange={e => { setManualSqft(e.target.value); setManualSqftSource(e.target.value ? 'manual' : ''); }}
                     placeholder={includedSolarSqft > 0 ? `${includedSolarSqft.toLocaleString()} (from Solar API)` : 'e.g. 2400'}
-                    className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
+                    className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${manualSqft && manualSqftSource === 'manual' ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
                   />
                   {manualSqft && (
-                    <button onClick={() => setManualSqft('')} className="px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
+                    <button onClick={() => { setManualSqft(''); setManualSqftSource(''); }} className="px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
                   )}
                 </div>
+                {manualSqftSource === 'solar' && <p className="text-[10px] text-blue-400 mt-1">Source: Google Solar API estimate — edit if needed</p>}
+                {manualSqftSource === 'manual' && <p className="text-[10px] text-gray-400 mt-1">Source: Manual entry</p>}
               </div>
 
               {/* Pitch category */}
