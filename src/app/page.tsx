@@ -120,11 +120,26 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── FOUNDER TRUST BAR ─────────────────────────────────── */}
+      <div className="bg-[#F1F5F9] border-y border-[#E2E8F0] py-4">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center sm:text-left">
+          <div className="w-8 h-8 rounded-full bg-[#1B3A6B] flex items-center justify-center text-white font-black text-sm flex-shrink-0">T</div>
+          <p className="text-sm text-gray-600">
+            <span className="font-semibold text-[#1B3A6B]">Tenzin, Founder</span>
+            <span className="text-gray-300 mx-2">—</span>
+            <span className="italic text-gray-500">&ldquo;I put my name on every job.&rdquo;</span>
+            <span className="text-gray-300 mx-2 hidden sm:inline">·</span>
+            <span className="text-gray-400 text-xs block sm:inline mt-0.5 sm:mt-0">CT HIC #{SITE.license}</span>
+          </p>
+        </div>
+      </div>
+
       {/* ── HOW IT WORKS ──────────────────────────────────────── */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-3">How It Works</h2>
-          <p className="text-center text-gray-500 mb-12">Four steps. No surprises. Everything in writing.</p>
+          <p className="text-center text-gray-500 mb-2">Four steps. No surprises. Everything in writing.</p>
+          <p className="text-center text-[#38BDF8] text-sm font-medium mb-12">Powered by satellite measurement and AI pricing</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((step) => (
               <div key={step.n} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
@@ -143,6 +158,9 @@ export default function HomePage() {
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-6">We Show You Everything.</h2>
           <p className="text-white/70 text-lg leading-relaxed">
             Most roofers say call for pricing. We give you a real number before you ever pick up the phone. Itemized proposals. Full photo documentation. A 20-year leak warranty in writing. No surprises, no pressure — just proof.
+          </p>
+          <p className="text-white/40 text-base leading-relaxed mt-5 italic">
+            We&apos;re not a traditional roofing contractor — we&apos;re a Roofing Tech company. Technology is how we deliver every promise we make.
           </p>
         </div>
       </section>

@@ -21,6 +21,7 @@ export default function Footer() {
               />
               <span className="text-white font-bold text-lg font-heading">{SITE.name}</span>
             </div>
+            <p className="text-xs font-semibold text-[#38BDF8] tracking-wide uppercase mb-1">Connecticut&apos;s Roofing Tech Company</p>
             <p className="text-sm text-gray-400 italic font-light mb-4">{SITE.tagline}</p>
             <address className="not-italic text-sm space-y-1 text-gray-400">
               {SITE.address.street && <div>{SITE.address.street}</div>}
