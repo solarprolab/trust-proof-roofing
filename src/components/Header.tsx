@@ -8,12 +8,12 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-brand-800 shadow-lg">
+    <header className="sticky top-0 z-50 bg-[#F8FAFC] border-b border-[#E2E8F0]">
       {/* Top bar */}
-      <div className="bg-brand-900 text-brand-200 text-sm py-1.5">
+      <div className="bg-[#F1F5F9] text-[#64748B] text-sm py-1.5 border-b border-[#E2E8F0]">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <span className="hidden sm:block">Based in Suffield, CT — Licensed &amp; Insured | {SITE.license}</span>
-          <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="font-semibold text-accent-400 hover:text-accent-300 transition-colors">
+          <a href={`tel:${SITE.phone.replace(/\D/g, '')}`} className="font-semibold text-[#1B3A6B] hover:text-[#1B3A6B]/70 transition-colors">
             {SITE.phone}
           </a>
         </div>
@@ -24,24 +24,24 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <img
-            src="/logo-icon-yellow.png"
+            src="/logo.png"
             alt="Trust Proof Roofing logo"
             width={48}
             height={38}
             style={{objectFit: 'contain'}}
           />
-          <div className="text-white font-black text-lg tracking-wide font-heading">{SITE.name}</div>
+          <div className="text-[#1B3A6B] font-black text-lg tracking-wide font-heading">{SITE.name}</div>
         </Link>
 
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/services" className="text-brand-100 hover:text-white transition-colors font-medium">
+          <Link href="/services" className="text-[#1B3A6B] hover:text-[#1B3A6B]/70 transition-colors font-medium">
             Services
           </Link>
-          <Link href="/about" className="text-brand-100 hover:text-white transition-colors font-medium">
+          <Link href="/about" className="text-[#1B3A6B] hover:text-[#1B3A6B]/70 transition-colors font-medium">
             About
           </Link>
-          <Link href="/contact" className="text-brand-100 hover:text-white transition-colors font-medium">
+          <Link href="/contact" className="text-[#1B3A6B] hover:text-[#1B3A6B]/70 transition-colors font-medium">
             Contact
           </Link>
           <a
@@ -55,7 +55,7 @@ export default function Header() {
         {/* Hamburger button — mobile only */}
         <button
           onClick={() => setMenuOpen(o => !o)}
-          className="md:hidden text-white p-2 rounded-lg hover:bg-brand-700 transition-colors"
+          className="md:hidden text-[#1B3A6B] p-2 rounded-lg hover:bg-[#E2E8F0] transition-colors"
           aria-label="Toggle menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,11 +66,11 @@ export default function Header() {
 
       {/* Mobile menu drawer */}
       {menuOpen && (
-        <div className="md:hidden bg-brand-800 border-t border-brand-700 px-4 py-6">
+        <div className="md:hidden bg-[#F8FAFC] border-t border-[#E2E8F0] px-4 py-6">
           <div className="flex justify-end mb-2">
             <button
               onClick={() => setMenuOpen(false)}
-              className="text-brand-200 hover:text-white p-1 rounded transition-colors"
+              className="text-[#64748B] hover:text-[#1B3A6B] p-1 rounded transition-colors"
               aria-label="Close menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,13 +79,13 @@ export default function Header() {
             </button>
           </div>
           <div className="space-y-4">
-            <Link href="/services" onClick={() => setMenuOpen(false)} className="text-brand-100 text-lg font-medium py-2 block border-b border-brand-700/50">
+            <Link href="/services" onClick={() => setMenuOpen(false)} className="text-[#1B3A6B] text-lg font-medium py-2 block border-b border-[#E2E8F0]">
               Services
             </Link>
-            <Link href="/about" onClick={() => setMenuOpen(false)} className="text-brand-100 text-lg font-medium py-2 block border-b border-brand-700/50">
+            <Link href="/about" onClick={() => setMenuOpen(false)} className="text-[#1B3A6B] text-lg font-medium py-2 block border-b border-[#E2E8F0]">
               About
             </Link>
-            <Link href="/contact" onClick={() => setMenuOpen(false)} className="text-brand-100 text-lg font-medium py-2 block border-b border-brand-700/50">
+            <Link href="/contact" onClick={() => setMenuOpen(false)} className="text-[#1B3A6B] text-lg font-medium py-2 block border-b border-[#E2E8F0]">
               Contact
             </Link>
             <a
