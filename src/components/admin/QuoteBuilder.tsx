@@ -137,6 +137,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [completedMeasurements, setCompletedMeasurements] = useState<Array<{ id: number; name: string; totalFt: number; points: google.maps.LatLng[] }>>([]);
 
   /* ── Quote state ───────────────────────────────────── */
+  const [proposalType, setProposalType] = useState<'pre' | 'post'>('post');
   const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
   const [addOns,      setAddOns]      = useState<AddOnsState>({
     ridgeVent: false, gutterInspection: false, iceWaterFull: false,
@@ -674,6 +675,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     return {
       lineItems, subtotal, totalSqftWaste,
       rangeMin: Math.max(0, subtotal - 1000), rangeMax: subtotal + 1000, midpoint: subtotal,
+      preRangeMin: Math.max(0, subtotal - 2000), preRangeMax: subtotal + 2000,
       effectiveSqft, sqftSource,
     };
   }, [sections, material, linear, addOns, manualSqft, solarSegments, excludedSegIds, useDrawnOverSolar, overridePitch, overrideWaste]);
@@ -762,7 +764,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             pitch: s.pitch, workType: s.workType, layers: s.layers,
             wastePercent: parseInt(overrideWaste || '0') || s.wasteFactor,
           })),
-          linearMeasurements: linear, material,
+          linearMeasurements: linear, material, proposalType,
           addOns: [
             addOns.ridgeVent        && 'Ridge Vent Upgrade (+$300)',
             addOns.iceWaterFull     && 'Full Ice & Water Shield (+$0.85/sqft)',
@@ -772,7 +774,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           skylights: addOns.skylights, chimneys: addOns.chimneys,
           priceBreakdown: {
             lineItems: priceCalc.lineItems.map(li => ({ label: li.homeownerLabel ?? li.label, amount: li.amount })),
-            subtotal: priceCalc.subtotal, rangeMin: priceCalc.rangeMin, rangeMax: priceCalc.rangeMax,
+            subtotal: priceCalc.subtotal,
+            rangeMin: proposalType === 'pre' ? priceCalc.preRangeMin : priceCalc.rangeMin,
+            rangeMax: proposalType === 'pre' ? priceCalc.preRangeMax : priceCalc.rangeMax,
           },
           scopeNotes, leadId,
         }),
@@ -1283,6 +1287,30 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       {/* ══════════════ RIGHT PANEL ═════════════════════ */}
       <div className="lg:w-[45%] overflow-y-auto bg-gray-950 p-4 space-y-4">
 
+        {/* PROPOSAL TYPE */}
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Proposal Type</h3>
+          <div className="space-y-2">
+            {([
+              ['post', 'Post-Inspection Proposal', 'After full assessment · exact pricing', 'bg-blue-600/15 border-blue-500/50', 'bg-blue-500 border-blue-500'],
+              ['pre',  'Pre-Inspection Proposal',  'Before inspection · price range only',  'bg-orange-600/15 border-orange-500/50', 'bg-orange-500 border-orange-500'],
+            ] as const).map(([id, label, note, activeCls, dotCls]) => (
+              <button key={id} onClick={() => setProposalType(id)}
+                className={`w-full text-left rounded-lg border px-3 py-2.5 transition-all ${proposalType === id ? activeCls : 'bg-gray-800 border-gray-700 hover:border-gray-600'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-semibold ${proposalType === id ? 'text-white' : 'text-gray-300'}`}>{label}</p>
+                    <p className="text-xs text-gray-500">{note}</p>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-all ${proposalType === id ? dotCls : 'border-gray-600'}`} />
+                </div>
+              </button>
+            ))}
+          </div>
+          {proposalType === 'pre'  && <p className="text-[10px] text-orange-400 mt-2">Pre-inspection: price ranges will be shown, not exact figures</p>}
+          {proposalType === 'post' && <p className="text-[10px] text-blue-400 mt-2">Post-inspection: exact pricing will be shown</p>}
+        </div>
+
         {/* MATERIAL */}
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Material</h3>
@@ -1508,14 +1536,21 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <span className="text-white font-semibold">{fmtMoney(priceCalc.subtotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-gray-500">
-                <span>Range adjustment</span><span>−$1,000 / +$1,000</span>
+                <span>Range adjustment</span>
+                <span>{proposalType === 'pre' ? '−$2,000 / +$2,000' : '−$1,000 / +$1,000'}</span>
               </div>
             </div>
           )}
           <div className="bg-[#0f1e3b] rounded-xl border border-blue-900/40 p-4 mt-4">
-            <p className="text-xs text-blue-300/60 mb-1">Estimated Project Range</p>
+            <p className="text-xs text-blue-300/60 mb-1">
+              {proposalType === 'pre' ? 'Preliminary Estimate Range' : 'Estimated Project Range'}
+            </p>
             <p className="text-2xl font-black text-white">
-              {priceCalc.subtotal > 0 ? `${fmtMoney(priceCalc.rangeMin)} – ${fmtMoney(priceCalc.rangeMax)}` : '—'}
+              {priceCalc.subtotal > 0
+                ? proposalType === 'pre'
+                  ? `${fmtMoney(priceCalc.preRangeMin)} – ${fmtMoney(priceCalc.preRangeMax)}`
+                  : `${fmtMoney(priceCalc.rangeMin)} – ${fmtMoney(priceCalc.rangeMax)}`
+                : '—'}
             </p>
             {priceCalc.sqftSource && (
               <p className="text-[10px] text-blue-300/40 mt-1.5">
@@ -1523,7 +1558,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 {priceCalc.effectiveSqft > 0 && ` · ${priceCalc.effectiveSqft.toLocaleString()} sq ft`}
               </p>
             )}
-            <p className="text-xs text-blue-300/30 mt-0.5">Exact price confirmed after free drone assessment</p>
+            <p className="text-xs text-blue-300/30 mt-0.5">
+              {proposalType === 'pre' ? 'Final pricing confirmed after on-site inspection' : 'Price valid for 30 days from proposal date'}
+            </p>
           </div>
         </div>
 
