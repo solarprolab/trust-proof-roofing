@@ -2,9 +2,12 @@ import { MetadataRoute } from 'next';
 import { SERVICES } from '@/lib/config';
 import { CT_CITIES } from '@/data/cityPages';
 
+export const dynamic = 'force-static';
+
 const BASE_URL = 'https://trustproofroofing.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  try {
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
@@ -59,4 +62,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   return [...staticRoutes, ...serviceRoutes, ...cityRoutes];
+  } catch (err) {
+    console.error('[sitemap] Error generating sitemap:', err);
+    return [];
+  }
 }
