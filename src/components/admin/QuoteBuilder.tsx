@@ -16,7 +16,7 @@ interface Section {
   pitch: number;
   workType: WorkType;
   layers: 1 | 2;
-  wasteFactor: number; // percentage e.g. 12
+  wasteFactor: number;
   color: string;
   centroidLat: number;
   centroidLng: number;
@@ -61,6 +61,8 @@ interface Props {
    CONSTANTS
 ═══════════════════════════════════════════════════════ */
 const SHAPE_COLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+const SEG_COLORS   = ['#60A5FA','#34D399','#FCD34D','#F87171','#A78BFA','#F472B6','#2DD4BF','#FB923C'];
+const ZOOM_LEVELS  = [14, 16, 18, 19, 20, 21, 22];
 
 const COMMON_PITCHES = [
   { label: '3/12', deg: 14 },
@@ -108,39 +110,45 @@ function fmtMoney(n: number): string {
 export default function QuoteBuilder({ lead, leadId }: Props) {
 
   /* ── Map refs ──────────────────────────────────────── */
-  const mapDivRef      = useRef<HTMLDivElement>(null);
-  const svDivRef       = useRef<HTMLDivElement>(null);
-  const mapRef         = useRef<google.maps.Map | null>(null);
-  const dmRef          = useRef<google.maps.drawing.DrawingManager | null>(null);
-  const LabelClassRef  = useRef<any>(null);
-  const overlaysRef    = useRef<Map<number, { shape: google.maps.Polygon | google.maps.Rectangle; label: any }>>(new Map());
-  const pendingOvRef   = useRef<google.maps.Polygon | google.maps.Rectangle | null>(null);
-  const counterRef     = useRef(0);
+  const mapDivRef       = useRef<HTMLDivElement>(null);
+  const svDivRef        = useRef<HTMLDivElement>(null);
+  const mapRef          = useRef<google.maps.Map | null>(null);
+  const dmRef           = useRef<google.maps.drawing.DrawingManager | null>(null);
+  const LabelClassRef   = useRef<any>(null);
+  const overlaysRef     = useRef<Map<number, { shape: google.maps.Polygon | google.maps.Rectangle; label: any }>>(new Map());
+  const pendingOvRef    = useRef<google.maps.Polygon | google.maps.Rectangle | null>(null);
+  const counterRef      = useRef(0);
+  const segmentPolysRef = useRef<Map<number, google.maps.Polygon>>(new Map());
 
   /* ── Map state ─────────────────────────────────────── */
-  const [mapsReady,    setMapsReady]    = useState(false);
-  const [mapsFailed,   setMapsFailed]   = useState(false);
-  const [geocodedLoc,  setGeocodedLoc]  = useState<{ lat: number; lng: number } | null>(null);
-  const [drawMode,     setDrawMode]     = useState<DrawMode>(null);
-  const [editMode,     setEditMode]     = useState(false);
-  const [mapType,      setMapType]      = useState<MapType>('satellite');
-  const [zoomLevel,    setZoomLevel]    = useState(20);
-  const [streetView,   setStreetView]   = useState(false);
-  const [pendingShape, setPendingShape] = useState<PendingShape | null>(null);
-  const [pendingName,  setPendingName]  = useState('');
-  const [clearConfirm, setClearConfirm] = useState(false);
+  const [mapsReady,      setMapsReady]      = useState(false);
+  const [mapsFailed,     setMapsFailed]     = useState(false);
+  const [geocodedLoc,    setGeocodedLoc]    = useState<{ lat: number; lng: number } | null>(null);
+  const [drawMode,       setDrawMode]       = useState<DrawMode>(null);
+  const [editMode,       setEditMode]       = useState(false);
+  const [mapType,        setMapType]        = useState<MapType>('satellite');
+  const [zoomLevel,      setZoomLevel]      = useState(20);
+  const [streetView,     setStreetView]     = useState(false);
+  const [pendingShape,   setPendingShape]   = useState<PendingShape | null>(null);
+  const [pendingName,    setPendingName]    = useState('');
+  const [clearConfirm,   setClearConfirm]   = useState(false);
+  const [mapInitialized, setMapInitialized] = useState(false);
+
+  /* ── Solar / Street View state ─────────────────────── */
+  const [solarSegments,  setSolarSegments]  = useState<any[]>([]);
+  const [selectedSegIds, setSelectedSegIds] = useState<Set<number>>(new Set());
+  const [svAvailable,    setSvAvailable]    = useState<boolean | null>(null);
 
   /* ── Section state ─────────────────────────────────── */
-  const [sections,    setSections]    = useState<Section[]>([]);
-  const [manualSqft,  setManualSqft]  = useState('');
-  const [showManual,  setShowManual]  = useState(false);
-  const [renamingId,  setRenamingId]  = useState<number | null>(null);
-  const [renameVal,   setRenameVal]   = useState('');
+  const [sections,   setSections]   = useState<Section[]>([]);
+  const [manualSqft, setManualSqft] = useState('');
+  const [renamingId, setRenamingId] = useState<number | null>(null);
+  const [renameVal,  setRenameVal]  = useState('');
 
   /* ── Quote state ───────────────────────────────────── */
-  const [material, setMaterial] = useState<'standard' | 'premium'>('standard');
-  const [linear, setLinear]     = useState<LinearMeasurements>({ ridge: 0, valley: 0, rake: 0, eave: 0 });
-  const [addOns, setAddOns]     = useState<AddOnsState>({
+  const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
+  const [linear,      setLinear]      = useState<LinearMeasurements>({ ridge: 0, valley: 0, rake: 0, eave: 0 });
+  const [addOns,      setAddOns]      = useState<AddOnsState>({
     ridgeVent: false, gutterInspection: false, iceWaterFull: false,
     dripEdgeUpgrade: false, skylights: 0, chimneys: 0,
   });
@@ -184,12 +192,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   useEffect(() => {
     if (!mapsReady || !geocodedLoc || !mapDivRef.current || mapRef.current) return;
 
-    /* Label overlay class */
     class LabelOverlay extends google.maps.OverlayView {
       private div: HTMLDivElement | null = null;
-      constructor(private pos: google.maps.LatLng, private html: string) {
-        super();
-      }
+      constructor(private pos: google.maps.LatLng, private html: string) { super(); }
       onAdd() {
         const d = document.createElement('div');
         d.style.cssText = 'position:absolute;background:rgba(0,0,0,0.82);color:#fff;padding:3px 8px;border-radius:5px;font-size:10px;font-family:sans-serif;white-space:nowrap;pointer-events:none;transform:translate(-50%,-100%);margin-top:-6px;line-height:1.5;text-align:center;border:1px solid rgba(255,255,255,0.15)';
@@ -203,9 +208,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         const pt = proj?.fromLatLngToDivPixel(this.pos);
         if (pt) { this.div.style.left = `${pt.x}px`; this.div.style.top = `${pt.y}px`; }
       }
-      onRemove() {
-        this.div?.parentNode?.removeChild(this.div); this.div = null;
-      }
+      onRemove() { this.div?.parentNode?.removeChild(this.div); this.div = null; }
       update(html: string, pos?: google.maps.LatLng) {
         this.html = html;
         if (pos) this.pos = pos;
@@ -216,12 +219,29 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     LabelClassRef.current = LabelOverlay;
 
     const map = new google.maps.Map(mapDivRef.current, {
-      center: geocodedLoc, zoom: 20, mapTypeId: 'satellite',
-      tilt: 0, maxZoom: 22, minZoom: 15,
+      center: geocodedLoc,
+      zoom: 20,
+      mapTypeId: 'satellite',
+      tilt: 0,
+      maxZoom: 22,
+      minZoom: 14,
+      rotateControl: false,
+      scrollwheel: true,
+      disableDoubleClickZoom: false,
+      mapTypeControl: true,
+      mapTypeControlOptions: {
+        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+        position: google.maps.ControlPosition.TOP_RIGHT,
+        mapTypeIds: ['satellite', 'hybrid', 'roadmap'],
+      },
     });
     mapRef.current = map;
 
     map.addListener('zoom_changed', () => setZoomLevel(map.getZoom() ?? 20));
+    map.addListener('maptypeid_changed', () => {
+      const id = map.getMapTypeId() as MapType;
+      if (['satellite', 'hybrid', 'roadmap'].includes(id)) setMapType(id as MapType);
+    });
 
     const dm = new google.maps.drawing.DrawingManager({
       drawingMode: null, drawingControl: false,
@@ -260,53 +280,115 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
       counterRef.current += 1;
       pendingOvRef.current = overlay;
-
-      // Cancel any existing pending shape
-      if (pendingOvRef.current && pendingShape) {
-        pendingOvRef.current.setMap(null);
-      }
-
       setPendingShape({ id: idx, sqft, color });
       setPendingName(`Section ${idx + 1}`);
-
-      // Return to hand mode
       dm.setDrawingMode(null);
       setDrawMode(null);
-
-      // Store centroid on overlay for later use
       (overlay as any)._centroid = centroid;
     });
+
+    setMapInitialized(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapsReady, geocodedLoc]);
+
+  /* ── 3a. Solar API fetch ───────────────────────────── */
+  useEffect(() => {
+    if (!geocodedLoc) return;
+    fetch(`https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${geocodedLoc.lat}&location.longitude=${geocodedLoc.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_SOLAR_API_KEY}`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.roofSegmentStats)) setSolarSegments(d.roofSegmentStats); })
+      .catch(() => {});
+  }, [geocodedLoc]);
+
+  /* ── 3b. Draw Solar segment polygons ───────────────── */
+  useEffect(() => {
+    if (!mapInitialized || !mapRef.current || solarSegments.length === 0) return;
+
+    segmentPolysRef.current.forEach(p => p.setMap(null));
+    segmentPolysRef.current.clear();
+
+    solarSegments.forEach((seg, i) => {
+      const color = SEG_COLORS[i % SEG_COLORS.length];
+      let path: google.maps.LatLng[];
+      const bb = seg.boundingBox;
+
+      if (bb?.sw && bb?.ne) {
+        path = [
+          new google.maps.LatLng(bb.sw.latitude, bb.sw.longitude),
+          new google.maps.LatLng(bb.sw.latitude, bb.ne.longitude),
+          new google.maps.LatLng(bb.ne.latitude, bb.ne.longitude),
+          new google.maps.LatLng(bb.ne.latitude, bb.sw.longitude),
+        ];
+      } else if (seg.center) {
+        const c = seg.center;
+        const side = Math.sqrt(seg.stats?.areaMeters2 ?? 16) / 2;
+        const dlat = side / 111000;
+        const dlng = side / (111000 * Math.cos(c.latitude * Math.PI / 180));
+        path = [
+          new google.maps.LatLng(c.latitude - dlat, c.longitude - dlng),
+          new google.maps.LatLng(c.latitude - dlat, c.longitude + dlng),
+          new google.maps.LatLng(c.latitude + dlat, c.longitude + dlng),
+          new google.maps.LatLng(c.latitude + dlat, c.longitude - dlng),
+        ];
+      } else { return; }
+
+      const poly = new google.maps.Polygon({
+        paths: path,
+        strokeColor: color,
+        strokeWeight: 1.5,
+        fillColor: color,
+        fillOpacity: 0.25,
+        clickable: true,
+        zIndex: 1,
+      });
+      poly.setMap(mapRef.current);
+      poly.addListener('click', () => {
+        setSelectedSegIds(prev => {
+          const next = new Set(prev);
+          if (next.has(i)) { next.delete(i); poly.setOptions({ fillOpacity: 0.25 }); }
+          else             { next.add(i);    poly.setOptions({ fillOpacity: 0.55 }); }
+          return next;
+        });
+      });
+      segmentPolysRef.current.set(i, poly);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapInitialized, solarSegments]);
 
   /* ── 4. Sync draw mode ─────────────────────────────── */
   useEffect(() => {
     if (!dmRef.current || !mapsReady) return;
-    if (drawMode === 'polygon')   dmRef.current.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
+    if (drawMode === 'polygon')        dmRef.current.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
     else if (drawMode === 'rectangle') dmRef.current.setDrawingMode(google.maps.drawing.OverlayType.RECTANGLE);
-    else dmRef.current.setDrawingMode(null);
+    else                               dmRef.current.setDrawingMode(null);
   }, [drawMode, mapsReady]);
 
   /* ── 5. Sync edit mode ─────────────────────────────── */
   useEffect(() => {
-    overlaysRef.current.forEach(({ shape }) => {
-      shape.setOptions({ editable: editMode, draggable: editMode });
-    });
+    overlaysRef.current.forEach(({ shape }) => shape.setOptions({ editable: editMode, draggable: editMode }));
   }, [editMode]);
 
   /* ── 6. Sync map type ──────────────────────────────── */
-  useEffect(() => {
-    mapRef.current?.setMapTypeId(mapType);
-  }, [mapType]);
+  useEffect(() => { mapRef.current?.setMapTypeId(mapType); }, [mapType]);
 
-  /* ── 7. Street View ─────────────────────────────────── */
+  /* ── 7. Street View with availability check ─────────── */
   useEffect(() => {
-    if (!streetView || !geocodedLoc || !svDivRef.current || !mapsReady) return;
-    new google.maps.StreetViewPanorama(svDivRef.current, {
-      position: geocodedLoc,
-      pov: { heading: 0, pitch: 0 },
-      zoom: 1,
-      addressControl: true,
+    if (!streetView || !geocodedLoc || !mapsReady) return;
+    const svc = new google.maps.StreetViewService();
+    svc.getPanorama({ location: geocodedLoc, radius: 100 }, (data, status) => {
+      if (status === google.maps.StreetViewStatus.OK) {
+        setSvAvailable(true);
+        if (svDivRef.current) {
+          new google.maps.StreetViewPanorama(svDivRef.current, {
+            position: geocodedLoc,
+            pov: { heading: 0, pitch: 0 },
+            zoom: 1,
+            addressControl: true,
+          });
+        }
+      } else {
+        setSvAvailable(false);
+      }
     });
   }, [streetView, geocodedLoc, mapsReady]);
 
@@ -314,9 +396,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   useEffect(() => {
     sections.forEach(s => {
       const entry = overlaysRef.current.get(s.id);
-      if (entry?.label) {
-        entry.label.update(`<strong>${s.name}</strong><br>${s.sqft.toLocaleString()} sqft`);
-      }
+      if (entry?.label) entry.label.update(`<strong>${s.name}</strong><br>${s.sqft.toLocaleString()} sqft`);
     });
   }, [sections]);
 
@@ -327,34 +407,20 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     const name = pendingName.trim() || `Section ${pendingShape.id + 1}`;
     const overlay = pendingOvRef.current;
     const centroid = (overlay as any)._centroid as google.maps.LatLng;
-    const suggestedWaste = 12;
 
-    // Create label overlay
     let labelOverlay: any = null;
     if (LabelClassRef.current && mapRef.current) {
-      labelOverlay = new LabelClassRef.current(
-        centroid,
-        `<strong>${name}</strong><br>${pendingShape.sqft.toLocaleString()} sqft`
-      );
+      labelOverlay = new LabelClassRef.current(centroid, `<strong>${name}</strong><br>${pendingShape.sqft.toLocaleString()} sqft`);
       labelOverlay.setMap(mapRef.current);
     }
-
     overlaysRef.current.set(pendingShape.id, { shape: overlay, label: labelOverlay });
 
-    const newSection: Section = {
-      id: pendingShape.id,
-      name,
-      sqft: pendingShape.sqft,
-      pitch: 18,
-      workType: 'replace',
-      layers: 1,
-      wasteFactor: suggestedWaste,
-      color: pendingShape.color,
-      centroidLat: centroid?.lat() ?? 0,
-      centroidLng: centroid?.lng() ?? 0,
-    };
-
-    setSections(prev => [...prev, newSection]);
+    setSections(prev => [...prev, {
+      id: pendingShape.id, name,
+      sqft: pendingShape.sqft, pitch: 18, workType: 'replace',
+      layers: 1, wasteFactor: 12, color: pendingShape.color,
+      centroidLat: centroid?.lat() ?? 0, centroidLng: centroid?.lng() ?? 0,
+    }]);
     setPendingShape(null);
     setPendingName('');
     pendingOvRef.current = null;
@@ -370,27 +436,21 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   function deleteSection(id: number) {
     const entry = overlaysRef.current.get(id);
-    if (entry) {
-      entry.shape.setMap(null);
-      entry.label?.setMap(null);
-      overlaysRef.current.delete(id);
-    }
+    if (entry) { entry.shape.setMap(null); entry.label?.setMap(null); overlaysRef.current.delete(id); }
     setSections(prev => prev.filter(s => s.id !== id));
   }
 
   function undoLast() {
     if (pendingShape) { cancelPending(); return; }
     if (sections.length === 0) return;
-    const last = sections[sections.length - 1];
-    deleteSection(last.id);
+    deleteSection(sections[sections.length - 1].id);
   }
 
   function clearAll() {
     if (pendingShape) cancelPending();
     sections.forEach(s => {
-      const entry = overlaysRef.current.get(s.id);
-      entry?.shape.setMap(null);
-      entry?.label?.setMap(null);
+      const e = overlaysRef.current.get(s.id);
+      e?.shape.setMap(null); e?.label?.setMap(null);
     });
     overlaysRef.current.clear();
     setSections([]);
@@ -402,20 +462,18 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     setSections(prev => prev.map(s => {
       if (s.id !== id) return s;
       const updated = { ...s, ...patch };
-      // Auto-suggest waste if pitch changed
-      if (patch.pitch !== undefined && !('wasteFactor' in patch)) {
-        updated.wasteFactor = suggestWaste(patch.pitch);
-      }
+      if (patch.pitch !== undefined && !('wasteFactor' in patch)) updated.wasteFactor = suggestWaste(patch.pitch);
       return updated;
     }));
   }
 
-  function zoomIn()  { if (mapRef.current) { const z = (mapRef.current.getZoom() ?? 20) + 1; mapRef.current.setZoom(Math.min(22, z)); } }
-  function zoomOut() { if (mapRef.current) { const z = (mapRef.current.getZoom() ?? 20) - 1; mapRef.current.setZoom(Math.max(15, z)); } }
+  function snapZoom(z: number) { mapRef.current?.setZoom(z); }
+  function zoomIn()  { if (mapRef.current) mapRef.current.setZoom(Math.min(22, (mapRef.current.getZoom() ?? 20) + 1)); }
+  function zoomOut() { if (mapRef.current) mapRef.current.setZoom(Math.max(14, (mapRef.current.getZoom() ?? 20) - 1)); }
 
   /* ═══════════════ PRICE CALCULATION ═════════════════ */
   const priceCalc = useMemo(() => {
-    const baseRate = material === 'premium' ? 8 : 7;
+    const baseRate        = material === 'premium' ? 8 : 7;
     const replaceSections = sections.filter(s => s.workType === 'replace');
     const repairSections  = sections.filter(s => s.workType === 'repair');
     const totalSqftWaste  = replaceSections.reduce((sum, s) => sum + sqftWithWaste(s.sqft, s.wasteFactor), 0);
@@ -424,12 +482,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
     replaceSections.forEach(s => {
       const sw = sqftWithWaste(s.sqft, s.wasteFactor);
-      const surcharge = getPitchSurcharge(s.pitch);
-      const rate = baseRate + surcharge;
+      const rate = baseRate + getPitchSurcharge(s.pitch);
       lineItems.push({ label: `${s.name} — ${sw.toLocaleString()} sqft × $${rate.toFixed(2)}/sqft`, amount: Math.round(sw * rate) });
       if (s.layers === 2) lineItems.push({ label: `${s.name} — 2-layer tearoff surcharge`, amount: 500 });
     });
-
     repairSections.forEach(s => {
       lineItems.push({ label: `${s.name} — Repair estimate ($350–$2,500)`, amount: 1425, isRange: true });
     });
@@ -446,29 +502,32 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     }
 
     if (addOns.ridgeVent)    lineItems.push({ label: 'Ridge Vent Upgrade', amount: 300 });
-    if (addOns.iceWaterFull && totalSqftWaste > 0) lineItems.push({ label: `Full Ice & Water Shield (${Math.round(totalSqftWaste).toLocaleString()} sqft × $0.85)`, amount: Math.round(totalSqftWaste * 0.85) });
-    if (addOns.dripEdgeUpgrade && linear.eave > 0) lineItems.push({ label: `Drip Edge Upgrade (${linear.eave}lf × $2.50)`, amount: Math.round(linear.eave * 2.5) });
-    if (addOns.skylights > 0)  lineItems.push({ label: `Skylight Flashing (${addOns.skylights} × $250)`, amount: addOns.skylights * 250 });
-    if (addOns.chimneys  > 0)  lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} × $400)`, amount: addOns.chimneys * 400 });
+    if (addOns.iceWaterFull && totalSqftWaste > 0)
+      lineItems.push({ label: `Full Ice & Water Shield (${totalSqftWaste.toLocaleString()} sqft × $0.85)`, amount: Math.round(totalSqftWaste * 0.85) });
+    if (addOns.dripEdgeUpgrade && linear.eave > 0)
+      lineItems.push({ label: `Drip Edge Upgrade (${linear.eave}lf × $2.50)`, amount: Math.round(linear.eave * 2.5) });
+    if (addOns.skylights > 0) lineItems.push({ label: `Skylight Flashing (${addOns.skylights} × $250)`, amount: addOns.skylights * 250 });
+    if (addOns.chimneys  > 0) lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} × $400)`,   amount: addOns.chimneys * 400 });
 
-    const overrideSqft = showManual && manualSqft ? parseInt(manualSqft, 10) : null;
-    const displayTotal = overrideSqft ?? (sections.length > 0 ? replaceSections.reduce((sum, s) => sum + s.sqft, 0) : 0);
-
+    const overrideSqft = manualSqft ? parseInt(manualSqft, 10) : null;
+    const displayTotal = overrideSqft ?? replaceSections.reduce((sum, s) => sum + s.sqft, 0);
     const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
-    const rangeMin = Math.max(0, subtotal - 1000);
-    const rangeMax = subtotal + 1000;
 
-    return { lineItems, subtotal, rangeMin, rangeMax, midpoint: subtotal, totalSqftWaste, displayTotal };
-  }, [sections, material, linear, addOns, manualSqft, showManual]);
+    return { lineItems, subtotal, rangeMin: Math.max(0, subtotal - 1000), rangeMax: subtotal + 1000, midpoint: subtotal, totalSqftWaste, displayTotal };
+  }, [sections, material, linear, addOns, manualSqft]);
+
+  /* ═══════════════ SOLAR SEGMENT TOTAL ═══════════════ */
+  const selectedSegmentSqft = useMemo(() => {
+    if (selectedSegIds.size === 0) return 0;
+    return Math.round(Array.from(selectedSegIds).reduce((sum, i) => sum + (solarSegments[i]?.stats?.areaMeters2 ?? 0) * 10.764, 0));
+  }, [selectedSegIds, solarSegments]);
 
   /* ═══════════════ PITCH SUMMARY ══════════════════════ */
   const pitchSummary = useMemo(() => {
-    if (sections.length === 0) return null;
     const replSecs = sections.filter(s => s.workType === 'replace');
     if (replSecs.length === 0) return null;
     const totalArea = replSecs.reduce((sum, s) => sum + s.sqft, 0);
-    const avgPitch  = totalArea > 0
-      ? replSecs.reduce((sum, s) => sum + s.pitch * s.sqft, 0) / totalArea : 0;
+    const avgPitch  = totalArea > 0 ? replSecs.reduce((sum, s) => sum + s.pitch * s.sqft, 0) / totalArea : 0;
     return { avgPitch, sections: replSecs.map(s => ({ name: s.name, pitch: s.pitch, surcharge: getPitchSurcharge(s.pitch) })) };
   }, [sections]);
 
@@ -478,8 +537,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     try {
       const totalSqft = sections.reduce((sum, s) => sum + s.sqft, 0) || parseInt(manualSqft || '0', 10);
       await fetch(`/api/admin/leads/${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quote_amount: priceCalc.midpoint, roof_size: String(totalSqft) }),
       });
       const sectionLines = sections.map(s =>
@@ -495,8 +553,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         scopeNotes ? `Notes: ${scopeNotes}` : null,
       ].filter(Boolean).join('\n');
       await fetch(`/api/admin/leads/${leadId}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: summary }),
       });
       setSaveSuccess(true);
@@ -508,34 +565,27 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     setSending(true); setSendError('');
     try {
       const res = await fetch(`/api/admin/leads/${leadId}/send-quote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: lead.name, email: lead.email, phone: lead.phone, address: lead.address,
           sections: sections.map(s => ({
             name: s.name, sqft: s.sqft,
             sqftWithWaste: sqftWithWaste(s.sqft, s.wasteFactor),
             pitch: s.pitch, workType: s.workType,
-            layers: s.layers, wasteFactor: s.wasteFactor,
+            layers: s.layers, wastePercent: s.wasteFactor,
           })),
           linearMeasurements: linear,
           material,
           addOns: [
-            addOns.ridgeVent && 'Ridge Vent Upgrade (+$300)',
-            addOns.iceWaterFull && 'Full Ice & Water Shield (+$0.85/sqft)',
-            addOns.dripEdgeUpgrade && linear.eave > 0 && `Drip Edge Upgrade (${linear.eave}lf × $2.50)`,
+            addOns.ridgeVent        && 'Ridge Vent Upgrade (+$300)',
+            addOns.iceWaterFull     && 'Full Ice & Water Shield (+$0.85/sqft)',
+            addOns.dripEdgeUpgrade  && linear.eave > 0 && `Drip Edge Upgrade (${linear.eave}lf × $2.50)`,
             addOns.gutterInspection && 'Gutter Inspection (Complimentary)',
           ].filter(Boolean) as string[],
           skylights: addOns.skylights,
           chimneys: addOns.chimneys,
-          priceBreakdown: {
-            lineItems: priceCalc.lineItems,
-            subtotal: priceCalc.subtotal,
-            rangeMin: priceCalc.rangeMin,
-            rangeMax: priceCalc.rangeMax,
-          },
-          scopeNotes,
-          leadId,
+          priceBreakdown: { lineItems: priceCalc.lineItems, subtotal: priceCalc.subtotal, rangeMin: priceCalc.rangeMin, rangeMax: priceCalc.rangeMax },
+          scopeNotes, leadId,
         }),
       });
       if (res.ok) { setSentBanner(true); setTimeout(() => setSentBanner(false), 5000); }
@@ -549,12 +599,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   const tbBtn = (active?: boolean, danger?: boolean) =>
     `flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all ${
-      danger   ? 'bg-red-900/40 text-red-400 hover:bg-red-900/60' :
-      active   ? 'bg-blue-600 text-white' :
-                 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+      danger ? 'bg-red-900/40 text-red-400 hover:bg-red-900/60' :
+      active ? 'bg-blue-600 text-white' :
+               'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
     }`;
-
-  const mapTypeBtns: MapType[] = ['satellite', 'hybrid', 'roadmap'];
 
   /* ═══════════════ JSX ══════════════════════════════════ */
   return (
@@ -595,25 +643,41 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           )}
         </div>
 
-        {/* ── Toolbar row 2: view controls ──────────── */}
+        {/* ── Toolbar row 2: view + zoom controls ───── */}
         <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-700 flex-wrap">
+          {/* Map type toggle (mirrors native control) */}
           <div className="flex rounded overflow-hidden border border-gray-700">
-            {mapTypeBtns.map(t => (
+            {(['satellite','hybrid','roadmap'] as MapType[]).map(t => (
               <button key={t} onClick={() => setMapType(t)}
                 className={`px-2.5 py-1.5 text-xs font-medium transition-all capitalize ${mapType === t ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
                 {t}
               </button>
             ))}
           </div>
-          <button onClick={() => setStreetView(true)} className={tbBtn()}>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3" strokeWidth={2}/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-            Street View
+
+          {/* 360 View button */}
+          <button onClick={() => { setSvAvailable(null); setStreetView(true); }} className={tbBtn()}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" strokeWidth={2}/>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 12h20M12 2c-2.5 4-4 6.5-4 10s1.5 6 4 10M12 2c2.5 4 4 6.5 4 10s-1.5 6-4 10"/>
+            </svg>
+            360 View
           </button>
-          <div className="flex items-center gap-1.5 ml-auto">
-            <button onClick={zoomOut} className={tbBtn()}>
+
+          {/* Zoom snap buttons */}
+          <div className="flex items-center gap-1 ml-auto">
+            <span className="text-[10px] text-gray-500 mr-0.5">Zoom:</span>
+            <div className="flex rounded overflow-hidden border border-gray-700">
+              {ZOOM_LEVELS.map(z => (
+                <button key={z} onClick={() => snapZoom(z)}
+                  className={`px-1.5 py-1 text-[10px] font-medium transition-all ${zoomLevel === z ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
+                  {z}
+                </button>
+              ))}
+            </div>
+            <button onClick={zoomOut} className={`ml-1 ${tbBtn()}`}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
             </button>
-            <span className="text-xs text-gray-400 w-10 text-center">z{zoomLevel}</span>
             <button onClick={zoomIn} className={tbBtn()}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             </button>
@@ -624,7 +688,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         <div className="relative flex-shrink-0" style={{ height: 480 }}>
           <div ref={mapDivRef} style={{ height: '100%', width: '100%', display: showMap ? 'block' : 'none' }} />
 
-          {/* Crosshair in drawing mode */}
           {drawMode && showMap && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <svg width="32" height="32" viewBox="0 0 32 32">
@@ -635,7 +698,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             </div>
           )}
 
-          {/* Loading state */}
           {!showMap && !mapsFailed && (
             <div className="h-full bg-gray-800 flex items-center justify-center">
               <div className="text-center">
@@ -650,7 +712,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             </div>
           )}
 
-          {/* Section naming card */}
           {pendingShape && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 bg-gray-900 border border-blue-500 rounded-xl p-4 shadow-2xl w-72">
               <div className="flex items-center gap-2 mb-3">
@@ -658,10 +719,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <p className="text-sm font-semibold text-white">Name this section</p>
                 <span className="text-xs text-gray-400 ml-auto">{pendingShape.sqft.toLocaleString()} sqft</span>
               </div>
-              <input
-                autoFocus
-                value={pendingName}
-                onChange={e => setPendingName(e.target.value)}
+              <input autoFocus value={pendingName} onChange={e => setPendingName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && confirmName()}
                 placeholder="e.g. Front Main, Garage, Dormer"
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 mb-3"
@@ -689,7 +747,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             const isRenaming = renamingId === s.id;
             return (
               <div key={s.id} className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-                {/* Header row */}
                 <div className="flex items-center gap-2 px-3 py-2.5">
                   <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: s.color }} />
                   {isRenaming ? (
@@ -713,9 +770,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                   </div>
                 </div>
 
-                {/* Details row */}
                 <div className="px-3 pb-3 grid grid-cols-2 gap-3 border-t border-gray-800 pt-2.5">
-                  {/* Pitch */}
                   <div>
                     <label className="block text-[10px] text-gray-500 mb-1">Pitch (degrees)</label>
                     <div className="flex items-center gap-1.5 mb-1.5">
@@ -735,9 +790,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                     </div>
                   </div>
 
-                  {/* Right side controls */}
                   <div className="space-y-2">
-                    {/* Work type */}
                     <div>
                       <label className="block text-[10px] text-gray-500 mb-1">Work Type</label>
                       <div className="flex rounded overflow-hidden border border-gray-700">
@@ -749,7 +802,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                         ))}
                       </div>
                     </div>
-                    {/* Layers (replace only) */}
                     {s.workType === 'replace' && (
                       <div>
                         <label className="block text-[10px] text-gray-500 mb-1">Layers to Remove</label>
@@ -763,7 +815,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                         </div>
                       </div>
                     )}
-                    {/* Waste factor */}
                     {s.workType === 'replace' && (
                       <div>
                         <div className="flex items-center justify-between mb-1">
@@ -774,9 +825,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                           onChange={e => updateSection(s.id, { wasteFactor: Number(e.target.value) })}
                           className="w-full h-1.5 accent-blue-500"
                         />
-                        {s.wasteFactor >= 15 && (
-                          <p className="text-[9px] text-gray-500 mt-0.5">Hip/Complex roofs need more waste</p>
-                        )}
+                        {s.wasteFactor >= 15 && <p className="text-[9px] text-gray-500 mt-0.5">Hip/Complex roofs need more waste</p>}
                       </div>
                     )}
                   </div>
@@ -785,20 +834,17 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             );
           })}
 
-          {/* Total area display */}
+          {/* Drawn sections area summary */}
           {sections.length > 0 && (
             <div className="bg-gray-900 rounded-xl border border-gray-800 p-3 mt-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Area Summary</span>
-              </div>
-              <table className="w-full text-xs">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Area Summary</span>
+              <table className="w-full text-xs mt-2">
                 <thead><tr className="text-gray-500"><th className="text-left py-0.5">Section</th><th className="text-right">Net</th><th className="text-right">+Waste</th></tr></thead>
                 <tbody>
                   {sections.map(s => (
                     <tr key={s.id} className="border-t border-gray-800">
                       <td className="py-1 text-gray-300 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-sm inline-block flex-shrink-0" style={{ backgroundColor: s.color }} />
-                        {s.name}
+                        <span className="w-2 h-2 rounded-sm inline-block flex-shrink-0" style={{ backgroundColor: s.color }} />{s.name}
                       </td>
                       <td className="text-right text-gray-300">{s.sqft.toLocaleString()}</td>
                       <td className="text-right text-blue-300">{sqftWithWaste(s.sqft, s.wasteFactor).toLocaleString()}</td>
@@ -814,24 +860,71 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             </div>
           )}
 
-          {/* Manual override */}
-          {sections.length === 0 && (
-            <div className="mt-2">
-              {!showManual ? (
-                <button onClick={() => setShowManual(true)} className="text-xs text-gray-500 hover:text-gray-300 underline transition-colors">
-                  Enter manually instead
-                </button>
-              ) : (
-                <div className="bg-gray-900 rounded-xl border border-gray-800 p-3">
-                  <label className="block text-xs text-gray-400 mb-1.5">Manual sq ft override</label>
-                  <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
-                    placeholder="e.g. 2400" autoFocus
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
-                  />
+          {/* Solar API detected segments */}
+          {solarSegments.length > 0 && (
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-3 mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Solar API Segments</span>
+                <span className="text-[10px] text-gray-500">{solarSegments.length} detected · click to select</span>
+              </div>
+              <div className="space-y-1">
+                {solarSegments.map((seg, i) => {
+                  const isSelected = selectedSegIds.has(i);
+                  const sqft  = Math.round((seg.stats?.areaMeters2 ?? 0) * 10.764);
+                  const pitch = seg.pitchDegrees   ? Math.round(seg.pitchDegrees)   : 0;
+                  const az    = seg.azimuthDegrees ? Math.round(seg.azimuthDegrees) : 0;
+                  const color = SEG_COLORS[i % SEG_COLORS.length];
+                  return (
+                    <button key={i}
+                      onClick={() => {
+                        setSelectedSegIds(prev => {
+                          const next = new Set(prev);
+                          const poly = segmentPolysRef.current.get(i);
+                          if (next.has(i)) { next.delete(i); poly?.setOptions({ fillOpacity: 0.25 }); }
+                          else             { next.add(i);    poly?.setOptions({ fillOpacity: 0.55 }); }
+                          return next;
+                        });
+                      }}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all ${isSelected ? 'bg-blue-600/20 border border-blue-500/40' : 'bg-gray-800 border border-transparent hover:border-gray-700'}`}>
+                      <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: color }} />
+                      <span className={`flex-1 text-left ${isSelected ? 'text-white' : 'text-gray-400'}`}>Segment {i + 1}</span>
+                      <span className="text-gray-500">{sqft.toLocaleString()} sqft</span>
+                      <span className="text-gray-600">{pitch}° pitch</span>
+                      <span className="text-gray-600">{az}° az</span>
+                      {isSelected && <svg className="w-3 h-3 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedSegIds.size > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-800 flex items-center justify-between">
+                  <span className="text-xs text-gray-500">{selectedSegIds.size} segment{selectedSegIds.size !== 1 ? 's' : ''} selected</span>
+                  <span className="text-xs font-semibold text-blue-400">Detected total: {selectedSegmentSqft.toLocaleString()} sqft</span>
                 </div>
               )}
             </div>
           )}
+
+          {/* Manual sq ft override — always visible */}
+          <div className="mt-2 bg-gray-900 rounded-xl border border-gray-800 p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs text-gray-400 font-medium">Manual sq ft override</label>
+              {manualSqft && (
+                <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full font-medium">
+                  Manual override active
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input type="number" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
+                placeholder="Leave blank to use drawn/detected area"
+                className={`flex-1 px-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none ${manualSqft ? 'border-yellow-500/50 focus:border-yellow-400' : 'border-gray-700 focus:border-blue-500'}`}
+              />
+              {manualSqft && (
+                <button onClick={() => setManualSqft('')} className="px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">✕</button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -895,10 +988,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Add-ons</h3>
           <div className="space-y-2">
             {([
-              ['ridgeVent',     'Ridge Vent Upgrade',      '+$300',     'Improves attic ventilation and extends shingle life'],
-              ['iceWaterFull',  'Full Ice & Water Shield', '+$0.85/sqft','Recommended for CT winters — whole roof, not just eaves'],
-              ['dripEdgeUpgrade','Drip Edge Upgrade (alum)','$2.50/eave lf','Auto-calculated from eave measurement above'],
-              ['gutterInspection','Gutter Inspection',     'Complimentary','Included while on-site'],
+              ['ridgeVent',      'Ridge Vent Upgrade',       '+$300',          'Improves attic ventilation and extends shingle life'],
+              ['iceWaterFull',   'Full Ice & Water Shield',  '+$0.85/sqft',    'Recommended for CT winters — whole roof, not just eaves'],
+              ['dripEdgeUpgrade','Drip Edge Upgrade (alum)', '$2.50/eave lf',  'Auto-calculated from eave measurement above'],
+              ['gutterInspection','Gutter Inspection',       'Complimentary',  'Included while on-site'],
             ] as const).map(([key, label, price, note]) => {
               const active = addOns[key as keyof AddOnsState] as boolean;
               return (
@@ -919,7 +1012,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 </button>
               );
             })}
-            {/* Skylights stepper */}
             <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold text-gray-300">Skylight Flashing</p>
@@ -931,7 +1023,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <button onClick={() => setAddOns(p => ({ ...p, skylights: Math.min(5, p.skylights + 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">+</button>
               </div>
             </div>
-            {/* Chimneys stepper */}
             <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
               <div>
                 <p className="text-xs font-semibold text-gray-300">Chimney Flashing</p>
@@ -955,9 +1046,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <span className={`text-xs px-2 py-1 rounded-full border ${getPitchLabel(pitchSummary.avgPitch).badge}`}>
                   {getPitchLabel(pitchSummary.avgPitch).label}
                 </span>
-                <span className="text-xs text-gray-400">
-                  Surcharge: <span className="text-white font-medium">+${getPitchSurcharge(pitchSummary.avgPitch).toFixed(2)}/sqft</span>
-                </span>
+                <span className="text-xs text-gray-400">Surcharge: <span className="text-white font-medium">+${getPitchSurcharge(pitchSummary.avgPitch).toFixed(2)}/sqft</span></span>
               </div>
             ) : (
               <div className="space-y-1.5">
@@ -999,8 +1088,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               </div>
             </div>
           )}
-
-          {/* Price range box */}
           <div className="bg-[#0f1e3b] rounded-xl border border-blue-900/40 p-4 mt-4">
             <p className="text-xs text-blue-300/60 mb-1">Estimated Project Range</p>
             <p className="text-2xl font-black text-white">
@@ -1022,21 +1109,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
         {/* ACTIONS */}
         <div className="space-y-2 pb-4">
-          {saveSuccess && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400">
-              Saved to lead successfully.
-            </div>
-          )}
-          {sentBanner && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400">
-              Proposal sent to {lead.email}
-            </div>
-          )}
-          {sendError && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 text-sm text-red-400">
-              {sendError}
-            </div>
-          )}
+          {saveSuccess && <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400">Saved to lead successfully.</div>}
+          {sentBanner  && <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-sm text-green-400">Proposal sent to {lead.email}</div>}
+          {sendError   && <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 text-sm text-red-400">{sendError}</div>}
           <button onClick={handleSave} disabled={saving || (sections.length === 0 && !manualSqft)}
             className="w-full py-2.5 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-white text-sm font-semibold rounded-lg transition-colors">
             {saving ? 'Saving…' : 'Save to Lead'}
@@ -1050,17 +1125,31 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         </div>
       </div>
 
-      {/* ══════════════ STREET VIEW MODAL ═══════════════ */}
+      {/* ══════════════ STREET VIEW MODAL (full screen) ══ */}
       {streetView && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-xl overflow-hidden w-full max-w-3xl">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-              <p className="text-sm font-semibold text-white">Street View — {lead.address}</p>
-              <button onClick={() => setStreetView(false)} className="text-gray-400 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div ref={svDivRef} style={{ height: 480, width: '100%' }} />
+        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-900/95 border-b border-gray-800 flex-shrink-0">
+            <p className="text-sm font-semibold text-white">360° Street View — {lead.address}</p>
+            <button onClick={() => { setStreetView(false); setSvAvailable(null); }} className="text-gray-400 hover:text-white transition-colors p-1">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div className="flex-1 relative">
+            {svAvailable === null && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-950 z-10">
+                <svg className="w-7 h-7 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+              </div>
+            )}
+            {svAvailable === false && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-950 z-10">
+                <div className="text-center">
+                  <svg className="w-10 h-10 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                  <p className="text-sm text-gray-400">Street View not available for this address — try a nearby street</p>
+                  <p className="text-xs text-gray-600 mt-1">Use satellite view on the map instead</p>
+                </div>
+              </div>
+            )}
+            <div ref={svDivRef} style={{ height: '100%', width: '100%' }} />
           </div>
         </div>
       )}
