@@ -274,7 +274,7 @@ function generateProposalPDF(data: {
 
   addFooter(2);
 
-  return doc.output('base64');
+  return Buffer.from(doc.output('arraybuffer')).toString('base64');
 }
 
 /* ─── Route handler ───────────────────────────────────── */
