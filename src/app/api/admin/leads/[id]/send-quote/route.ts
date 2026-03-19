@@ -52,8 +52,8 @@ const GRAY  = [120, 120, 120] as [number, number, number];
 const DARK  = [25, 25, 25]    as [number, number, number];
 const LG    = [247, 248, 250] as [number, number, number];
 const HEADER_H = 40;
-const LOGO_H   = 20;
-const LOGO_W   = 52;
+const LOGO_H   = 14;
+const LOGO_W   = 42;
 const LM = 14; // left margin
 const RM = 14; // right margin
 const LH10 = 4.8; // line height for 10pt text (mm)
@@ -282,11 +282,10 @@ function addSignatureBlock(doc: jsPDF, y: number, introText: string): number {
   doc.roundedRect(rightX, y, colW, sigBoxH, 2, 2, 'FD');
   let ry = y + 6;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
-  doc.text('CONTRACTOR', rightX + 4, ry); ry += 7;
+  doc.text('Contractor: Tenzin, Trust Proof Roofing LLC', rightX + 4, ry); ry += 7;
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-  doc.text('Tenzin \u2014 Trust Proof Roofing LLC', rightX + 4, ry); ry += 6.5;
-  doc.text('Printed Name: ______________________', rightX + 4, ry); ry += 6.5;
   doc.text('Signature: _________________________', rightX + 4, ry); ry += 6.5;
+  doc.text('Printed Name: ______________________', rightX + 4, ry); ry += 6.5;
   doc.text('Date: _____________________________', rightX + 4, ry);
 
   return y + sigBoxH + S;
@@ -353,7 +352,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   y = addInvestmentBox(doc, y, 'Preliminary Estimate', subtotal, 'Final pricing confirmed after on-site inspection and exact measurements.');
 
   /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
-  if (y > SAFE_BOTTOM - 70) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 48) { doc.addPage(); y = 14; }
 
   y = addConditionalPricingNotice(doc, y);
 
@@ -467,7 +466,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   y = addInvestmentBox(doc, y, 'Project Investment', subtotal, 'Price valid for 30 days from date of proposal.');
 
   /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
-  if (y > SAFE_BOTTOM - 70) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 48) { doc.addPage(); y = 14; }
 
   y = addConditionalPricingNotice(doc, y);
 
