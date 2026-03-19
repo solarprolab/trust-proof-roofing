@@ -100,7 +100,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const initialLoadDoneRef = useRef(false);
   const measuringRef       = useRef(false);
   const dblClickTimeRef    = useRef(0);
-  const edgeMarkersRef     = useRef<google.maps.Marker[]>([]);
+  const edgeInfoWindowsRef = useRef<google.maps.InfoWindow[]>([]);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -322,7 +322,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       (overlay as any)._centroid = centroid;
     });
 
-    map.addListener('click', () => setSelectedSectionId(null));
+    map.addListener('click', () => { clearEdgeMeasurements(); setSelectedSectionId(null); });
 
     setMapInitialized(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -581,63 +581,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     });
   }, [sections]);
 
-  /* ── 9. Edge measurement markers for selected section ── */
-  useEffect(() => {
-    edgeMarkersRef.current.forEach(m => m.setMap(null));
-    edgeMarkersRef.current = [];
-    if (selectedSectionId === null || !mapInitialized || !mapRef.current) return;
-    const entry = overlaysRef.current.get(selectedSectionId);
-    if (!entry) return;
-    const { shape } = entry;
-    let vertices: google.maps.LatLng[] = [];
-    if ('getPath' in shape) {
-      const path = (shape as google.maps.Polygon).getPath();
-      for (let i = 0; i < path.getLength(); i++) vertices.push(path.getAt(i));
-    } else {
-      const b = (shape as google.maps.Rectangle).getBounds()!;
-      const ne = b.getNorthEast(), sw = b.getSouthWest();
-      vertices = [ne, new google.maps.LatLng(ne.lat(), sw.lng()), sw, new google.maps.LatLng(sw.lat(), ne.lng())];
-    }
-    if (vertices.length < 2) return;
-    const pillSvg = encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="68" height="22">' +
-      '<rect x="0.5" y="0.5" width="67" height="21" rx="5" fill="rgba(0,0,0,0.88)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>' +
-      '</svg>'
-    );
-    const iconUrl = `data:image/svg+xml;charset=UTF-8,${pillSvg}`;
-    for (let i = 0; i < vertices.length; i++) {
-      const p1 = vertices[i];
-      const p2 = vertices[(i + 1) % vertices.length];
-      const distFt = Math.round(google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084);
-      const mid = new google.maps.LatLng((p1.lat() + p2.lat()) / 2, (p1.lng() + p2.lng()) / 2);
-      const marker = new google.maps.Marker({
-        position: mid,
-        map: mapRef.current,
-        clickable: false,
-        optimized: false,
-        zIndex: 20,
-        icon: {
-          url: iconUrl,
-          scaledSize: new google.maps.Size(68, 22),
-          anchor: new google.maps.Point(34, 11),
-          labelOrigin: new google.maps.Point(34, 11),
-        },
-        label: {
-          text: `${distFt} ft`,
-          color: '#ffffff',
-          fontSize: '11px',
-          fontWeight: 'bold',
-          fontFamily: 'sans-serif',
-        },
-      });
-      edgeMarkersRef.current.push(marker);
-    }
-    return () => {
-      edgeMarkersRef.current.forEach(m => m.setMap(null));
-      edgeMarkersRef.current = [];
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSectionId, mapInitialized]);
+  /* ── 9. (removed — edge labels now imperative) ── */
 
   /* ── Unsaved changes tracking ───────────────────────── */
   const currentStateJson = useMemo(() => {
@@ -656,6 +600,39 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   }, [currentStateJson]);
 
   /* ═══════════════ MAP HANDLERS ═══════════════════════ */
+
+  function clearEdgeMeasurements() {
+    edgeInfoWindowsRef.current.forEach(iw => iw.close());
+    edgeInfoWindowsRef.current = [];
+  }
+
+  function showEdgeMeasurements(shape: google.maps.Polygon | google.maps.Rectangle) {
+    clearEdgeMeasurements();
+    if (!mapRef.current) return;
+    let vertices: google.maps.LatLng[] = [];
+    if ('getPath' in shape) {
+      const path = (shape as google.maps.Polygon).getPath();
+      for (let i = 0; i < path.getLength(); i++) vertices.push(path.getAt(i));
+    } else {
+      const b = (shape as google.maps.Rectangle).getBounds()!;
+      const ne = b.getNorthEast(), sw = b.getSouthWest();
+      vertices = [ne, new google.maps.LatLng(ne.lat(), sw.lng()), sw, new google.maps.LatLng(sw.lat(), ne.lng())];
+    }
+    if (vertices.length < 2) return;
+    for (let i = 0; i < vertices.length; i++) {
+      const p1 = vertices[i];
+      const p2 = vertices[(i + 1) % vertices.length];
+      const distFt = (google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084).toFixed(1);
+      const mid = new google.maps.LatLng((p1.lat() + p2.lat()) / 2, (p1.lng() + p2.lng()) / 2);
+      const iw = new google.maps.InfoWindow({
+        content: `<div style="font:bold 11px/1 sans-serif;color:#000;padding:2px 4px;white-space:nowrap">${distFt} ft</div>`,
+        position: mid,
+        disableAutoPan: true,
+      });
+      iw.open(mapRef.current);
+      edgeInfoWindowsRef.current.push(iw);
+    }
+  }
 
   function confirmName() {
     if (!pendingOvRef.current || !pendingShape) return;
@@ -681,7 +658,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     }
     overlaysRef.current.set(pendingShape.id, { shape: overlay, label: labelOverlay });
     const sectionId = pendingShape.id;
-    overlay.addListener('click', () => setSelectedSectionId(sectionId));
+    overlay.addListener('click', (e: google.maps.MapMouseEvent) => {
+      e.stop();
+      setSelectedSectionId(sectionId);
+      showEdgeMeasurements(overlay);
+    });
     setSections(prev => [...prev, {
       id: pendingShape.id, name, sqft: pendingShape.sqft, pitch: 18, workType: 'replace',
       layers: 1, wasteFactor: 12, color: pendingShape.color,
@@ -701,7 +682,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     const e = overlaysRef.current.get(id);
     if (e) { e.shape.setMap(null); e.label?.setMap(null); overlaysRef.current.delete(id); }
     setSections(prev => prev.filter(s => s.id !== id));
-    setSelectedSectionId(prev => prev === id ? null : prev);
+    setSelectedSectionId(prev => { if (prev === id) { clearEdgeMeasurements(); return null; } return prev; });
   }
 
   function undoLast() {
@@ -714,7 +695,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     if (pendingShape) cancelPending();
     sections.forEach(s => { const e = overlaysRef.current.get(s.id); e?.shape.setMap(null); e?.label?.setMap(null); });
     overlaysRef.current.clear(); setSections([]); setClearConfirm(false); counterRef.current = 0;
-    setSelectedSectionId(null);
+    clearEdgeMeasurements(); setSelectedSectionId(null);
   }
 
   function updateSection(id: number, patch: Partial<Section>) {
