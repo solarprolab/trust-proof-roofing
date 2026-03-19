@@ -438,6 +438,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     measureLabelsRef.current.forEach(l => l.setMap(null));
     measureLabelsRef.current = [];
     map.setOptions({ disableDoubleClickZoom: true });
+    const capturedEditMode = editMode;
+    overlaysRef.current.forEach(({ shape }) => shape.setOptions({ clickable: false, draggable: false }));
 
     const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
       if (!e.latLng) return;
@@ -471,7 +473,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         }
         const id = measureCounterRef.current++;
         setCompletedMeasurements(prev => [...prev, {
-          id, name: `Measurement ${id + 1}`, totalFt: Math.round(totalFt),
+          id, name: `Ridge ${id + 1}`, totalFt: Math.round(totalFt),
           points: pts.map(p => ({ lat: p.lat(), lng: p.lng() })),
         }]);
       }
@@ -487,6 +489,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       measurePointsRef.current = [];
       setMeasurePoints([]);
       map.setOptions({ disableDoubleClickZoom: false });
+      overlaysRef.current.forEach(({ shape }) => shape.setOptions({ clickable: true, draggable: capturedEditMode }));
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [measureMode, mapInitialized]);
@@ -983,11 +986,17 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         {/* ── Completed measurements ────────────────── */}
         {completedMeasurements.length > 0 && (
           <div className="border-b border-gray-800 bg-gray-900 p-3 space-y-1.5">
-            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
-              Measurements
-              <span className="text-[9px] text-gray-600 normal-case font-normal ml-1">Click to highlight on map</span>
-            </h4>
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 8v8M7 8v4M11 8v6M15 8v4M19 8v8"/></svg>
+              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Measurements</h4>
+              <span className="text-[9px] text-gray-600 normal-case font-normal">Click to highlight on map</span>
+              <button
+                onClick={() => { setCompletedMeasurements([]); setHighlightedMeasId(null); }}
+                className="ml-auto text-[10px] text-gray-500 hover:text-red-400 transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
             {completedMeasurements.map(m => (
               <div key={m.id}
                 className={`flex items-center gap-2 bg-gray-800 border rounded-lg px-3 py-2 cursor-pointer transition-all ${highlightedMeasId === m.id ? 'border-yellow-500/60 bg-yellow-500/5' : 'border-gray-700 hover:border-gray-600'}`}
@@ -1028,6 +1037,12 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 </button>
               </div>
             ))}
+            <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-gray-800">
+              <span className="text-[10px] text-gray-500">Total</span>
+              <span className="text-xs font-semibold text-yellow-300">
+                {completedMeasurements.reduce((sum, m) => sum + m.totalFt, 0).toLocaleString()} ft
+              </span>
+            </div>
           </div>
         )}
 
