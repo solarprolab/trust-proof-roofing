@@ -55,6 +55,8 @@ export default function DistributorDetailClient() {
   const [preview, setPreview] = useState<CatalogItem[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [extracting, setExtracting] = useState(false);
+  const [extractedFileName, setExtractedFileName] = useState('');
 
   useEffect(() => {
     fetch(`/api/admin/distributors/${id}`)
@@ -121,6 +123,31 @@ export default function DistributorDetailClient() {
     setRawText('');
     setParseError('');
     setSaveMsg('');
+    setExtractedFileName('');
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setExtracting(true);
+    setParseError('');
+    setSaveMsg('');
+    setExtractedFileName(file.name);
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/catalog/extract-text', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Extraction failed');
+      setRawText(data.text || '');
+    } catch (err: any) {
+      setParseError(err.message || 'Failed to extract file text');
+      setExtractedFileName('');
+    } finally {
+      setExtracting(false);
+    }
   }
 
   const categories = ['all', ...Array.from(new Set(catalog.map(r => r.category || 'other').filter(Boolean))).sort()];
@@ -220,6 +247,50 @@ export default function DistributorDetailClient() {
 
           {preview === null ? (
             <>
+              {/* File upload row */}
+              <div className="flex items-center gap-3 mb-4">
+                <label className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  extracting
+                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-gray-700 border-gray-600 text-gray-300 hover:text-white'
+                }`}>
+                  {extracting ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      Extracting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload a file
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.xlsx,.xls,.csv,.txt"
+                    className="hidden"
+                    disabled={extracting}
+                    onChange={handleFileUpload}
+                  />
+                </label>
+                {extractedFileName && !extracting && (
+                  <span className="text-xs text-green-400 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {extractedFileName}
+                  </span>
+                )}
+                <span className="text-xs text-gray-600">Accepts .pdf, .docx, .xlsx, .csv, .txt</span>
+              </div>
+
+              {/* Paste textarea */}
+              <p className="text-xs text-gray-500 mb-1.5">Or paste text below</p>
               <textarea
                 value={rawText}
                 onChange={e => setRawText(e.target.value)}
