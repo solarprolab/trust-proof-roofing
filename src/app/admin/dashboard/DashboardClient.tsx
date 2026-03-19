@@ -81,6 +81,9 @@ export default function DashboardClient({ leads: initialLeads }: { leads: any[] 
                 List
               </button>
             </div>
+            <Link href="/admin/distributors" className="px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors">
+              Distributors
+            </Link>
             <form action="/api/admin/logout" method="POST">
               <button className="px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors">Logout</button>
             </form>

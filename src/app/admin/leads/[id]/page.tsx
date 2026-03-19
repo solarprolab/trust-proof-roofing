@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import QuoteBuilder from '@/components/admin/QuoteBuilder';
+import MaterialOrderTab from '@/components/admin/MaterialOrderTab';
 
 const STAGES = [
   { id: 'new', label: 'New Lead' },
@@ -26,7 +27,7 @@ export default function LeadDetailPage() {
   const [newNote, setNewNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'files' | 'quote'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'files' | 'quote' | 'order'>('details');
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -153,10 +154,19 @@ export default function LeadDetailPage() {
             </svg>
             Quote Builder
           </button>
+          <button
+            onClick={() => setActiveTab('order')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${activeTab === 'order' ? 'border-blue-500 text-white' : 'border-transparent text-gray-400 hover:text-white'}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Order Materials
+          </button>
         </div>
       </div>
 
-      <div className={activeTab === 'quote' ? '' : 'max-w-4xl mx-auto px-6 py-6'}>
+      <div className={activeTab === 'quote' || activeTab === 'order' ? '' : 'max-w-4xl mx-auto px-6 py-6'}>
         {/* DETAILS TAB */}
         {activeTab === 'details' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -293,6 +303,11 @@ export default function LeadDetailPage() {
         {/* QUOTE TAB */}
         {activeTab === 'quote' && (
           <QuoteBuilder lead={lead} leadId={id as string} />
+        )}
+
+        {/* ORDER TAB */}
+        {activeTab === 'order' && (
+          <MaterialOrderTab lead={lead} leadId={id as string} />
         )}
 
         {/* FILES TAB */}
