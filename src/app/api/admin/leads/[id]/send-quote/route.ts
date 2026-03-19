@@ -616,12 +616,7 @@ export async function POST(req: NextRequest) {
     const isPre = proposalType === 'pre';
     const firstName = (name as string).split(' ')[0];
     const displayAddress = sanitizeAddress(address as string);
-    const fmtPhone = formatPhone(phone as string);
     const { rangeMin, rangeMax, lineItems, subtotal } = priceBreakdown as PriceBreakdown;
-    const materialLabel = material === 'premium'
-      ? 'Premium Asphalt (GAF Timberline UHDZ, 50-yr mfr warranty)'
-      : 'Standard Asphalt (GAF Timberline HDZ, 30-yr mfr warranty)';
-    const addOnsLabel = (addOns as string[]).join(', ') || 'None';
 
     const sectionsArr = (sections as QuoteSection[]) || [];
     const totalSqft = sectionsArr.reduce((s, r) => s + (r.sqft || 0), 0);
@@ -651,37 +646,7 @@ export async function POST(req: NextRequest) {
       console.error('PDF generation failed:', pdfErr);
     }
 
-    // Email 1 — owner notification
-    await resend.emails.send({
-      from: 'leads@trustproofroofing.com',
-      to: 'info@trustproofroofing.com',
-      subject: `${isPre ? 'Preliminary Estimate' : 'Quote'} Sent: ${name} — ${displayAddress}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:540px;margin:0 auto">
-          <div style="background:#1B3C6B;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0">
-            <h2 style="margin:0;font-size:18px">${isPre ? 'Preliminary Estimate' : 'Quote'} Sent to Homeowner</h2>
-            <p style="margin:4px 0 0;opacity:0.7;font-size:13px">${isPre ? 'Pre-inspection estimate' : 'Post-inspection proposal'} — PDF attached</p>
-          </div>
-          <div style="border:1px solid #e5e7eb;border-top:none;padding:20px 24px;border-radius:0 0 12px 12px">
-            <table style="width:100%;font-size:14px;border-collapse:collapse">
-              <tr><td style="color:#6b7280;padding:6px 0;width:140px">Name</td><td style="font-weight:600">${name}</td></tr>
-              <tr><td style="color:#6b7280;padding:6px 0">Address</td><td>${displayAddress}</td></tr>
-              <tr><td style="color:#6b7280;padding:6px 0">Phone</td><td>${fmtPhone}</td></tr>
-              <tr><td style="color:#6b7280;padding:6px 0">Email</td><td>${email}</td></tr>
-              <tr><td style="color:#6b7280;padding:6px 0">Type</td><td>${isPre ? 'Pre-inspection (range only)' : 'Post-inspection (exact pricing)'}</td></tr>
-              <tr><td style="color:#6b7280;padding:6px 0">Material</td><td>${materialLabel}</td></tr>
-              <tr><td style="color:#6b7280;padding:6px 0">Add-ons</td><td>${addOnsLabel}</td></tr>
-            </table>
-            <div style="background:#1B3C6B;color:#fff;border-radius:8px;padding:14px 18px;margin-top:16px">
-              <p style="margin:0;font-size:11px;opacity:0.7">${isPre ? 'Estimate Range' : 'Price Range Sent'}</p>
-              <p style="margin:4px 0 0;font-size:22px;font-weight:700">${fmtMoney(rangeMin)} – ${fmtMoney(rangeMax)}</p>
-            </div>
-            ${scopeNotes ? `<div style="margin-top:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px"><p style="margin:0;font-size:12px;color:#6b7280;font-weight:600;margin-bottom:4px">Scope Notes</p><p style="margin:0;font-size:13px;color:#374151">${scopeNotes}</p></div>` : ''}
-          </div>
-        </div>`,
-    });
-
-    // Email 2 — homeowner
+    // Email — homeowner
     const subject = isPre
       ? 'Your Preliminary Roofing Estimate — Trust Proof Roofing'
       : 'Your Roofing Proposal — Trust Proof Roofing';
