@@ -63,8 +63,13 @@ const S    = 4;   // standard gap between sections (mm)
 /* ─── PDF helpers ────────────────────────────────────── */
 function addHeader(doc: jsPDF, logoBase64: string | null, subtitle: string) {
   const pw = doc.internal.pageSize.getWidth();
-  doc.setFillColor(...NAVY);
+  // White background
+  doc.setFillColor(...WHITE);
   doc.rect(0, 0, pw, HEADER_H, 'F');
+  // Bottom border
+  doc.setDrawColor(...NAVY);
+  doc.setLineWidth(0.7);
+  doc.line(0, HEADER_H, pw, HEADER_H);
 
   if (logoBase64) {
     try {
@@ -75,16 +80,16 @@ function addHeader(doc: jsPDF, logoBase64: string | null, subtitle: string) {
   const midX = pw / 2;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(...WHITE);
+  doc.setTextColor(...NAVY);
   doc.text('TRUST PROOF ROOFING', midX, 15, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(185, 210, 245);
+  doc.setTextColor(...NAVY);
   doc.text(subtitle, midX, 23, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
-  doc.setTextColor(...WHITE);
+  doc.setTextColor(...NAVY);
   doc.text('CT HIC #HIC.0703927',   pw - LM, 14, { align: 'right' });
   doc.text('(959) 333-8569',        pw - LM, 20, { align: 'right' });
   doc.text('trustproofroofing.com', pw - LM, 26, { align: 'right' });
@@ -189,7 +194,7 @@ function addInvestmentBox(doc: jsPDF, y: number, label: string, amount: number, 
   doc.setFontSize(9);
   doc.setTextColor(...GRAY);
   doc.text(footNote, pw / 2, y + boxH + 4, { align: 'center' });
-  return y + boxH + 7;
+  return y + boxH + 5;
 }
 
 function addConditionalPricingNotice(doc: jsPDF, y: number): number {
@@ -244,51 +249,32 @@ function addSignatureBlock(doc: jsPDF, y: number, introText: string): number {
   const pw = doc.internal.pageSize.getWidth();
   const nW = pw - LM - RM;
   const pad = 4;
-  const innerW = nW - pad * 2;
 
+  // Intro sentence — plain text, no box
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor(...DARK);
-  const introLines = doc.splitTextToSize(introText, innerW);
-  const introH = introLines.length * LH9 + pad * 2 + 2;
-  doc.setFillColor(248, 249, 251);
-  doc.setDrawColor(200, 205, 215);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(LM, y, nW, introH, 2, 2, 'FD');
-  doc.text(introLines, LM + pad, y + pad + 3);
-  y += introH + S;
+  doc.setTextColor(80, 80, 80);
+  const introLines = doc.splitTextToSize(introText, nW);
+  doc.text(introLines, LM, y);
+  y += introLines.length * LH9 + S;
 
-  const colW = (nW - 5) / 2;
-  const rightX = LM + colW + 5;
-  const sigBoxH = 39;
-
-  // Left: Homeowner
+  // Contractor block — full width
+  const boxH = 36;
   doc.setFillColor(249, 250, 251);
   doc.setDrawColor(200, 205, 215);
   doc.setLineWidth(0.3);
-  doc.roundedRect(LM, y, colW, sigBoxH, 2, 2, 'FD');
-  let ly = y + 6;
+  doc.roundedRect(LM, y, nW, boxH, 2, 2, 'FD');
+  let cy = y + 6;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
-  doc.text('HOMEOWNER', LM + 4, ly); ly += 7;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-  doc.text('Signature: _________________________', LM + 4, ly); ly += 6.5;
-  doc.text('Printed Name: ______________________', LM + 4, ly); ly += 6.5;
-  doc.text('Date: _____________________________', LM + 4, ly);
+  doc.text('CONTRACTOR', LM + pad, cy); cy += 5;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 100, 100);
+  doc.text('Trust Proof Roofing LLC', LM + pad, cy); cy += 7;
+  doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+  doc.text('Printed Name: Tenzin', LM + pad, cy); cy += 6.5;
+  doc.text('Signature: _________________________', LM + pad, cy); cy += 6.5;
+  doc.text('Date: _____________________________', LM + pad, cy);
 
-  // Right: Contractor
-  doc.setFillColor(249, 250, 251);
-  doc.setDrawColor(200, 205, 215);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(rightX, y, colW, sigBoxH, 2, 2, 'FD');
-  let ry = y + 6;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
-  doc.text('Contractor: Tenzin, Trust Proof Roofing LLC', rightX + 4, ry); ry += 7;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-  doc.text('Signature: _________________________', rightX + 4, ry); ry += 6.5;
-  doc.text('Printed Name: ______________________', rightX + 4, ry); ry += 6.5;
-  doc.text('Date: _____________________________', rightX + 4, ry);
-
-  return y + sigBoxH + S;
+  return y + boxH + S;
 }
 
 function pitchStr(pitch: number): string {
@@ -352,7 +338,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   y = addInvestmentBox(doc, y, 'Preliminary Estimate', subtotal, 'Final pricing confirmed after on-site inspection and exact measurements.');
 
   /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
-  if (y > SAFE_BOTTOM - 48) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 44) { doc.addPage(); y = 14; }
 
   y = addConditionalPricingNotice(doc, y);
 
@@ -381,7 +367,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'ACKNOWLEDGMENT', y);
   y = addSignatureBlock(doc, y,
-    'By signing below, the homeowner acknowledges receipt of this preliminary estimate and authorizes Trust Proof Roofing LLC to conduct a free on-site inspection. This estimate is valid for 30 days and is not a binding contract.'
+    'This preliminary estimate is valid for 30 days. Final pricing confirmed after on-site inspection and exact measurements.'
   );
 
   renderAllFooters(doc);
@@ -466,7 +452,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   y = addInvestmentBox(doc, y, 'Project Investment', subtotal, 'Price valid for 30 days from date of proposal.');
 
   /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
-  if (y > SAFE_BOTTOM - 48) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 44) { doc.addPage(); y = 14; }
 
   y = addConditionalPricingNotice(doc, y);
 
@@ -494,7 +480,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'PROPOSAL ACCEPTANCE', y);
   y = addSignatureBlock(doc, y,
-    'By signing below, the homeowner accepts this proposal and authorizes Trust Proof Roofing LLC to proceed upon execution of the full Roofing Agreement, which includes Connecticut Home Improvement Act disclosures, 3-day cancellation rights, and full warranty terms. This proposal is valid for 30 days from date of issue.'
+    'This proposal is valid for 30 days from date of issue and becomes binding upon execution of the full Roofing Agreement.'
   );
 
   renderAllFooters(doc);
