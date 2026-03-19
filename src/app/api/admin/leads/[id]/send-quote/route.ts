@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import fs from 'fs';
+import path from 'path';
 
 /* ─── Helpers ────────────────────────────────────────── */
 function fmtMoney(n: number) { return '$' + Math.round(n).toLocaleString(); }
@@ -21,12 +23,11 @@ function formatPhone(phone: string): string {
   return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : phone;
 }
 
-async function fetchLogo(): Promise<string | null> {
+function fetchLogo(): string | null {
   try {
-    const res = await fetch('https://trustproofroofing.com/logo-icon-navy.png');
-    if (res.ok) return Buffer.from(await res.arrayBuffer()).toString('base64');
-  } catch { /* skip */ }
-  return null;
+    const logoPath = path.join(process.cwd(), 'public', 'logo-navy.png');
+    return fs.readFileSync(logoPath).toString('base64');
+  } catch { return null; }
 }
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -121,7 +122,7 @@ function addPreparedFor(doc: jsPDF, data: PDFData, proposalNum: string, dateStr:
   const pw = doc.internal.pageSize.getWidth();
   const displayAddress = sanitizeAddress(data.address);
   const fmtPhoneStr = formatPhone(data.phone);
-  let y = HEADER_H + 4;
+  let y = HEADER_H + 14;
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
@@ -244,50 +245,6 @@ function addWarranty(doc: jsPDF, y: number): number {
   return y + ls.length * LH10 + S;
 }
 
-function addSignatureBlock(doc: jsPDF, y: number, introText: string): number {
-  const pw = doc.internal.pageSize.getWidth();
-  const nW = pw - LM - RM;
-  const pad = 4;
-
-  // Intro sentence — plain text, no box
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(80, 80, 80);
-  const introLines = doc.splitTextToSize(introText, nW);
-  doc.text(introLines, LM, y);
-  y += introLines.length * LH9 + S;
-
-  // Contractor block — full width
-  const boxH = 42;
-  doc.setFillColor(249, 250, 251);
-  doc.setDrawColor(200, 205, 215);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(LM, y, nW, boxH, 2, 2, 'FD');
-  let cy = y + 6;
-
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
-  doc.text('CONTRACTOR', LM + pad, cy); cy += 5;
-
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 100, 100);
-  doc.text('Trust Proof Roofing LLC', LM + pad, cy); cy += 7;
-
-  doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-  doc.text('Printed Name: Tenzin', LM + pad, cy); cy += 9;
-
-  // Cursive-style signature (helvetica bold italic at 20pt — best jsPDF approximation)
-  doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(20); doc.setTextColor(...NAVY);
-  doc.text('Tenzin', LM + pad, cy);
-  const sigW = doc.getTextWidth('Tenzin');
-  doc.setDrawColor(...NAVY); doc.setLineWidth(0.25);
-  doc.line(LM + pad, cy + 1.5, LM + pad + sigW + 8, cy + 1.5); cy += 9;
-
-  // Auto-populated date
-  const sigDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-  doc.text(`Date: ${sigDate}`, LM + pad, cy);
-
-  return y + boxH + S;
-}
 
 function pitchStr(pitch: number): string {
   if (pitch < 18) return `Low (${pitch}\u00b0)`;
@@ -307,7 +264,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const SAFE_BOTTOM = ph - 18;
-  const logoBase64 = await fetchLogo();
+  const logoBase64 = fetchLogo();
   const proposalNum = `TPR-${data.leadId.slice(-6).toUpperCase()}`;
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const { subtotal } = data.priceBreakdown;
@@ -350,15 +307,15 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   y = addInvestmentBox(doc, y, 'Preliminary Estimate', subtotal, 'Final pricing confirmed after on-site inspection and exact measurements.');
 
   /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
-  if (y > SAFE_BOTTOM - 44) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 44) { doc.addPage(); y = 31; }
 
   y = addConditionalPricingNotice(doc, y);
 
-  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 31; }
   y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y);
   y = addWarranty(doc, y);
 
-  if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 31; }
   y = sectionHead(doc, 'NEXT STEPS', y);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -376,12 +333,6 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   });
   y += S;
 
-  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
-  y = sectionHead(doc, 'ACKNOWLEDGMENT', y);
-  y = addSignatureBlock(doc, y,
-    'This preliminary estimate is valid for 30 days. Final pricing confirmed after on-site inspection and exact measurements.'
-  );
-
   renderAllFooters(doc);
   return Buffer.from(doc.output('arraybuffer')).toString('base64');
 }
@@ -392,7 +343,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const SAFE_BOTTOM = ph - 18;
-  const logoBase64 = await fetchLogo();
+  const logoBase64 = fetchLogo();
   const proposalNum = `TPR-${data.leadId.slice(-6).toUpperCase()}`;
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const { lineItems, subtotal } = data.priceBreakdown;
@@ -464,15 +415,15 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   y = addInvestmentBox(doc, y, 'Project Investment', subtotal, 'Price valid for 30 days from date of proposal.');
 
   /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
-  if (y > SAFE_BOTTOM - 44) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 44) { doc.addPage(); y = 31; }
 
   y = addConditionalPricingNotice(doc, y);
 
-  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 31; }
   y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y);
   y = addWarranty(doc, y);
 
-  if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 14; }
+  if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 31; }
   y = sectionHead(doc, 'NEXT STEPS', y);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -488,12 +439,6 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
     y += ls.length * LH10 + 1;
   });
   y += S;
-
-  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
-  y = sectionHead(doc, 'PROPOSAL ACCEPTANCE', y);
-  y = addSignatureBlock(doc, y,
-    'This proposal is valid for 30 days from date of issue.'
-  );
 
   renderAllFooters(doc);
   return Buffer.from(doc.output('arraybuffer')).toString('base64');
