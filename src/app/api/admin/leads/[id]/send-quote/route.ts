@@ -301,7 +301,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   });
   y = (doc as any).lastAutoTable.finalY + S;
 
-  y = sectionHead(doc, 'ALWAYS INCLUDED', y);
+  y = sectionHead(doc, 'ALWAYS INCLUDED', y); y += S;
   y = addAlwaysIncluded(doc, y);
 
   y = addInvestmentBox(doc, y, 'Preliminary Estimate', subtotal, 'Final pricing confirmed after on-site inspection and exact measurements.');
@@ -312,11 +312,11 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   y = addConditionalPricingNotice(doc, y);
 
   if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 31; }
-  y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y);
+  y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y); y += S;
   y = addWarranty(doc, y);
 
   if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 31; }
-  y = sectionHead(doc, 'NEXT STEPS', y);
+  y = sectionHead(doc, 'NEXT STEPS', y); y += S;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(...DARK);
@@ -386,7 +386,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   });
   y = (doc as any).lastAutoTable.finalY + S;
 
-  y = sectionHead(doc, 'ALWAYS INCLUDED', y);
+  y = sectionHead(doc, 'ALWAYS INCLUDED', y); y += S;
   y = addAlwaysIncluded(doc, y);
 
   y = sectionHead(doc, 'PRICE BREAKDOWN', y);
@@ -420,11 +420,11 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   y = addConditionalPricingNotice(doc, y);
 
   if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 31; }
-  y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y);
+  y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y); y += S;
   y = addWarranty(doc, y);
 
   if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 31; }
-  y = sectionHead(doc, 'NEXT STEPS', y);
+  y = sectionHead(doc, 'NEXT STEPS', y); y += S;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(...DARK);
