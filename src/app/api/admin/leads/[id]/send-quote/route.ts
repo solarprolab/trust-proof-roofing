@@ -22,12 +22,10 @@ function formatPhone(phone: string): string {
 }
 
 async function fetchLogo(): Promise<string | null> {
-  for (const path of ['/logo-navy.png', '/logo.png']) {
-    try {
-      const res = await fetch(`https://trustproofroofing.com${path}`);
-      if (res.ok) return Buffer.from(await res.arrayBuffer()).toString('base64');
-    } catch { /* try next */ }
-  }
+  try {
+    const res = await fetch('https://trustproofroofing.com/logo-navy.png');
+    if (res.ok) return Buffer.from(await res.arrayBuffer()).toString('base64');
+  } catch { /* skip */ }
   return null;
 }
 
@@ -118,7 +116,7 @@ function addPreparedFor(doc: jsPDF, data: PDFData, proposalNum: string, dateStr:
   const pw = doc.internal.pageSize.getWidth();
   const displayAddress = sanitizeAddress(data.address);
   const fmtPhoneStr = formatPhone(data.phone);
-  let y = HEADER_H + 7;
+  let y = HEADER_H + 4;
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
@@ -144,7 +142,7 @@ function addPreparedFor(doc: jsPDF, data: PDFData, proposalNum: string, dateStr:
   doc.setDrawColor(...NAVY);
   doc.setLineWidth(0.4);
   doc.line(LM, ruleY, pw - LM, ruleY);
-  return ruleY + 4;
+  return ruleY + 3;
 }
 
 // Returns new y after the heading rule
@@ -182,11 +180,11 @@ function addInvestmentBox(doc: jsPDF, y: number, label: string, amount: number, 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(180, 205, 240);
-  doc.text(label.toUpperCase(), pw / 2, y + 9, { align: 'center' });
+  doc.text(label.toUpperCase(), pw / 2, y + 7, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(26);
   doc.setTextColor(...WHITE);
-  doc.text(fmtMoney(amount), pw / 2, y + 22, { align: 'center' });
+  doc.text(fmtMoney(amount), pw / 2, y + 19, { align: 'center' });
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(9);
   doc.setTextColor(...GRAY);
@@ -262,7 +260,7 @@ function addSignatureBlock(doc: jsPDF, y: number, introText: string): number {
 
   const colW = (nW - 5) / 2;
   const rightX = LM + colW + 5;
-  const sigBoxH = 32;
+  const sigBoxH = 39;
 
   // Left: Homeowner
   doc.setFillColor(249, 250, 251);
@@ -287,6 +285,7 @@ function addSignatureBlock(doc: jsPDF, y: number, introText: string): number {
   doc.text('CONTRACTOR', rightX + 4, ry); ry += 7;
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
   doc.text('Tenzin \u2014 Trust Proof Roofing LLC', rightX + 4, ry); ry += 6.5;
+  doc.text('Printed Name: ______________________', rightX + 4, ry); ry += 6.5;
   doc.text('Signature: _________________________', rightX + 4, ry); ry += 6.5;
   doc.text('Date: _____________________________', rightX + 4, ry);
 
@@ -339,7 +338,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   autoTable(doc, {
     startY: y,
     margin: { left: LM, right: LM },
-    styles: { fontSize: 10, cellPadding: 2.5 },
+    styles: { fontSize: 10, cellPadding: 2 },
     headStyles: { fillColor: NAVY, textColor: WHITE, fontStyle: 'bold', fontSize: 10 },
     alternateRowStyles: { fillColor: LG },
     head: [['Section', 'Work Type', 'Pitch', 'Est. Area']],
@@ -353,15 +352,16 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
 
   y = addInvestmentBox(doc, y, 'Preliminary Estimate', subtotal, 'Final pricing confirmed after on-site inspection and exact measurements.');
 
-  /* ── PAGE 2: conditional notice + warranty + next steps + signature ── */
-  doc.addPage();
-  y = 14;
+  /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
+  if (y > SAFE_BOTTOM - 70) { doc.addPage(); y = 14; }
 
   y = addConditionalPricingNotice(doc, y);
 
+  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y);
   y = addWarranty(doc, y);
 
+  if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'NEXT STEPS', y);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -429,7 +429,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   autoTable(doc, {
     startY: y,
     margin: { left: LM, right: LM },
-    styles: { fontSize: 10, cellPadding: 2.5 },
+    styles: { fontSize: 10, cellPadding: 2 },
     headStyles: { fillColor: NAVY, textColor: WHITE, fontStyle: 'bold', fontSize: 10 },
     alternateRowStyles: { fillColor: LG },
     head: [['Section', 'Work Type', 'Pitch', 'Layers', 'Sq Ft']],
@@ -451,7 +451,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   autoTable(doc, {
     startY: y,
     margin: { left: LM, right: LM },
-    styles: { fontSize: 10, cellPadding: 2.5 },
+    styles: { fontSize: 10, cellPadding: 2 },
     alternateRowStyles: { fillColor: LG },
     columnStyles: {
       0: { textColor: [55, 65, 81] as [number, number, number] },
@@ -466,15 +466,16 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
 
   y = addInvestmentBox(doc, y, 'Project Investment', subtotal, 'Price valid for 30 days from date of proposal.');
 
-  /* ── PAGE 2: conditional notice + warranty + next steps + signature ── */
-  doc.addPage();
-  y = 14;
+  /* ── page 2 content: conditional notice + warranty + next steps + signature ── */
+  if (y > SAFE_BOTTOM - 70) { doc.addPage(); y = 14; }
 
   y = addConditionalPricingNotice(doc, y);
 
+  if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'OUR 20-YEAR LEAK WARRANTY', y);
   y = addWarranty(doc, y);
 
+  if (y > SAFE_BOTTOM - 60) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'NEXT STEPS', y);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
