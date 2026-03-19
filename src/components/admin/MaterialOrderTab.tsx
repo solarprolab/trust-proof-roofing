@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
 interface Distributor {
   id: string;
@@ -47,6 +48,20 @@ const DEFAULT_MATERIAL_ITEMS: string[] = [
   'Roofing Nails',
   'Flashing',
 ];
+
+// Maps material row item name → distributor_catalog category value
+const ITEM_CATEGORY_MAP: Record<string, string> = {
+  'Architectural Shingles': 'shingles',
+  'Starter Strip':          'shingles',
+  'Ridge Cap':              'shingles',
+  'Ice & Water Shield':     'ice_water_shield',
+  'Synthetic Underlayment': 'underlayment',
+  'Drip Edge':              'flashing',
+  'Pipe Boots':             'accessories',
+  'Ridge Vent':             'ventilation',
+  'Roofing Nails':          'fasteners',
+  'Flashing':               'flashing',
+};
 
 const UNITS: Record<string, string> = {
   'Architectural Shingles': 'square',
@@ -106,6 +121,12 @@ export default function MaterialOrderTab({ lead, leadId }: { lead: any; leadId: 
   const [savedMsg, setSavedMsg] = useState('');
   const [sentMsg, setSentMsg] = useState('');
 
+  // Catalog popover state
+  const [popoverIdx, setPopoverIdx] = useState<number | null>(null);
+  const [catalogResults, setCatalogResults] = useState<any[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
   const sqft = Number(lead?.roof_size) || 0;
 
   useEffect(() => {
@@ -129,6 +150,49 @@ export default function MaterialOrderTab({ lead, leadId }: { lead: any; leadId: 
       }
     });
   }, [leadId, sqft]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setPopoverIdx(null);
+      }
+    }
+    if (popoverIdx !== null) document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [popoverIdx]);
+
+  async function handleBrandFocus(idx: number, itemName: string) {
+    setPopoverIdx(idx);
+    setCatalogLoading(true);
+    setCatalogResults([]);
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const category = ITEM_CATEGORY_MAP[itemName];
+      let query = supabase.from('distributor_catalog').select('*');
+      if (category) {
+        query = query.eq('category', category);
+      } else {
+        query = query.ilike('product_name', `%${itemName}%`);
+      }
+      const { data } = await query.order('product_name').limit(30);
+      setCatalogResults(data || []);
+    } catch {
+      setCatalogResults([]);
+    } finally {
+      setCatalogLoading(false);
+    }
+  }
+
+  function selectCatalogItem(idx: number, item: any) {
+    const brandStr = [item.brand, item.sku ? `(${item.sku})` : ''].filter(Boolean).join(' ') || item.product_name;
+    updateMaterial(idx, 'brand', brandStr);
+    if (item.color) updateMaterial(idx, 'color', item.color);
+    setPopoverIdx(null);
+  }
 
   function updateMaterial(idx: number, field: keyof MaterialItem, value: string | number) {
     setOrderData(prev => {
@@ -243,14 +307,71 @@ export default function MaterialOrderTab({ lead, leadId }: { lead: any; leadId: 
               {orderData.materials.map((m, idx) => (
                 <tr key={idx} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                   <td className="py-2 pr-4 font-medium text-white">{m.item}</td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2 pr-4 relative">
                     <input
                       type="text"
                       value={m.brand}
                       onChange={e => updateMaterial(idx, 'brand', e.target.value)}
+                      onFocus={() => handleBrandFocus(idx, m.item)}
                       placeholder="—"
                       className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-gray-300 text-sm focus:outline-none px-0 py-0.5"
                     />
+                    {popoverIdx === idx && (
+                      <div
+                        ref={popoverRef}
+                        className="absolute z-50 top-full left-0 mt-1 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden"
+                      >
+                        {catalogLoading ? (
+                          <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400">
+                            <svg className="w-4 h-4 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            </svg>
+                            Searching catalog...
+                          </div>
+                        ) : catalogResults.length === 0 ? (
+                          <div className="px-4 py-3 text-sm text-gray-500">No catalog items found</div>
+                        ) : (
+                          <div className="max-h-64 overflow-y-auto">
+                            {/* Group by distributor_id */}
+                            {Array.from(new Set(catalogResults.map(r => r.distributor_id))).map(distId => {
+                              const distName = distributors.find(d => d.id === distId)?.name ?? 'Unknown';
+                              const items = catalogResults.filter(r => r.distributor_id === distId);
+                              return (
+                                <div key={distId}>
+                                  <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-900/60 sticky top-0">
+                                    {distName}
+                                  </div>
+                                  {items.map(item => (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onMouseDown={() => selectCatalogItem(idx, item)}
+                                      className="w-full text-left px-3 py-2 hover:bg-gray-700 transition-colors flex items-start justify-between gap-2"
+                                    >
+                                      <div className="min-w-0">
+                                        <p className="text-sm text-white truncate">{item.product_name}</p>
+                                        <p className="text-xs text-gray-400 truncate">
+                                          {[item.brand, item.sku ? `SKU: ${item.sku}` : '', item.color].filter(Boolean).join(' · ')}
+                                        </p>
+                                      </div>
+                                      <div className="text-right flex-shrink-0">
+                                        {item.unit_price != null && (
+                                          <p className="text-sm text-green-400 font-medium">${Number(item.unit_price).toFixed(2)}</p>
+                                        )}
+                                        {item.unit && (
+                                          <p className="text-xs text-gray-500">{item.unit}</p>
+                                        )}
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="py-2 pr-4">
                     <input
