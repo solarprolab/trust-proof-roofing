@@ -172,7 +172,7 @@ export default function InstantQuote() {
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
+    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 text-gray-900">
       {/* Progress */}
       <div className="bg-[#1B3C6B] px-6 pt-5 pb-4">
         <div className="flex items-start justify-between mb-4">
@@ -228,13 +228,13 @@ export default function InstantQuote() {
                 }}
                 onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                 placeholder="123 Main St, Hartford, CT"
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3C6B]/30 focus:border-[#1B3C6B]"
+                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1B3C6B]/30 focus:border-[#1B3C6B]"
               />
               {suggestions.length > 0 && (
                 <ul className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg overflow-hidden">
                   {suggestions.map((s, i) => (
                     <li key={i}
-                      className="px-3.5 py-2.5 text-sm cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                      className="px-3.5 py-2.5 text-sm text-gray-900 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0"
                       onMouseDown={() => {
                         setForm(f => ({ ...f, address: s }));
                         setSuggestions([]);
@@ -384,7 +384,7 @@ export default function InstantQuote() {
                 <div key={field}>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>
                   <input type={type} value={form[field as 'name'|'phone'|'email']} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))} placeholder={ph}
-                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3C6B]/30 focus:border-[#1B3C6B]" />
+                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1B3C6B]/30 focus:border-[#1B3C6B]" />
                 </div>
               ))}
             </div>
