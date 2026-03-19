@@ -210,7 +210,6 @@ function addConditionalPricingNotice(doc: jsPDF, y: number): number {
   const intro   = doc.splitTextToSize('Additional charges may apply if discovered during installation:', innerW);
   const bullets = [
     '\u2022  Rotted decking: $50.00/sheet (photo documentation before replacement)',
-    '\u2022  Additional hidden layers: $75.00/square',
   ];
   const closing = doc.splitTextToSize('All additional work requires a signed Change Order — no extra work proceeds without your written approval.', innerW);
   const allLines = [...intro, ...bullets, ...closing];
@@ -480,7 +479,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   if (y > SAFE_BOTTOM - 50) { doc.addPage(); y = 14; }
   y = sectionHead(doc, 'PROPOSAL ACCEPTANCE', y);
   y = addSignatureBlock(doc, y,
-    'This proposal is valid for 30 days from date of issue and becomes binding upon execution of the full Roofing Agreement.'
+    'This proposal is valid for 30 days from date of issue.'
   );
 
   renderAllFooters(doc);
