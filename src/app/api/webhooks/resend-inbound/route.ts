@@ -75,9 +75,11 @@ export async function POST(req: NextRequest) {
       return ok();
     }
 
-    rawInput = bodyText;
+    const safeBodyText = bodyText as string;
 
-    const { itemsAdded, itemsUpdated } = await parseEmailToCatalog(bodyText, distributorId);
+    rawInput = safeBodyText;
+
+    const { itemsAdded, itemsUpdated } = await parseEmailToCatalog(safeBodyText, distributorId);
 
     // Log success
     await supabase.from('catalog_sync_log').insert({
