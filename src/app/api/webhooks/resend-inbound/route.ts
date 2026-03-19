@@ -68,6 +68,11 @@ export async function POST(req: NextRequest) {
 
     rawInput = bodyText;
 
+    if (!distributorId) {
+      console.log('No matching distributor found for sender — skipping parse');
+      return ok();
+    }
+
     const { itemsAdded, itemsUpdated } = await parseEmailToCatalog(bodyText, distributorId);
 
     // Log success
