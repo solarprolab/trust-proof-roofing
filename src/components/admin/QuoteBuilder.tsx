@@ -17,7 +17,7 @@ interface Section {
 }
 
 interface AddOnsState {
-  ridgeVent: boolean; gutterCleaning: boolean; skylights: number; chimneys: number;
+  ridgeVent: boolean; gutterLinearFt: number; skylights: number; chimneys: number;
 }
 
 interface PendingShape { id: number; sqft: number; color: string; }
@@ -141,7 +141,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [proposalType, setProposalType] = useState<'pre' | 'post'>('post');
   const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
   const [addOns,      setAddOns]      = useState<AddOnsState>({
-    ridgeVent: false, gutterCleaning: false, skylights: 0, chimneys: 0,
+    ridgeVent: false, gutterLinearFt: 0, skylights: 0, chimneys: 0,
   });
   const [scopeNotes,  setScopeNotes]  = useState('');
   const [saving,      setSaving]      = useState(false);
@@ -696,10 +696,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
     // Add-ons
     if (addOns.ridgeVent) lineItems.push({ label: 'Ridge Vent Upgrade', amount: 300 });
-    if (addOns.gutterCleaning && effectiveSqft > 0)
-      lineItems.push({ label: `Gutter Cleaning (${effectiveSqft.toLocaleString()} sqft × $5)`, homeownerLabel: 'Gutter Cleaning', amount: Math.round(effectiveSqft * 5) });
+    if (addOns.gutterLinearFt > 0)
+      lineItems.push({ label: `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5)`, homeownerLabel: 'Gutter Installation', amount: addOns.gutterLinearFt * 5 });
     if (addOns.skylights > 0) lineItems.push({ label: `Skylight Flashing (${addOns.skylights} × $250)`, amount: addOns.skylights * 250 });
-    if (addOns.chimneys  > 0) lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} × $400)`,   amount: addOns.chimneys * 400 });
+    if (addOns.chimneys  > 0) lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} — included)`, amount: 0 });
 
     const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
     return {
@@ -788,7 +788,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           material, proposalType, pitchCategory,
           addOns: [
             addOns.ridgeVent && 'Ridge Vent Upgrade (+$300)',
-            addOns.gutterCleaning && priceCalc.effectiveSqft > 0 && `Gutter Cleaning (${priceCalc.effectiveSqft.toLocaleString()} sqft × $5)`,
+            addOns.gutterLinearFt > 0 && `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5 = +$${addOns.gutterLinearFt * 5})`,
+            addOns.chimneys > 0 && `Chimney Flashing (${addOns.chimneys} — included)`,
           ].filter(Boolean) as string[],
           skylights: addOns.skylights, chimneys: addOns.chimneys,
           priceBreakdown: {
@@ -1416,8 +1417,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Add-ons</h3>
           <div className="space-y-2">
             {([
-              ['ridgeVent',     'Ridge Vent Upgrade',  '+$300',       'Improves attic ventilation and extends shingle life'],
-              ['gutterCleaning','Gutter Cleaning',     '+$5/sqft',    'Clean gutters and downspouts while on-site'],
+              ['ridgeVent', 'Ridge Vent Upgrade', '+$300', 'Improves attic ventilation and extends shingle life'],
             ] as const).map(([key, label, price, note]) => {
               const active = addOns[key as keyof AddOnsState] as boolean;
               return (
@@ -1439,19 +1439,38 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               );
             })}
             <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
+              <div>
+                <p className="text-xs font-semibold text-gray-300">Gutter Installation</p>
+                <p className="text-[10px] text-gray-500">Seamless gutter installation · linear ft × $5</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number" min={0} step={1}
+                  value={addOns.gutterLinearFt || ''}
+                  placeholder="0"
+                  onChange={e => setAddOns(p => ({ ...p, gutterLinearFt: Math.max(0, parseInt(e.target.value) || 0) }))}
+                  className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-blue-500"
+                />
+                <span className="text-[10px] text-gray-400">linear ft</span>
+                {addOns.gutterLinearFt > 0 && (
+                  <span className="text-[10px] text-green-400 font-medium">+${addOns.gutterLinearFt * 5}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
+              <div><p className="text-xs font-semibold text-gray-300">Chimney Flashing</p><p className="text-[10px] text-gray-500">Included</p></div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setAddOns(p => ({ ...p, chimneys: Math.max(0, p.chimneys - 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">−</button>
+                <span className="w-5 text-center text-sm text-white">{addOns.chimneys}</span>
+                <button onClick={() => setAddOns(p => ({ ...p, chimneys: Math.min(3, p.chimneys + 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">+</button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
               <div><p className="text-xs font-semibold text-gray-300">Skylight Flashing</p><p className="text-[10px] text-gray-500">$250 per unit</p></div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setAddOns(p => ({ ...p, skylights: Math.max(0, p.skylights - 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">−</button>
                 <span className="w-5 text-center text-sm text-white">{addOns.skylights}</span>
                 <button onClick={() => setAddOns(p => ({ ...p, skylights: Math.min(5, p.skylights + 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">+</button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
-              <div><p className="text-xs font-semibold text-gray-300">Chimney Flashing</p><p className="text-[10px] text-gray-500">$400 per chimney</p></div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setAddOns(p => ({ ...p, chimneys: Math.max(0, p.chimneys - 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">−</button>
-                <span className="w-5 text-center text-sm text-white">{addOns.chimneys}</span>
-                <button onClick={() => setAddOns(p => ({ ...p, chimneys: Math.min(3, p.chimneys + 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">+</button>
               </div>
             </div>
           </div>
@@ -1467,7 +1486,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               {priceCalc.lineItems.map((item, i) => (
                 <div key={i} className="flex items-start justify-between text-xs gap-3">
                   <span className={`text-gray-400 leading-relaxed ${item.isRange ? 'italic' : ''}`}>{item.label}</span>
-                  <span className="text-gray-300 flex-shrink-0 font-medium">{item.isRange ? '~' : ''}{fmtMoney(item.amount)}</span>
+                  <span className="text-gray-300 flex-shrink-0 font-medium">{item.isRange ? '~' : ''}{item.amount === 0 ? 'Included' : fmtMoney(item.amount)}</span>
                 </div>
               ))}
               <div className="border-t border-gray-700 pt-2 mt-2 flex justify-between text-xs">
