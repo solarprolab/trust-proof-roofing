@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
-import { parseEmailToCatalog, stripHtml } from '@/lib/catalogParser';
+import { parseEmailToCatalog } from '@/lib/catalogParser';
 
 function db() {
   return createClient(
@@ -50,12 +50,8 @@ export async function POST(req: NextRequest) {
 
     distributorId = distributor.id;
 
-    // Extract plain text — prefer text, fall back to html stripped
-    const bodyText: string | null = text?.trim()
-      ? text.trim()
-      : html?.trim()
-      ? stripHtml(html)
-      : null;
+    // Extract plain text — always a string, never null
+    const bodyText: string = text?.trim() || (html ? html.replace(/<[^>]*>/g, ' ').trim() : '');
 
     if (!bodyText) {
       await supabase.from('catalog_sync_log').insert({
@@ -70,16 +66,9 @@ export async function POST(req: NextRequest) {
       return ok();
     }
 
-    if (bodyText === null) {
-      console.log(`No parseable text content for distributor ${distributor.name} — skipping`);
-      return ok();
-    }
+    rawInput = bodyText;
 
-    const safeBodyText = bodyText as string;
-
-    rawInput = safeBodyText;
-
-    const { itemsAdded, itemsUpdated } = await parseEmailToCatalog(safeBodyText, distributorId);
+    const { itemsAdded, itemsUpdated } = await parseEmailToCatalog(bodyText, distributorId);
 
     // Log success
     await supabase.from('catalog_sync_log').insert({
