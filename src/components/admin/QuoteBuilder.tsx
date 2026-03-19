@@ -97,6 +97,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const highlightPolyRef   = useRef<google.maps.Polyline | null>(null);
   const lastSavedDataRef   = useRef<string>('');
   const initialLoadDoneRef = useRef(false);
+  const measuringRef       = useRef(false);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -440,9 +441,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     map.setOptions({ disableDoubleClickZoom: true });
     const capturedEditMode = editMode;
     overlaysRef.current.forEach(({ shape }) => shape.setOptions({ clickable: false, draggable: false }));
+    measuringRef.current = true;
 
     const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
-      if (!e.latLng) return;
+      if (!e.latLng || !measuringRef.current) return;
       const newPts = [...measurePointsRef.current, e.latLng];
       measurePointsRef.current = newPts;
       setMeasurePoints(newPts.map(p => ({ lat: p.lat(), lng: p.lng() })));
@@ -465,6 +467,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     });
 
     const dblClickListener = map.addListener('dblclick', () => {
+      measuringRef.current = false;
       const pts = measurePointsRef.current;
       if (pts.length >= 2) {
         let totalFt = 0;
@@ -481,6 +484,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     });
 
     return () => {
+      measuringRef.current = false;
       google.maps.event.removeListener(clickListener);
       google.maps.event.removeListener(dblClickListener);
       if (measurePolyRef.current) { measurePolyRef.current.setMap(null); measurePolyRef.current = null; }
@@ -632,6 +636,20 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   function clearAllOverrides() {
     setManualSqft(''); setManualSqftSource('');
+  }
+
+  function saveInProgressMeasurement() {
+    const pts = measurePointsRef.current;
+    if (pts.length < 2) return;
+    let totalFt = 0;
+    for (let i = 1; i < pts.length; i++) {
+      totalFt += google.maps.geometry.spherical.computeDistanceBetween(pts[i - 1], pts[i]) * 3.28084;
+    }
+    const id = measureCounterRef.current++;
+    setCompletedMeasurements(prev => [...prev, {
+      id, name: `Ridge ${id + 1}`, totalFt: Math.round(totalFt),
+      points: pts.map(p => ({ lat: p.lat(), lng: p.lng() })),
+    }]);
   }
 
   function snapZoom(z: number) { mapRef.current?.setZoom(z); }
@@ -837,11 +855,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
         {/* ── Toolbar row 1: drawing tools ──────────── */}
         <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 flex-wrap">
-          <button onClick={() => { setDrawMode(d => d === 'polygon' ? null : 'polygon'); setMeasureMode(false); }} className={tbBtn(drawMode === 'polygon')}>
+          <button onClick={() => { if (measureMode) { saveInProgressMeasurement(); setMeasureMode(false); } setDrawMode(d => d === 'polygon' ? null : 'polygon'); }} className={tbBtn(drawMode === 'polygon')}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6.5-6.5a2 2 0 012.828 2.828L11 15H9v-2l6.5-6.5z" /></svg>
             Draw Section
           </button>
-          <button onClick={() => { setDrawMode(d => d === 'rectangle' ? null : 'rectangle'); setMeasureMode(false); }} className={tbBtn(drawMode === 'rectangle')}>
+          <button onClick={() => { if (measureMode) { saveInProgressMeasurement(); setMeasureMode(false); } setDrawMode(d => d === 'rectangle' ? null : 'rectangle'); }} className={tbBtn(drawMode === 'rectangle')}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1" strokeWidth={2} /></svg>
             Draw Rectangle
           </button>
