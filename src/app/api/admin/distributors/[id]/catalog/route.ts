@@ -10,28 +10,20 @@ function db() {
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   const { data, error } = await db()
-    .from('distributors')
+    .from('distributor_catalog')
     .select('*')
-    .eq('id', params.id)
-    .single();
+    .eq('distributor_id', params.id)
+    .order('category', { ascending: true })
+    .order('product_name', { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
-}
-
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const body = await req.json();
-  const { data, error } = await db()
-    .from('distributors')
-    .update(body)
-    .eq('id', params.id)
-    .select()
-    .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  return NextResponse.json(data ?? []);
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const { error } = await db().from('distributors').delete().eq('id', params.id);
+  const { error } = await db()
+    .from('distributor_catalog')
+    .delete()
+    .eq('distributor_id', params.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

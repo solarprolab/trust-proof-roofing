@@ -279,6 +279,12 @@ export default function DistributorsClient() {
                       Approve
                     </button>
                   )}
+                  <Link
+                    href={`/admin/distributors/${d.id}`}
+                    className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 rounded-lg text-sm text-white font-semibold transition-colors"
+                  >
+                    View
+                  </Link>
                   <button
                     onClick={() => openEdit(d)}
                     className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
