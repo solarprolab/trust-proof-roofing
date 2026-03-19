@@ -27,7 +27,8 @@ function calcRange(form: QuoteFormData, sqft: number | null, surcharge: number):
   if (form.projectType === 'repair') return [350, 2500];
   if (!sqft) return null;
   const base = Math.round(sqft * 1.1 * (7 + surcharge));
-  return [base - 1000, base + 1000];
+  const total = form.material === 'standard' ? base - 500 : base;
+  return [Math.max(0, total - 1000), total + 1000];
 }
 
 const STEPS = ['Property', 'Project', 'Materials', 'Add-ons', 'Estimate'];
@@ -111,7 +112,8 @@ export default function InstantQuote() {
       // Convert degrees to rise/run equivalent and assign surcharge
       // 18.4deg = 4/12, 26.6deg = 6/12, 30.3deg = 7/12, 45deg = 12/12
       let surcharge = 0;
-      if (avgPitchDeg >= 30.3) surcharge = 1.0;
+      if (avgPitchDeg >= 40) surcharge = 1.75;
+      else if (avgPitchDeg >= 30.3) surcharge = 1.0;
       else if (avgPitchDeg >= 18.4) surcharge = 0.5;
       setPitchSurcharge(surcharge);
     } catch {

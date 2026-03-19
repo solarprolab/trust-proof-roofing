@@ -637,7 +637,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   /* ═══════════════ PRICE CALCULATION ═════════════════ */
   const priceCalc = useMemo(() => {
-    const baseRate        = material === 'premium' ? 8 : 7;
+    const baseRate        = 7;
     const pitchSurcharge  = PITCH_SURCHARGE_MAP[pitchCategory] ?? 0;
     const replaceSections = sections.filter(s => s.workType === 'replace');
     const repairSections  = sections.filter(s => s.workType === 'repair');
@@ -700,6 +700,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       lineItems.push({ label: `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5)`, homeownerLabel: 'Gutter Installation', amount: addOns.gutterLinearFt * 5 });
     if (addOns.skylights > 0) lineItems.push({ label: `Skylight Flashing (${addOns.skylights} × $250)`, amount: addOns.skylights * 250 });
     if (addOns.chimneys  > 0) lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} — included)`, amount: 0 });
+
+    // Standard shingle: flat $500 deduction (internal only — homeowner sees net price)
+    if (material === 'standard') {
+      lineItems.push({ label: 'Standard shingle — flat rate adjustment', homeownerLabel: 'Standard Shingle Selection', amount: -500 });
+    }
 
     const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
     return {
