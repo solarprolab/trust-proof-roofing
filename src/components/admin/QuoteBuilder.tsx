@@ -798,6 +798,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
             rangeMin: proposalType === 'pre' ? priceCalc.preRangeMin : priceCalc.rangeMin,
             rangeMax: proposalType === 'pre' ? priceCalc.preRangeMax : priceCalc.rangeMax,
           },
+          totalSqft: priceCalc.effectiveSqft,
           scopeNotes, leadId,
         }),
       });

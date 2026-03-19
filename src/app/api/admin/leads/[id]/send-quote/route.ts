@@ -237,7 +237,7 @@ function addWarranty(doc: jsPDF, y: number): number {
   return y + ls.length * 5 + 6;
 }
 
-function addInvestmentBox(doc: jsPDF, y: number, label: string, rangeMin: number, rangeMax: number, footNote: string): number {
+function addInvestmentBox(doc: jsPDF, y: number, label: string, amount: number, footNote: string): number {
   const pw = doc.internal.pageSize.getWidth();
   const boxH = 34;
   doc.setFillColor(...NAVY);
@@ -251,7 +251,7 @@ function addInvestmentBox(doc: jsPDF, y: number, label: string, rangeMin: number
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(26);
   doc.setTextColor(...WHITE);
-  doc.text(`${fmtMoney(rangeMin)} \u2013 ${fmtMoney(rangeMax)}`, pw / 2, y + 25, { align: 'center' });
+  doc.text(fmtMoney(amount), pw / 2, y + 25, { align: 'center' });
   y += boxH + 5;
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
@@ -280,7 +280,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   const logoBase64 = await fetchLogo();
   const proposalNum = `TPR-${data.leadId.slice(-6).toUpperCase()}`;
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const { rangeMin, rangeMax } = data.priceBreakdown;
+  const { subtotal } = data.priceBreakdown;
 
   console.log('PDF sections received:', JSON.stringify(data.sections));
   // Fallback: if sections empty or all sqft=0, create one section from totalSqft
@@ -336,7 +336,7 @@ async function generatePreInspectionPDF(data: PDFData): Promise<string> {
   y = addWhatIsIncluded(doc, y);
 
   // Investment box
-  y = addInvestmentBox(doc, y, 'Preliminary Estimate Range', rangeMin, rangeMax,
+  y = addInvestmentBox(doc, y, 'Preliminary Estimate', subtotal,
     'Final pricing confirmed after on-site inspection and exact measurements.');
 
   // Schedule inspection box (blue)
@@ -424,7 +424,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   const logoBase64 = await fetchLogo();
   const proposalNum = `TPR-${data.leadId.slice(-6).toUpperCase()}`;
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const { rangeMin, rangeMax, lineItems, subtotal } = data.priceBreakdown;
+  const { lineItems, subtotal } = data.priceBreakdown;
 
   console.log('PDF sections received:', JSON.stringify(data.sections));
   // Fallback: if sections empty or all sqft=0, create one section from totalSqft
@@ -510,7 +510,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   y = (doc as any).lastAutoTable.finalY + 6;
 
   // Investment box
-  y = addInvestmentBox(doc, y, 'Project Investment', rangeMin, rangeMax,
+  y = addInvestmentBox(doc, y, 'Project Investment', subtotal,
     'Price valid for 30 days from date of proposal.');
 
   // Conditional pricing notice — stays on page 1
@@ -542,7 +542,7 @@ async function generatePostInspectionPDF(data: PDFData): Promise<string> {
   const GREEN_BG     = [240, 253, 244] as [number, number, number];
   const GREEN_BORDER = [34, 197, 94]   as [number, number, number];
   const cW = 182; const cPad = 6; const cInnerW = cW - cPad * 2;
-  const depositAmt = fmtMoney(Math.round(rangeMin / 3));
+  const depositAmt = fmtMoney(Math.round(subtotal / 3));
   if (y > 240) { doc.addPage(); y = 18; }
   doc.setFillColor(240, 253, 244);
   doc.setDrawColor(34, 197, 94);
@@ -610,16 +610,16 @@ export async function POST(req: NextRequest) {
     const {
       name, email, phone, address,
       sections, pitchCategory, addOns, skylights, chimneys,
-      material, priceBreakdown, scopeNotes, leadId, proposalType,
+      material, priceBreakdown, scopeNotes, leadId, proposalType, totalSqft: passedSqft,
     } = body;
 
     const isPre = proposalType === 'pre';
     const firstName = (name as string).split(' ')[0];
     const displayAddress = sanitizeAddress(address as string);
-    const { rangeMin, rangeMax, lineItems, subtotal } = priceBreakdown as PriceBreakdown;
+    const { lineItems, subtotal } = priceBreakdown as PriceBreakdown;
 
     const sectionsArr = (sections as QuoteSection[]) || [];
-    const totalSqft = sectionsArr.reduce((s, r) => s + (r.sqft || 0), 0);
+    const totalSqft = (passedSqft as number) || sectionsArr.reduce((s: number, r: QuoteSection) => s + (r.sqft || 0), 0);
 
     const pdfData: PDFData = {
       name, email, phone, address,
@@ -682,8 +682,8 @@ export async function POST(req: NextRequest) {
                  <p style="font-size:14px;color:#374151;line-height:1.6">I'm available at (959) 333-8569 for any questions.</p>`
             }
             <div style="background:#1B3C6B;color:#fff;border-radius:10px;padding:20px 24px;margin:20px 0;text-align:center">
-              <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">${isPre ? 'Preliminary Estimate Range' : 'Project Investment'}</p>
-              <p style="margin:8px 0 4px;font-size:32px;font-weight:800;line-height:1">${fmtMoney(rangeMin)} – ${fmtMoney(rangeMax)}</p>
+              <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">${isPre ? 'Preliminary Estimate' : 'Project Investment'}</p>
+              <p style="margin:8px 0 4px;font-size:32px;font-weight:800;line-height:1">${fmtMoney(subtotal)}</p>
               <p style="margin:6px 0 0;font-size:11px;opacity:0.8">${isPre ? 'Final pricing confirmed after on-site inspection.' : 'Price valid for 30 days from date of proposal.'}</p>
             </div>
             ${!isPre ? `
