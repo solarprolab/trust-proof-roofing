@@ -23,7 +23,7 @@ function formatPhone(phone: string): string {
 
 async function fetchLogo(): Promise<string | null> {
   try {
-    const res = await fetch('https://trustproofroofing.com/logo-navy.png');
+    const res = await fetch('https://trustproofroofing.com/logo-icon-navy.png');
     if (res.ok) return Buffer.from(await res.arrayBuffer()).toString('base64');
   } catch { /* skip */ }
   return null;
@@ -52,8 +52,8 @@ const GRAY  = [120, 120, 120] as [number, number, number];
 const DARK  = [25, 25, 25]    as [number, number, number];
 const LG    = [247, 248, 250] as [number, number, number];
 const HEADER_H = 40;
-const LOGO_H   = 14;
-const LOGO_W   = 42;
+const LOGO_H   = 22;
+const LOGO_W   = 22;
 const LM = 14; // left margin
 const RM = 14; // right margin
 const LH10 = 4.8; // line height for 10pt text (mm)
@@ -213,7 +213,7 @@ function addConditionalPricingNotice(doc: jsPDF, y: number): number {
   ];
   const closing = doc.splitTextToSize('All additional work requires a signed Change Order — no extra work proceeds without your written approval.', innerW);
   const allLines = [...intro, ...bullets, ...closing];
-  const titleH = 6;
+  const titleH = 12;
   const bodyH  = allLines.length * LH10 + 2;
   const boxH   = titleH + bodyH + pad * 2;
 
@@ -258,20 +258,33 @@ function addSignatureBlock(doc: jsPDF, y: number, introText: string): number {
   y += introLines.length * LH9 + S;
 
   // Contractor block — full width
-  const boxH = 36;
+  const boxH = 42;
   doc.setFillColor(249, 250, 251);
   doc.setDrawColor(200, 205, 215);
   doc.setLineWidth(0.3);
   doc.roundedRect(LM, y, nW, boxH, 2, 2, 'FD');
   let cy = y + 6;
+
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...NAVY);
   doc.text('CONTRACTOR', LM + pad, cy); cy += 5;
+
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 100, 100);
   doc.text('Trust Proof Roofing LLC', LM + pad, cy); cy += 7;
+
   doc.setFontSize(9); doc.setTextColor(60, 60, 60);
-  doc.text('Printed Name: Tenzin', LM + pad, cy); cy += 6.5;
-  doc.text('Signature: _________________________', LM + pad, cy); cy += 6.5;
-  doc.text('Date: _____________________________', LM + pad, cy);
+  doc.text('Printed Name: Tenzin', LM + pad, cy); cy += 9;
+
+  // Cursive-style signature (helvetica bold italic at 20pt — best jsPDF approximation)
+  doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(20); doc.setTextColor(...NAVY);
+  doc.text('Tenzin', LM + pad, cy);
+  const sigW = doc.getTextWidth('Tenzin');
+  doc.setDrawColor(...NAVY); doc.setLineWidth(0.25);
+  doc.line(LM + pad, cy + 1.5, LM + pad + sigW + 8, cy + 1.5); cy += 9;
+
+  // Auto-populated date
+  const sigDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+  doc.text(`Date: ${sigDate}`, LM + pad, cy);
 
   return y + boxH + S;
 }
