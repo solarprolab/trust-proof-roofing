@@ -15,6 +15,8 @@ interface Distributor {
   typical_lead_time_days?: number;
   delivery_minimum?: string;
   notes?: string;
+  service_area?: string;
+  status?: string;
   created_at: string;
 }
 
@@ -30,7 +32,11 @@ const EMPTY: Omit<Distributor, 'id' | 'created_at'> = {
   typical_lead_time_days: undefined,
   delivery_minimum: '',
   notes: '',
+  service_area: '',
+  status: 'active',
 };
+
+type StatusFilter = 'all' | 'pending' | 'active';
 
 export default function DistributorsClient() {
   const [distributors, setDistributors] = useState<Distributor[]>([]);
@@ -40,6 +46,7 @@ export default function DistributorsClient() {
   const [form, setForm] = useState({ ...EMPTY });
   const [saving, setSaving] = useState(false);
   const [brandsInput, setBrandsInput] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     load();
@@ -74,6 +81,8 @@ export default function DistributorsClient() {
       typical_lead_time_days: d.typical_lead_time_days,
       delivery_minimum: d.delivery_minimum || '',
       notes: d.notes || '',
+      service_area: d.service_area || '',
+      status: d.status || 'active',
     });
     setBrandsInput((d.preferred_brands || []).join(', '));
     setShowModal(true);
@@ -115,6 +124,24 @@ export default function DistributorsClient() {
     setDistributors(prev => prev.filter(d => d.id !== id));
   }
 
+  async function handleApprove(id: string) {
+    const res = await fetch(`/api/admin/distributors/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'active' }),
+    });
+    const updated = await res.json();
+    setDistributors(prev => prev.map(d => d.id === id ? updated : d));
+  }
+
+  const pendingCount = distributors.filter(d => d.status === 'pending').length;
+
+  const filtered = distributors.filter(d => {
+    if (statusFilter === 'pending') return d.status === 'pending';
+    if (statusFilter === 'active') return d.status === 'active' || !d.status;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
@@ -141,30 +168,74 @@ export default function DistributorsClient() {
         </button>
       </div>
 
+      {/* Filter Tabs */}
+      <div className="border-b border-gray-800 bg-gray-900 px-6">
+        <div className="flex gap-1">
+          {(['all', 'pending', 'active'] as StatusFilter[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setStatusFilter(tab)}
+              className={`px-4 py-3 text-sm font-medium capitalize border-b-2 transition-colors flex items-center gap-1.5 ${
+                statusFilter === tab
+                  ? 'border-blue-500 text-white'
+                  : 'border-transparent text-gray-400 hover:text-white'
+              }`}
+            >
+              {tab === 'all' ? `All (${distributors.length})` : tab === 'pending' ? (
+                <>
+                  Pending
+                  {pendingCount > 0 && (
+                    <span className="bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full font-semibold leading-none">
+                      {pendingCount}
+                    </span>
+                  )}
+                </>
+              ) : `Active (${distributors.filter(d => d.status === 'active' || !d.status).length})`}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-5xl mx-auto px-6 py-6">
         {loading && (
           <div className="text-center py-16 text-gray-400">Loading...</div>
         )}
 
-        {!loading && distributors.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <div className="text-center py-16">
             <div className="w-14 h-14 bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
-            <p className="text-gray-400 mb-2">No distributors yet</p>
-            <p className="text-sm text-gray-600">Add your first supplier to get started</p>
+            <p className="text-gray-400 mb-2">
+              {statusFilter === 'pending' ? 'No pending registrations' : 'No distributors yet'}
+            </p>
+            <p className="text-sm text-gray-600">
+              {statusFilter === 'pending'
+                ? 'New supplier registrations will appear here'
+                : 'Add your first supplier to get started'}
+            </p>
           </div>
         )}
 
         <div className="grid grid-cols-1 gap-4">
-          {distributors.map(d => (
-            <div key={d.id} className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+          {filtered.map(d => (
+            <div
+              key={d.id}
+              className={`bg-gray-900 rounded-xl border p-5 ${
+                d.status === 'pending' ? 'border-amber-700/50' : 'border-gray-800'
+              }`}
+            >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
+                  <div className="flex items-center gap-3 mb-1 flex-wrap">
                     <h2 className="text-lg font-semibold text-white">{d.name}</h2>
+                    {d.status === 'pending' && (
+                      <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium">
+                        Pending Approval
+                      </span>
+                    )}
                     {d.account_number && (
                       <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono">
                         Acct: {d.account_number}
@@ -188,15 +259,26 @@ export default function DistributorsClient() {
                     </div>
                   )}
                   <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-xs text-gray-500">
-                    {d.typical_lead_time_days && <span>Lead time: {d.typical_lead_time_days}d</span>}
+                    {d.typical_lead_time_days !== undefined && d.typical_lead_time_days !== null && (
+                      <span>Lead time: {d.typical_lead_time_days === 0 ? 'Same day' : `${d.typical_lead_time_days}d`}</span>
+                    )}
                     {d.delivery_minimum && <span>Min delivery: {d.delivery_minimum}</span>}
                     {d.tax_exempt_number && <span>Tax exempt: {d.tax_exempt_number}</span>}
+                    {d.service_area && <span>Area: {d.service_area}</span>}
                   </div>
                   {d.notes && (
                     <p className="text-sm text-gray-500 mt-2 italic">{d.notes}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                  {d.status === 'pending' && (
+                    <button
+                      onClick={() => handleApprove(d.id)}
+                      className="px-3 py-1.5 bg-green-700 hover:bg-green-600 rounded-lg text-sm text-white font-semibold transition-colors"
+                    >
+                      Approve
+                    </button>
+                  )}
                   <button
                     onClick={() => openEdit(d)}
                     className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
@@ -304,6 +386,16 @@ export default function DistributorsClient() {
               </div>
 
               <div>
+                <label className="block text-xs text-gray-500 mb-1">Service Area</label>
+                <input
+                  type="text"
+                  value={form.service_area}
+                  onChange={e => setForm(f => ({ ...f, service_area: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs text-gray-500 mb-1">Preferred Brands (comma-separated)</label>
                 <input
                   type="text"
@@ -334,6 +426,19 @@ export default function DistributorsClient() {
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Status</label>
+                <select
+                  value={form.status}
+                  onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="pending">Pending</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
 
               <div>
