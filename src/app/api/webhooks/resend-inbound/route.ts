@@ -51,11 +51,11 @@ export async function POST(req: NextRequest) {
     distributorId = distributor.id;
 
     // Extract plain text — prefer text, fall back to html stripped
-    const bodyText: string = text?.trim()
+    const bodyText: string | null = text?.trim()
       ? text.trim()
       : html?.trim()
       ? stripHtml(html)
-      : '';
+      : null;
 
     if (!bodyText) {
       await supabase.from('catalog_sync_log').insert({
@@ -67,6 +67,11 @@ export async function POST(req: NextRequest) {
         status: 'skipped',
         error_notes: 'No text content in email',
       });
+      return ok();
+    }
+
+    if (bodyText === null) {
+      console.log(`No parseable text content for distributor ${distributor.name} — skipping`);
       return ok();
     }
 
