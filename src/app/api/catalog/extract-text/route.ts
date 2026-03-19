@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else if (ext === 'pdf') {
-      const pdfParse = (await import('pdf-parse')).default;
+      const pdfParseModule = await import('pdf-parse');
+      const pdfParse = pdfParseModule.default || pdfParseModule;
       const result = await pdfParse(buffer);
       text = result.text;
     } else if (ext === 'xlsx' || ext === 'xls') {
