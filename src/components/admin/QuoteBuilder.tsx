@@ -100,8 +100,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const initialLoadDoneRef = useRef(false);
   const measuringRef       = useRef(false);
   const dblClickTimeRef    = useRef(0);
-  const edgeLabelsRef      = useRef<any[]>([]);
-  const EdgeLabelClassRef  = useRef<any>(null);
+  const edgeMarkersRef     = useRef<google.maps.Marker[]>([]);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -259,24 +258,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       }
     }
     LabelClassRef.current = LabelOverlay;
-
-    class EdgeLabelOverlay extends google.maps.OverlayView {
-      private div: HTMLDivElement | null = null;
-      constructor(private pos: google.maps.LatLng, private text: string) { super(); }
-      onAdd() {
-        const d = document.createElement('div');
-        d.style.cssText = 'position:absolute;background:rgba(0,0,0,0.85);color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;font-family:sans-serif;white-space:nowrap;pointer-events:none;transform:translate(-50%,-50%);line-height:1.5;border:1px solid rgba(255,255,255,0.25);font-weight:500;letter-spacing:0.02em;';
-        d.textContent = this.text; this.div = d;
-        this.getPanes()!.overlayLayer.appendChild(d);
-      }
-      draw() {
-        if (!this.div) return;
-        const pt = this.getProjection()?.fromLatLngToDivPixel(this.pos);
-        if (pt) { this.div.style.left = `${pt.x}px`; this.div.style.top = `${pt.y}px`; }
-      }
-      onRemove() { this.div?.parentNode?.removeChild(this.div); this.div = null; }
-    }
-    EdgeLabelClassRef.current = EdgeLabelOverlay;
 
     const map = new google.maps.Map(mapDivRef.current, {
       center: geocodedLoc, zoom: 20, mapTypeId: 'satellite',
@@ -600,11 +581,11 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     });
   }, [sections]);
 
-  /* ── 9. Edge measurement labels for selected section ── */
+  /* ── 9. Edge measurement markers for selected section ── */
   useEffect(() => {
-    edgeLabelsRef.current.forEach(l => l.setMap(null));
-    edgeLabelsRef.current = [];
-    if (selectedSectionId === null || !mapInitialized || !mapRef.current || !EdgeLabelClassRef.current) return;
+    edgeMarkersRef.current.forEach(m => m.setMap(null));
+    edgeMarkersRef.current = [];
+    if (selectedSectionId === null || !mapInitialized || !mapRef.current) return;
     const entry = overlaysRef.current.get(selectedSectionId);
     if (!entry) return;
     const { shape } = entry;
@@ -613,24 +594,47 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       const path = (shape as google.maps.Polygon).getPath();
       for (let i = 0; i < path.getLength(); i++) vertices.push(path.getAt(i));
     } else {
-      // Rectangle: derive 4 corners from bounds
       const b = (shape as google.maps.Rectangle).getBounds()!;
       const ne = b.getNorthEast(), sw = b.getSouthWest();
       vertices = [ne, new google.maps.LatLng(ne.lat(), sw.lng()), sw, new google.maps.LatLng(sw.lat(), ne.lng())];
     }
     if (vertices.length < 2) return;
+    const pillSvg = encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="68" height="22">' +
+      '<rect x="0.5" y="0.5" width="67" height="21" rx="5" fill="rgba(0,0,0,0.88)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>' +
+      '</svg>'
+    );
+    const iconUrl = `data:image/svg+xml;charset=UTF-8,${pillSvg}`;
     for (let i = 0; i < vertices.length; i++) {
       const p1 = vertices[i];
       const p2 = vertices[(i + 1) % vertices.length];
-      const distFt = (google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084).toFixed(1);
+      const distFt = Math.round(google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084);
       const mid = new google.maps.LatLng((p1.lat() + p2.lat()) / 2, (p1.lng() + p2.lng()) / 2);
-      const lbl = new EdgeLabelClassRef.current(mid, `${distFt} ft`);
-      lbl.setMap(mapRef.current);
-      edgeLabelsRef.current.push(lbl);
+      const marker = new google.maps.Marker({
+        position: mid,
+        map: mapRef.current,
+        clickable: false,
+        optimized: false,
+        zIndex: 20,
+        icon: {
+          url: iconUrl,
+          scaledSize: new google.maps.Size(68, 22),
+          anchor: new google.maps.Point(34, 11),
+          labelOrigin: new google.maps.Point(34, 11),
+        },
+        label: {
+          text: `${distFt} ft`,
+          color: '#ffffff',
+          fontSize: '11px',
+          fontWeight: 'bold',
+          fontFamily: 'sans-serif',
+        },
+      });
+      edgeMarkersRef.current.push(marker);
     }
     return () => {
-      edgeLabelsRef.current.forEach(l => l.setMap(null));
-      edgeLabelsRef.current = [];
+      edgeMarkersRef.current.forEach(m => m.setMap(null));
+      edgeMarkersRef.current = [];
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSectionId, mapInitialized]);
