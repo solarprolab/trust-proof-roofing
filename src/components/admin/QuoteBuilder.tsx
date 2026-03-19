@@ -17,7 +17,7 @@ interface Section {
 }
 
 interface AddOnsState {
-  ridgeVent: boolean; gutterLinearFt: number; skylights: number; chimneys: number;
+  ridgeVent: boolean; gutterLinearFt: number;
 }
 
 interface PendingShape { id: number; sqft: number; color: string; }
@@ -141,7 +141,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [proposalType, setProposalType] = useState<'pre' | 'post'>('post');
   const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
   const [addOns,      setAddOns]      = useState<AddOnsState>({
-    ridgeVent: false, gutterLinearFt: 0, skylights: 0, chimneys: 0,
+    ridgeVent: false, gutterLinearFt: 0,
   });
   const [scopeNotes,  setScopeNotes]  = useState('');
   const [saving,      setSaving]      = useState(false);
@@ -698,8 +698,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     if (addOns.ridgeVent) lineItems.push({ label: 'Ridge Vent Upgrade', amount: 300 });
     if (addOns.gutterLinearFt > 0)
       lineItems.push({ label: `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5)`, homeownerLabel: 'Gutter Installation', amount: addOns.gutterLinearFt * 5 });
-    if (addOns.skylights > 0) lineItems.push({ label: `Skylight Flashing (${addOns.skylights} × $250)`, amount: addOns.skylights * 250 });
-    if (addOns.chimneys  > 0) lineItems.push({ label: `Chimney Flashing (${addOns.chimneys} — included)`, amount: 0 });
 
     // Standard shingle: flat $500 deduction (internal only — homeowner sees net price)
     if (material === 'standard') {
@@ -794,9 +792,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           addOns: [
             addOns.ridgeVent && 'Ridge Vent Upgrade (+$300)',
             addOns.gutterLinearFt > 0 && `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5 = +$${addOns.gutterLinearFt * 5})`,
-            addOns.chimneys > 0 && `Chimney Flashing (${addOns.chimneys} — included)`,
           ].filter(Boolean) as string[],
-          skylights: addOns.skylights, chimneys: addOns.chimneys,
+          skylights: 0, chimneys: 0,
           priceBreakdown: {
             lineItems: priceCalc.lineItems.map(li => ({ label: li.homeownerLabel ?? li.label, amount: li.amount })),
             subtotal: priceCalc.subtotal,
@@ -1461,22 +1458,6 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 {addOns.gutterLinearFt > 0 && (
                   <span className="text-[10px] text-green-400 font-medium">+${addOns.gutterLinearFt * 5}</span>
                 )}
-              </div>
-            </div>
-            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
-              <div><p className="text-xs font-semibold text-gray-300">Chimney Flashing</p><p className="text-[10px] text-gray-500">Included</p></div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setAddOns(p => ({ ...p, chimneys: Math.max(0, p.chimneys - 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">−</button>
-                <span className="w-5 text-center text-sm text-white">{addOns.chimneys}</span>
-                <button onClick={() => setAddOns(p => ({ ...p, chimneys: Math.min(3, p.chimneys + 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">+</button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
-              <div><p className="text-xs font-semibold text-gray-300">Skylight Flashing</p><p className="text-[10px] text-gray-500">$250 per unit</p></div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setAddOns(p => ({ ...p, skylights: Math.max(0, p.skylights - 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">−</button>
-                <span className="w-5 text-center text-sm text-white">{addOns.skylights}</span>
-                <button onClick={() => setAddOns(p => ({ ...p, skylights: Math.min(5, p.skylights + 1) }))} className="w-6 h-6 rounded bg-gray-700 text-white text-sm flex items-center justify-center hover:bg-gray-600">+</button>
               </div>
             </div>
           </div>
