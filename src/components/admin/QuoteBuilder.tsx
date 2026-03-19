@@ -14,6 +14,7 @@ interface Section {
   id: number; name: string; sqft: number; pitch: number;
   workType: WorkType; layers: 1 | 2; wasteFactor: number;
   color: string; centroidLat: number; centroidLng: number;
+  perimeterFt?: number;
 }
 
 interface AddOnsState {
@@ -151,6 +152,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [sentBanner,  setSentBanner]  = useState(false);
   const [sendError,   setSendError]   = useState('');
   const [saveStatus,  setSaveStatus]  = useState<'idle' | 'saved' | 'unsaved'>('idle');
+
+  /* ── Materials reference state ──────────────────────── */
+  const [materialsRefOpen,      setMaterialsRefOpen]      = useState(false);
+  const [materialsRefOverrides, setMaterialsRefOverrides] = useState<Record<string, number | undefined>>({});
 
   /* ── 0. Restore quote_data on mount ────────────────── */
   useEffect(() => {
@@ -598,10 +603,21 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       labelOverlay.setMap(mapRef.current);
     }
     overlaysRef.current.set(pendingShape.id, { shape: overlay, label: labelOverlay });
+    let perimeterFt = 0;
+    if ('getPath' in overlay) {
+      perimeterFt = Math.round(google.maps.geometry.spherical.computeLength((overlay as google.maps.Polygon).getPath()) * 3.28084);
+    } else if ('getBounds' in overlay) {
+      const b = (overlay as google.maps.Rectangle).getBounds()!;
+      const ne = b.getNorthEast(), sw = b.getSouthWest();
+      const w = google.maps.geometry.spherical.computeDistanceBetween(ne, new google.maps.LatLng(ne.lat(), sw.lng()));
+      const h = google.maps.geometry.spherical.computeDistanceBetween(ne, new google.maps.LatLng(sw.lat(), ne.lng()));
+      perimeterFt = Math.round(2 * (w + h) * 3.28084);
+    }
     setSections(prev => [...prev, {
       id: pendingShape.id, name, sqft: pendingShape.sqft, pitch: 18, workType: 'replace',
       layers: 1, wasteFactor: 12, color: pendingShape.color,
       centroidLat: centroid?.lat() ?? 0, centroidLng: centroid?.lng() ?? 0,
+      perimeterFt,
     }]);
     setPendingShape(null); setPendingName(''); pendingOvRef.current = null;
   }
@@ -773,6 +789,15 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   const anyOverride = !!(manualSqft && manualSqftSource !== 'solar');
   const activePitchOption = PITCH_CATEGORY_OPTIONS.find(o => o.value === pitchCategory)!;
+
+  const materialsCalc = useMemo(() => {
+    const totalAdjustedSqft = priceCalc.effectiveSqft > 0 ? Math.round(priceCalc.effectiveSqft * 1.1) : 0;
+    const shingles     = totalAdjustedSqft > 0 ? Math.ceil((totalAdjustedSqft / 100) * 3) : 0;
+    const perimeterFt  = sections.reduce((sum, s) => sum + (s.perimeterFt ?? 0), 0);
+    const ridgeCap     = completedMeasurements.reduce((sum, m) => sum + m.totalFt, 0);
+    const roofVent     = totalAdjustedSqft > 0 ? Math.ceil(totalAdjustedSqft / 300) : 0;
+    return { shingles, starterStrip: perimeterFt, dripEdge: perimeterFt, ridgeCap, roofVent, pipeBoot: 0, valley: 0 };
+  }, [priceCalc.effectiveSqft, sections, completedMeasurements]);
 
   /* ═══════════════ SAVE / SEND ════════════════════════ */
   async function handleSave() {
@@ -1554,6 +1579,66 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* MATERIALS REFERENCE — internal only, never in PDF */}
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+          <button onClick={() => setMaterialsRefOpen(o => !o)} className="w-full flex items-center justify-between text-left">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Materials Reference</h3>
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30">Internal Only</span>
+            </div>
+            <svg className={`w-3.5 h-3.5 text-gray-500 transition-transform ${materialsRefOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          {materialsRefOpen && (
+            <div className="mt-3 space-y-1.5">
+              {([
+                { key: 'shingles',     label: 'Shingles',      unit: 'bundles',   calc: materialsCalc.shingles },
+                { key: 'starterStrip', label: 'Starter Strip', unit: 'linear ft', calc: materialsCalc.starterStrip },
+                { key: 'dripEdge',     label: 'Drip Edge',     unit: 'linear ft', calc: materialsCalc.dripEdge },
+                { key: 'ridgeCap',     label: 'Ridge Cap',     unit: 'linear ft', calc: materialsCalc.ridgeCap },
+                { key: 'roofVent',     label: 'Roof Vent',     unit: 'qty',       calc: materialsCalc.roofVent },
+                { key: 'pipeBoot',     label: 'Pipe Boot',     unit: 'qty',       calc: materialsCalc.pipeBoot },
+                { key: 'valley',       label: 'Valley',        unit: 'linear ft', calc: materialsCalc.valley },
+              ] as const).map(({ key, label, unit, calc }) => {
+                const override = materialsRefOverrides[key];
+                const isOverridden = override !== undefined && override !== calc;
+                const displayVal = override !== undefined ? override : calc;
+                return (
+                  <div key={key} className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-300">{label}</p>
+                      <p className="text-[10px] text-gray-600">calc: {calc} {unit}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <input
+                        type="number" min={0} step={1}
+                        value={displayVal === 0 && override === undefined ? '' : displayVal}
+                        placeholder={String(calc)}
+                        onChange={e => {
+                          const v = parseInt(e.target.value);
+                          setMaterialsRefOverrides(p => ({ ...p, [key]: isNaN(v) ? undefined : Math.max(0, v) }));
+                        }}
+                        className={`w-16 bg-gray-700 border rounded px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-blue-500 ${isOverridden ? 'border-yellow-500/50' : 'border-gray-600'}`}
+                      />
+                      <span className="text-[10px] text-gray-500 w-14">{unit}</span>
+                      {isOverridden ? (
+                        <button
+                          onClick={() => setMaterialsRefOverrides(p => ({ ...p, [key]: undefined }))}
+                          title="Reset to calculated"
+                          className="text-yellow-600 hover:text-yellow-400 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                        </button>
+                      ) : (
+                        <span className="w-3.5" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* PRICE BREAKDOWN */}
