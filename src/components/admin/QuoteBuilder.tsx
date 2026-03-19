@@ -768,7 +768,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
         sections.length > 0 ? `Sections:\n${sectionLines}` : `Area source: ${priceCalc.sqftSource || 'none'} (${totalSqft} sqft)`,
         `Material: ${material === 'premium' ? 'Premium (UHDZ, 50-yr)' : 'Standard (HDZ, 30-yr)'}`,
         `Pitch: ${activePitchOption.label} (+$${activePitchOption.surcharge.toFixed(2)}/sqft)`,
-        `Price range: ${fmtMoney(priceCalc.rangeMin)} – ${fmtMoney(priceCalc.rangeMax)}`,
+        `Project Investment: ${fmtMoney(priceCalc.subtotal)}`,
         scopeNotes ? `Notes: ${scopeNotes}` : null,
       ].filter(Boolean).join('\n');
       await fetch(`/api/admin/leads/${leadId}/notes`, {
@@ -1499,22 +1499,14 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <span className="text-gray-400">Subtotal</span>
                 <span className="text-white font-semibold">{fmtMoney(priceCalc.subtotal)}</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Range adjustment</span>
-                <span>{proposalType === 'pre' ? '−$2,000 / +$2,000' : '−$1,000 / +$1,000'}</span>
-              </div>
             </div>
           )}
           <div className="bg-[#0f1e3b] rounded-xl border border-blue-900/40 p-4 mt-4">
             <p className="text-xs text-blue-300/60 mb-1">
-              {proposalType === 'pre' ? 'Preliminary Estimate Range' : 'Estimated Project Range'}
+              {proposalType === 'pre' ? 'Preliminary Estimate' : 'Project Investment'}
             </p>
             <p className="text-2xl font-black text-white">
-              {priceCalc.subtotal > 0
-                ? proposalType === 'pre'
-                  ? `${fmtMoney(priceCalc.preRangeMin)} – ${fmtMoney(priceCalc.preRangeMax)}`
-                  : `${fmtMoney(priceCalc.rangeMin)} – ${fmtMoney(priceCalc.rangeMax)}`
-                : '—'}
+              {priceCalc.subtotal > 0 ? fmtMoney(priceCalc.subtotal) : '—'}
             </p>
             {priceCalc.sqftSource && (
               <p className="text-[10px] text-blue-300/40 mt-1.5">
