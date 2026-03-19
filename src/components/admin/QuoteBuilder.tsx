@@ -98,6 +98,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const lastSavedDataRef   = useRef<string>('');
   const initialLoadDoneRef = useRef(false);
   const measuringRef       = useRef(false);
+  const dblClickTimeRef    = useRef(0);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -444,7 +445,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     measuringRef.current = true;
 
     const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
-      if (!e.latLng || !measuringRef.current) return;
+      if (!e.latLng || !measuringRef.current || Date.now() - dblClickTimeRef.current < 300) return;
       const newPts = [...measurePointsRef.current, e.latLng];
       measurePointsRef.current = newPts;
       setMeasurePoints(newPts.map(p => ({ lat: p.lat(), lng: p.lng() })));
@@ -467,6 +468,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     });
 
     const dblClickListener = map.addListener('dblclick', () => {
+      dblClickTimeRef.current = Date.now();
       measuringRef.current = false;
       const pts = measurePointsRef.current;
       if (pts.length >= 2) {
@@ -475,10 +477,13 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           totalFt += google.maps.geometry.spherical.computeDistanceBetween(pts[i - 1], pts[i]) * 3.28084;
         }
         const id = measureCounterRef.current++;
+        const defaultName = `Ridge ${id + 1}`;
         setCompletedMeasurements(prev => [...prev, {
-          id, name: `Ridge ${id + 1}`, totalFt: Math.round(totalFt),
+          id, name: defaultName, totalFt: Math.round(totalFt),
           points: pts.map(p => ({ lat: p.lat(), lng: p.lng() })),
         }]);
+        setRenamingMeasId(id);
+        setRenameMeasVal(defaultName);
       }
       setMeasureMode(false);
     });
@@ -646,10 +651,13 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       totalFt += google.maps.geometry.spherical.computeDistanceBetween(pts[i - 1], pts[i]) * 3.28084;
     }
     const id = measureCounterRef.current++;
+    const defaultName = `Ridge ${id + 1}`;
     setCompletedMeasurements(prev => [...prev, {
-      id, name: `Ridge ${id + 1}`, totalFt: Math.round(totalFt),
+      id, name: defaultName, totalFt: Math.round(totalFt),
       points: pts.map(p => ({ lat: p.lat(), lng: p.lng() })),
     }]);
+    setRenamingMeasId(id);
+    setRenameMeasVal(defaultName);
   }
 
   function snapZoom(z: number) { mapRef.current?.setZoom(z); }
