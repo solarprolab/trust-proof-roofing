@@ -17,7 +17,7 @@ interface Section {
 }
 
 interface AddOnsState {
-  ridgeVent: boolean; gutterLinearFt: number;
+  ridgeVent: boolean; gutterLinearFt: number; plywoodSheets: number; skylightQty: number; skylightPriceEach: number;
 }
 
 interface PendingShape { id: number; sqft: number; color: string; }
@@ -141,7 +141,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [proposalType, setProposalType] = useState<'pre' | 'post'>('post');
   const [material,    setMaterial]    = useState<'standard' | 'premium'>('standard');
   const [addOns,      setAddOns]      = useState<AddOnsState>({
-    ridgeVent: false, gutterLinearFt: 0,
+    ridgeVent: false, gutterLinearFt: 0, plywoodSheets: 0, skylightQty: 0, skylightPriceEach: 0,
   });
   const [scopeNotes,  setScopeNotes]  = useState('');
   const [saving,      setSaving]      = useState(false);
@@ -698,6 +698,10 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     if (addOns.ridgeVent) lineItems.push({ label: 'Ridge Vent Upgrade', amount: 300 });
     if (addOns.gutterLinearFt > 0)
       lineItems.push({ label: `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5)`, homeownerLabel: 'Gutter Installation', amount: addOns.gutterLinearFt * 5 });
+    if (addOns.plywoodSheets > 0)
+      lineItems.push({ label: `Plywood Replacement (${addOns.plywoodSheets} sheets × $50)`, homeownerLabel: 'Plywood Replacement', amount: addOns.plywoodSheets * 50 });
+    if (addOns.skylightQty > 0 && addOns.skylightPriceEach > 0)
+      lineItems.push({ label: `Skylight (${addOns.skylightQty} × $${addOns.skylightPriceEach})`, homeownerLabel: 'Skylight', amount: addOns.skylightQty * addOns.skylightPriceEach });
 
     // Standard shingle: flat $500 deduction (internal only — homeowner sees net price)
     if (material === 'standard') {
@@ -792,6 +796,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
           addOns: [
             addOns.ridgeVent && 'Ridge Vent Upgrade (+$300)',
             addOns.gutterLinearFt > 0 && `Gutter Installation (${addOns.gutterLinearFt} linear ft × $5 = +$${addOns.gutterLinearFt * 5})`,
+            addOns.plywoodSheets > 0 && `Plywood Replacement (${addOns.plywoodSheets} sheets × $50 = +$${addOns.plywoodSheets * 50})`,
+            addOns.skylightQty > 0 && addOns.skylightPriceEach > 0 && `Skylight (${addOns.skylightQty} × $${addOns.skylightPriceEach} = +$${addOns.skylightQty * addOns.skylightPriceEach})`,
           ].filter(Boolean) as string[],
           skylights: 0, chimneys: 0,
           priceBreakdown: {
@@ -1457,6 +1463,52 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
                 <span className="text-[10px] text-gray-400">linear ft</span>
                 {addOns.gutterLinearFt > 0 && (
                   <span className="text-[10px] text-green-400 font-medium">+${addOns.gutterLinearFt * 5}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
+              <div>
+                <p className="text-xs font-semibold text-gray-300">Plywood Replacement</p>
+                <p className="text-[10px] text-gray-500">Rotted decking replacement · sheets × $50</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number" min={0} step={1}
+                  value={addOns.plywoodSheets || ''}
+                  placeholder="0"
+                  onChange={e => setAddOns(p => ({ ...p, plywoodSheets: Math.max(0, parseInt(e.target.value) || 0) }))}
+                  className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-blue-500"
+                />
+                <span className="text-[10px] text-gray-400">sheets</span>
+                {addOns.plywoodSheets > 0 && (
+                  <span className="text-[10px] text-green-400 font-medium">+${addOns.plywoodSheets * 50}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between bg-gray-800 rounded-lg border border-gray-700 px-3 py-2">
+              <div>
+                <p className="text-xs font-semibold text-gray-300">Skylight</p>
+                <p className="text-[10px] text-gray-500">qty × price per unit</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number" min={0} step={1}
+                  value={addOns.skylightQty || ''}
+                  placeholder="qty"
+                  onChange={e => setAddOns(p => ({ ...p, skylightQty: Math.max(0, parseInt(e.target.value) || 0) }))}
+                  className="w-12 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-blue-500"
+                />
+                <span className="text-[10px] text-gray-400">×</span>
+                <span className="text-[10px] text-gray-400">$</span>
+                <input
+                  type="number" min={0} step={1}
+                  value={addOns.skylightPriceEach || ''}
+                  placeholder="price"
+                  onChange={e => setAddOns(p => ({ ...p, skylightPriceEach: Math.max(0, parseInt(e.target.value) || 0) }))}
+                  className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white text-right focus:outline-none focus:border-blue-500"
+                />
+                {addOns.skylightQty > 0 && addOns.skylightPriceEach > 0 && (
+                  <span className="text-[10px] text-green-400 font-medium">+${addOns.skylightQty * addOns.skylightPriceEach}</span>
                 )}
               </div>
             </div>
