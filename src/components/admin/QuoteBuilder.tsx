@@ -100,6 +100,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const initialLoadDoneRef = useRef(false);
   const measuringRef       = useRef(false);
   const dblClickTimeRef    = useRef(0);
+  const edgeLabelsRef      = useRef<any[]>([]);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -139,6 +140,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const [highlightedMeasId,  setHighlightedMeasId]  = useState<number | null>(null);
   const [renamingMeasId,     setRenamingMeasId]     = useState<number | null>(null);
   const [renameMeasVal,      setRenameMeasVal]      = useState('');
+  const [selectedSectionId,  setSelectedSectionId]  = useState<number | null>(null);
 
   /* ── Quote state ───────────────────────────────────── */
   const [proposalType, setProposalType] = useState<'pre' | 'post'>('post');
@@ -319,6 +321,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       setDrawMode(null);
       (overlay as any)._centroid = centroid;
     });
+
+    map.addListener('click', () => setSelectedSectionId(null));
 
     setMapInitialized(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -570,9 +574,47 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   useEffect(() => {
     sections.forEach(s => {
       const entry = overlaysRef.current.get(s.id);
-      if (entry?.label) entry.label.update(`<strong>${s.name}</strong><br>${s.sqft.toLocaleString()} sqft`);
+      if (entry?.label) {
+        const perimText = s.perimeterFt ? ` — ${s.perimeterFt.toLocaleString()} ft` : '';
+        entry.label.update(`<strong>${s.name}</strong><br>${s.sqft.toLocaleString()} sqft${perimText}`);
+      }
     });
   }, [sections]);
+
+  /* ── 9. Edge measurement labels for selected section ── */
+  useEffect(() => {
+    // Always clear previous edge labels on re-run
+    edgeLabelsRef.current.forEach(l => l.setMap(null));
+    edgeLabelsRef.current = [];
+    if (selectedSectionId === null || !mapInitialized || !mapRef.current || !LabelClassRef.current) return;
+    const entry = overlaysRef.current.get(selectedSectionId);
+    if (!entry) return;
+    const { shape } = entry;
+    let vertices: google.maps.LatLng[] = [];
+    if ('getPath' in shape) {
+      const path = (shape as google.maps.Polygon).getPath();
+      for (let i = 0; i < path.getLength(); i++) vertices.push(path.getAt(i));
+    } else if ('getBounds' in shape) {
+      const b = (shape as google.maps.Rectangle).getBounds()!;
+      const ne = b.getNorthEast(), sw = b.getSouthWest();
+      vertices = [ne, new google.maps.LatLng(ne.lat(), sw.lng()), sw, new google.maps.LatLng(sw.lat(), ne.lng())];
+    }
+    if (vertices.length < 2) return;
+    for (let i = 0; i < vertices.length; i++) {
+      const p1 = vertices[i];
+      const p2 = vertices[(i + 1) % vertices.length];
+      const distFt = (google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084).toFixed(1);
+      const mid = new google.maps.LatLng((p1.lat() + p2.lat()) / 2, (p1.lng() + p2.lng()) / 2);
+      const lbl = new LabelClassRef.current(mid, `${distFt} ft`);
+      lbl.setMap(mapRef.current);
+      edgeLabelsRef.current.push(lbl);
+    }
+    return () => {
+      edgeLabelsRef.current.forEach(l => l.setMap(null));
+      edgeLabelsRef.current = [];
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSectionId, mapInitialized]);
 
   /* ── Unsaved changes tracking ───────────────────────── */
   const currentStateJson = useMemo(() => {
@@ -597,12 +639,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     const name = pendingName.trim() || `Section ${pendingShape.id + 1}`;
     const overlay = pendingOvRef.current;
     const centroid = (overlay as any)._centroid as google.maps.LatLng;
-    let labelOverlay: any = null;
-    if (LabelClassRef.current && mapRef.current) {
-      labelOverlay = new LabelClassRef.current(centroid, `<strong>${name}</strong><br>${pendingShape.sqft.toLocaleString()} sqft`);
-      labelOverlay.setMap(mapRef.current);
-    }
-    overlaysRef.current.set(pendingShape.id, { shape: overlay, label: labelOverlay });
+    // Compute perimeter first so it can go into the centroid label
     let perimeterFt = 0;
     if ('getPath' in overlay) {
       perimeterFt = Math.round(google.maps.geometry.spherical.computeLength((overlay as google.maps.Polygon).getPath()) * 3.28084);
@@ -613,6 +650,15 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       const h = google.maps.geometry.spherical.computeDistanceBetween(ne, new google.maps.LatLng(sw.lat(), ne.lng()));
       perimeterFt = Math.round(2 * (w + h) * 3.28084);
     }
+    let labelOverlay: any = null;
+    if (LabelClassRef.current && mapRef.current) {
+      const perimText = perimeterFt > 0 ? ` — ${perimeterFt.toLocaleString()} ft` : '';
+      labelOverlay = new LabelClassRef.current(centroid, `<strong>${name}</strong><br>${pendingShape.sqft.toLocaleString()} sqft${perimText}`);
+      labelOverlay.setMap(mapRef.current);
+    }
+    overlaysRef.current.set(pendingShape.id, { shape: overlay, label: labelOverlay });
+    const sectionId = pendingShape.id;
+    overlay.addListener('click', () => setSelectedSectionId(sectionId));
     setSections(prev => [...prev, {
       id: pendingShape.id, name, sqft: pendingShape.sqft, pitch: 18, workType: 'replace',
       layers: 1, wasteFactor: 12, color: pendingShape.color,
@@ -632,6 +678,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     const e = overlaysRef.current.get(id);
     if (e) { e.shape.setMap(null); e.label?.setMap(null); overlaysRef.current.delete(id); }
     setSections(prev => prev.filter(s => s.id !== id));
+    setSelectedSectionId(prev => prev === id ? null : prev);
   }
 
   function undoLast() {
@@ -644,6 +691,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     if (pendingShape) cancelPending();
     sections.forEach(s => { const e = overlaysRef.current.get(s.id); e?.shape.setMap(null); e?.label?.setMap(null); });
     overlaysRef.current.clear(); setSections([]); setClearConfirm(false); counterRef.current = 0;
+    setSelectedSectionId(null);
   }
 
   function updateSection(id: number, patch: Partial<Section>) {
