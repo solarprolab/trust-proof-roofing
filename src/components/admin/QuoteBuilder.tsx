@@ -101,6 +101,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
   const measuringRef       = useRef(false);
   const dblClickTimeRef    = useRef(0);
   const edgeLabelsRef      = useRef<any[]>([]);
+  const EdgeLabelClassRef  = useRef<any>(null);
 
   /* ── Map state ─────────────────────────────────────── */
   const [mapsReady,      setMapsReady]      = useState(false);
@@ -258,6 +259,24 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       }
     }
     LabelClassRef.current = LabelOverlay;
+
+    class EdgeLabelOverlay extends google.maps.OverlayView {
+      private div: HTMLDivElement | null = null;
+      constructor(private pos: google.maps.LatLng, private text: string) { super(); }
+      onAdd() {
+        const d = document.createElement('div');
+        d.style.cssText = 'position:absolute;background:rgba(0,0,0,0.85);color:#fff;padding:2px 7px;border-radius:4px;font-size:10px;font-family:sans-serif;white-space:nowrap;pointer-events:none;transform:translate(-50%,-50%);line-height:1.5;border:1px solid rgba(255,255,255,0.25);font-weight:500;letter-spacing:0.02em;';
+        d.textContent = this.text; this.div = d;
+        this.getPanes()!.overlayLayer.appendChild(d);
+      }
+      draw() {
+        if (!this.div) return;
+        const pt = this.getProjection()?.fromLatLngToDivPixel(this.pos);
+        if (pt) { this.div.style.left = `${pt.x}px`; this.div.style.top = `${pt.y}px`; }
+      }
+      onRemove() { this.div?.parentNode?.removeChild(this.div); this.div = null; }
+    }
+    EdgeLabelClassRef.current = EdgeLabelOverlay;
 
     const map = new google.maps.Map(mapDivRef.current, {
       center: geocodedLoc, zoom: 20, mapTypeId: 'satellite',
@@ -583,10 +602,9 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
 
   /* ── 9. Edge measurement labels for selected section ── */
   useEffect(() => {
-    // Always clear previous edge labels on re-run
     edgeLabelsRef.current.forEach(l => l.setMap(null));
     edgeLabelsRef.current = [];
-    if (selectedSectionId === null || !mapInitialized || !mapRef.current || !LabelClassRef.current) return;
+    if (selectedSectionId === null || !mapInitialized || !mapRef.current || !EdgeLabelClassRef.current) return;
     const entry = overlaysRef.current.get(selectedSectionId);
     if (!entry) return;
     const { shape } = entry;
@@ -594,7 +612,8 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
     if ('getPath' in shape) {
       const path = (shape as google.maps.Polygon).getPath();
       for (let i = 0; i < path.getLength(); i++) vertices.push(path.getAt(i));
-    } else if ('getBounds' in shape) {
+    } else {
+      // Rectangle: derive 4 corners from bounds
       const b = (shape as google.maps.Rectangle).getBounds()!;
       const ne = b.getNorthEast(), sw = b.getSouthWest();
       vertices = [ne, new google.maps.LatLng(ne.lat(), sw.lng()), sw, new google.maps.LatLng(sw.lat(), ne.lng())];
@@ -605,7 +624,7 @@ export default function QuoteBuilder({ lead, leadId }: Props) {
       const p2 = vertices[(i + 1) % vertices.length];
       const distFt = (google.maps.geometry.spherical.computeDistanceBetween(p1, p2) * 3.28084).toFixed(1);
       const mid = new google.maps.LatLng((p1.lat() + p2.lat()) / 2, (p1.lng() + p2.lng()) / 2);
-      const lbl = new LabelClassRef.current(mid, `${distFt} ft`);
+      const lbl = new EdgeLabelClassRef.current(mid, `${distFt} ft`);
       lbl.setMap(mapRef.current);
       edgeLabelsRef.current.push(lbl);
     }
